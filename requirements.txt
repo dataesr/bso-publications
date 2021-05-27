@@ -1,0 +1,20 @@
+# Dev dependencies
+pytest==6.2.3
+pytest-mock==3.5.1
+requests-mock==1.9.2
+
+# Dependencies
+beautifulsoup4==4.8.2
+pandas==0.25.3
+python-keystoneclient==4.0.0
+python-swiftclient==3.9.0
+Flask==1.1.1
+Flask-Bootstrap==3.3.7.1
+lxml==4.6.3
+redis==3.3.11
+requests==2.19.1
+rq==1.1.0
+pymongo==3.8.0
+CurrencyConverter==0.16
+tokenizers==0.10.1
+fasttext==0.9.1
