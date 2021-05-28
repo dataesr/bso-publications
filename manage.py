@@ -8,19 +8,8 @@ app = create_app()
 cli = FlaskGroup(create_app=create_app)
 
 
-@cli.command()
-def test():
-    """Runs the unit tests without test coverage."""
-    tests = unittest.TestLoader().discover("bso/tests", pattern="test*.py")
-    result = unittest.TextTestRunner(verbosity=2).run(tests)
-    if result.wasSuccebso:
-        return 0
-    return 1
-
-
 @cli.command("run_worker")
 def run_worker():
-
     redis_url = app.config["REDIS_URL"]
     redis_connection = redis.from_url(redis_url)
     with Connection(redis_connection):

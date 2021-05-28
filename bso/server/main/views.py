@@ -1,10 +1,10 @@
 import redis
 import requests
 
-from rq import Queue, Connection
-from flask import render_template, Blueprint, jsonify, request, current_app
+from rq import Connection, Queue
+from flask import Blueprint, current_app, jsonify, render_template, request
 
-from bso.server.main.tasks import create_task_enrich, create_task_download_unpaywall, create_task_load_mongo
+from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_load_mongo
 
 main_blueprint = Blueprint("main", __name__, )
 
@@ -13,12 +13,14 @@ main_blueprint = Blueprint("main", __name__, )
 def home():
     return render_template("home.html")
 
+
 @main_blueprint.route("/forward", methods=["POST"])
 def run_task_forward():
     args = request.get_json(force=True)
     print(args, flush=True)
     response_object = requests.post(args.get("url"), json=args.get("params")).json()
     return jsonify(response_object), 202
+
 
 @main_blueprint.route("/enrich", methods=["POST"])
 def run_task_enrich():
@@ -35,6 +37,7 @@ def run_task_enrich():
     }
     return jsonify(response_object), 202
 
+
 @main_blueprint.route("/download_unpaywall", methods=["POST"])
 def run_task_download_unpaywall():
     args = request.get_json(force=True)
@@ -49,6 +52,7 @@ def run_task_download_unpaywall():
         }
     }
     return jsonify(response_object), 202
+
 
 @main_blueprint.route("/load_mongo", methods=["POST"])
 def run_task_load_mongo():

@@ -1,13 +1,14 @@
+import io
 import pandas as pd
 import requests
-import io
 import string
 
 from currency_converter import CurrencyConverter
-c = CurrencyConverter(fallback_on_wrong_date=True)
 
-s=requests.get("https://doaj.org/csv").content
-df_doaj=pd.read_csv(io.StringIO(s.decode('utf-8')))
+c = CurrencyConverter(fallback_on_wrong_date=True)
+s = requests.get("https://doaj.org/csv").content
+df_doaj = pd.read_csv(io.StringIO(s.decode('utf-8')))
+
 
 def is_digit_only(x):
     digits_only = True
@@ -15,7 +16,8 @@ def is_digit_only(x):
         if w not in string.digits:
             digits_only = False
     return digits_only
-    
+
+
 def split_currency(x):
     if pd.isnull(x):
         return None
@@ -25,13 +27,13 @@ def split_currency(x):
     for w in currency:
         if w not in string.ascii_uppercase:
             return None
-        
     amount = x.replace(currency, "").strip()
     try:
         amount = int(amount)
     except:
         return None
     return {"amount": amount, "currency": currency}
+
 
 doaj_infos = {}
 for i, row in df_doaj.iterrows():
@@ -40,7 +42,7 @@ for i, row in df_doaj.iterrows():
             issn = row[issn_type]
             if not isinstance(issn, str):
                 continue
-            if len(issn) <3:
+            if len(issn) < 3:
                 continue
             apc_amount = None
             apc_amount_EUR = None
@@ -76,6 +78,7 @@ for i, row in df_doaj.iterrows():
             }
             doaj_infos[issn] = current_info
 
+
 def detect_doaj(issns, date_str):
     for issn in issns:
         if issn in doaj_infos:
@@ -85,14 +88,15 @@ def detect_doaj(issns, date_str):
             has_apc = info['has_apc']
             if amount and currency:
                 try:
-                    amount_EUR = c.convert(amount, currency, 'EUR', date=pd.to_datetime(date_str))
+                    amount_eur = c.convert(amount, currency, 'EUR', date=pd.to_datetime(date_str))
                 except:
-                    amount_EUR = None
-                return {"has_apc": has_apc, 
-                            "amount_apc_EUR": amount_EUR,
-                            "apc_source": "doaj",
-                            "amount_apc_doaj_EUR": amount_EUR,
-                            "amount_apc_doaj": amount,
-                            "currency_apc_doaj": currency }
+                    amount_eur = None
+                return {
+                    "has_apc": has_apc,
+                    "amount_apc_EUR": amount_eur,
+                    "apc_source": "doaj",
+                    "amount_apc_doaj_EUR": amount_eur,
+                    "amount_apc_doaj": amount,
+                    "currency_apc_doaj": currency
+                }
     return {"has_apc": None}
-
