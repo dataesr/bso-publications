@@ -75,7 +75,13 @@ def format_upw(dois_infos, extra_data):
     
         # language
         if 'language' not in res or len(res['language'])<2:
-            res['language'] = identify_language(res.get('title', '') + res.get('abstract', ''))
+            publi_title_abstract = ""
+            if res.get('title'):
+                publi_title_abstract += res.get('title') + " "
+            if res.get('abstract'):
+                publi_title_abstract += res.get('abstract')
+            if len(publi_title_abstract) > 5:
+                res['language'] = identify_language(publi_title_abstract.strip())
         
         ## predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))

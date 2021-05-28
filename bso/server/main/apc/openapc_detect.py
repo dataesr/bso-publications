@@ -32,9 +32,10 @@ def detect_openapc(doi, issns, date_str):
                 "amount_apc_openapc_EUR": openapc_doi[doi]}
     for issn in issns:
         if issn:
-            key = issn.strip()+";"+date_str[0:4]
-            if key in apc_avg:
-                return  {"has_apc": True, "amount_apc_EUR": apc_avg[key], "apc_source": "openAPC estimation",
-                     "amount_apc_openapc_EUR": apc_avg[key]}
+            if date_str:
+                key = issn.strip()+";"+date_str[0:4]
+                if key in apc_avg:
+                    return  {"has_apc": True, "amount_apc_EUR": apc_avg[key], "apc_source": "openAPC estimation",
+                         "amount_apc_openapc_EUR": apc_avg[key]}
 
     return {"has_apc": None}

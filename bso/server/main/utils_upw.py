@@ -103,7 +103,12 @@ def format_upw_millesime(elem, asof, has_apc):
         if host_type == 'repository':
             status = 'green'
             current_repo_url = loc['url'].split('/')[2]
-            current_repo_pmh = loc.get('pmh_id', '').split(':')[1]
+            current_repo_pmh = None
+            pmh_id = loc.get('pmh_id')
+            if pmh_id:
+                pmh_id_l = pmh_id.split(':')
+                if len(pmh_id_l) > 1:
+                    current_repo_pmh = pmh_id_l[1]
             current_repo_instit = loc.get('repository_institution')
             #if 'hal' in current_repo.lower():
             #    current_repo = 'HAL'

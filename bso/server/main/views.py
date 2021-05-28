@@ -17,7 +17,7 @@ def home():
 def run_task_forward():
     args = request.get_json(force=True)
     print(args, flush=True)
-    response_object = requests.post(args.get("url"), json=args.get("params"))
+    response_object = requests.post(args.get("url"), json=args.get("params")).json()
     return jsonify(response_object), 202
 
 @main_blueprint.route("/enrich", methods=["POST"])
