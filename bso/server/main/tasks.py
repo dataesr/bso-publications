@@ -1,21 +1,26 @@
 import datetime
-from bso.server.main.unpaywall_enrich import enrich
-from bso.server.main.unpaywall_feed import download_snapshot, download_daily, snapshot_to_mongo
-
 import os
+
+from bso.server.main.unpaywall_enrich import enrich
+from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
+
 PV_MOUNT = "/upw_data"
+
 
 def create_task_enrich(arg):
     publis = arg.get('publications', [])
     return enrich(publis)
 
+
 def create_task_download_unpaywall(arg):
+    snap = None
     if arg.get('type') == "snapshot":
-        snap = download_snapshot(asof = arg.get('asof'))
+        snap = download_snapshot(asof=arg.get('asof'))
     elif arg.get('type') == "daily":
         today = datetime.date.today()
         snap = download_daily(f"{today}")
     return snap
+
 
 def create_task_load_mongo(arg):
     if arg.get('asof'):

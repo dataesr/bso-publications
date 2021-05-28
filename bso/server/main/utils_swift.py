@@ -1,9 +1,9 @@
-import swiftclient
-import json
-import pandas as pd
 import gzip
-from io import BytesIO, TextIOWrapper
 import os
+import pandas as pd
+import swiftclient
+
+from io import BytesIO, TextIOWrapper
 
 from bso.server.main.logger import get_logger
 
@@ -14,11 +14,6 @@ key = os.getenv("OS_PASSWORD")
 project_id = os.getenv("OS_TENANT_ID")
 project_name = os.getenv("OS_PROJECT_NAME")
 
-#user=":"
-#key=""
-#project_id=""
-#project_name="Alvitur"
-
 conn = swiftclient.Connection(
     authurl='https://auth.cloud.ovh.net/v3',
     user=user,
@@ -26,11 +21,13 @@ conn = swiftclient.Connection(
     os_options={
             'user_domain_name': 'Default',
             'project_domain_name': 'Default',
-            'project_id':project_id,
+            'project_id': project_id,
             'project_name': project_name,
-            'region_name':'GRA'},
+            'region_name': 'GRA'
+    },
     auth_version='3'
-    )
+)
+
 
 def upload_object(container, filename):
     object_name = filename.split('/')[-1]
@@ -47,6 +44,7 @@ def upload_object(container, filename):
     os.system(cmd)
     return f"https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{object_name}"
 
+
 def download_object(container, filename, out):
     logger.debug(f"downloading {filename} from {container} to {out}")
     cmd = f"swift --os-auth-url https://auth.cloud.ovh.net/v3 --auth-version 3\
@@ -59,20 +57,23 @@ def download_object(container, filename, out):
     cmd = cmd + f" download {container} {filename} -o {out}"
     os.system(cmd)
 
+
 def exists_in_storage(container, filename):
     try:
         conn.head_object(container, filename)
         return True
     except:
         return False
-    
+
+
 def get_objects(container, path):
     try:
         df = pd.read_json(BytesIO(conn.get_object(container, path)[1]), compression='gzip')
     except:
         df = pd.DataFrame([])
     return df.to_dict("records")
-    
+
+
 def set_objects(all_objects, container, path):
     logger.debug(f"setting object {container} {path}")
     if isinstance(all_objects, list):
