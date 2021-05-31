@@ -70,8 +70,8 @@ def download_snapshot(asof: str = None, upload_to_object_storage: bool = True) -
         return download_file(url_snapshot, upload_to_object_storage)
 
 
-def download_daily(dt: str) -> str:
+def download_daily(date: str) -> str:
     daily_files = requests.get(f'https://api.unpaywall.org/feed/changefiles?api_key={UPW_API_KEY}&interval=day') \
         .json()['list']
-    daily_url = [e for e in daily_files if e.get('date') == dt and e.get('filetype') == 'jsonl'][0]['url']
+    daily_url = [e for e in daily_files if e.get('date') == date and e.get('filetype') == 'jsonl'][0]['url']
     return download_file(daily_url)

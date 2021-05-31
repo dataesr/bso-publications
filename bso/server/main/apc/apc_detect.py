@@ -2,7 +2,7 @@ from bso.server.main.apc.doaj_detect import detect_doaj
 from bso.server.main.apc.openapc_detect import detect_openapc
 
 
-def detect_apc(doi, journal_issns, published_date) -> dict:
+def detect_apc(doi: str, journal_issns: str, published_date: str) -> dict:
     issns = []
     if journal_issns:
         issns = [k.strip() for k in journal_issns.split(',')]
@@ -15,5 +15,5 @@ def detect_apc(doi, journal_issns, published_date) -> dict:
         res.update(res_doaj)
     for field in ['amount_apc_doaj_EUR', 'amount_apc_doaj', 'currency_apc_doaj']:
         if field in res_doaj and res_doaj.get(field):
-            res[field] = res_doaj[field]
+            res[field] = res_doaj.get(field)
     return res

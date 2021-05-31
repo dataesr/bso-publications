@@ -9,10 +9,12 @@ from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
 
-user = "{}:{}".format(os.getenv("OS_TENANT_NAME"), os.getenv("OS_USERNAME"))
-key = os.getenv("OS_PASSWORD")
-project_id = os.getenv("OS_TENANT_ID")
-project_name = os.getenv("OS_PROJECT_NAME")
+key = os.getenv('OS_PASSWORD')
+project_name = os.getenv('OS_PROJECT_NAME')
+project_id = os.getenv('OS_TENANT_ID')
+tenant_name = os.getenv('OS_TENANT_NAME')
+username = os.getenv('OS_USERNAME')
+user = f'{tenant_name}:{username}'
 
 conn = swiftclient.Connection(
     authurl='https://auth.cloud.ovh.net/v3',
