@@ -1,5 +1,6 @@
-import fasttext
 import os
+
+import fasttext
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.predatory.predatory_detect import detect_predatory

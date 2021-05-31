@@ -1,9 +1,9 @@
 import gzip
 import os
+from io import BytesIO, TextIOWrapper
+
 import pandas as pd
 import swiftclient
-
-from io import BytesIO, TextIOWrapper
 
 from bso.server.main.logger import get_logger
 

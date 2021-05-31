@@ -1,8 +1,8 @@
 import io
-import pandas as pd
-import requests
 import string
 
+import pandas as pd
+import requests
 from currency_converter import CurrencyConverter
 
 c = CurrencyConverter(fallback_on_wrong_date=True)
