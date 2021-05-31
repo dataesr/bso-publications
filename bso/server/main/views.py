@@ -3,8 +3,10 @@ import requests
 from flask import Blueprint, current_app, jsonify, render_template, request
 from rq import Connection, Queue
 
+from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_load_mongo
 
+logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
 
 
@@ -16,7 +18,7 @@ def home():
 @main_blueprint.route('/forward', methods=['POST'])
 def run_task_forward():
     args = request.get_json(force=True)
-    print(args, flush=True)
+    logger.debug(args)
     response_object = requests.post(args.get('url'), json=args.get('params')).json()
     return jsonify(response_object), 202
 
@@ -24,7 +26,7 @@ def run_task_forward():
 @main_blueprint.route('/enrich', methods=['POST'])
 def run_task_enrich():
     args = request.get_json(force=True)
-    print(args, flush=True)
+    logger.debug(args, flush=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=216000)
         task = q.enqueue(create_task_enrich, args)
@@ -35,7 +37,7 @@ def run_task_enrich():
 @main_blueprint.route('/download_unpaywall', methods=['POST'])
 def run_task_download_unpaywall():
     args = request.get_json(force=True)
-    print(args, flush=True)
+    logger.debug(args, flush=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=21600)
         task = q.enqueue(create_task_download_unpaywall, args)
@@ -46,7 +48,7 @@ def run_task_download_unpaywall():
 @main_blueprint.route('/load_mongo', methods=['POST'])
 def run_task_load_mongo():
     args = request.get_json(force=True)
-    print(args, flush=True)
+    logger.debug(args, flush=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=216000)
         task = q.enqueue(create_task_load_mongo, args)

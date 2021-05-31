@@ -3,6 +3,7 @@ import os
 import fasttext
 
 from bso.server.main.apc.apc_detect import detect_apc
+from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.strings import remove_punction
 from bso.server.main.unpaywall_mongo import get_doi_full
@@ -10,13 +11,14 @@ from bso.server.main.utils import download_file
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 
 PV_MOUNT = '/src/models/'
+logger = get_logger(__name__)
 models = {}
 os.system(f'mkdir -p {PV_MOUNT}')
 project_id = os.getenv('OS_TENANT_ID')
 
 
 def init_model_lang() -> None:
-    print('init model lang', flush=True)
+    logger.debug('init model lang')
     lid_model_name = f'{PV_MOUNT}lid.176.bin'
     if not os.path.exists(lid_model_name):
         download_file(f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/models/lid.176.bin',

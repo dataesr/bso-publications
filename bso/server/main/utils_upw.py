@@ -76,7 +76,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     if res['is_oa'] is False:
         res['oa_host_type'] = ["closed"]
         res['oa_colors'] = ["closed"]
-        res['oa_colors_with_priority_to_publisher'] = ["closed"]
+        res['oa_colors_with_priority_to_publisher'] = ['closed']
         return res
     oa_loc = elem.get('oa_locations', [])
     if oa_loc is None:

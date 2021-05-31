@@ -1,10 +1,12 @@
 import datetime
 import os
 
+from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 
 PV_MOUNT = '/upw_data'
+logger = get_logger(__name__)
 
 
 def create_task_enrich(args: dict) -> list:
@@ -28,7 +30,7 @@ def create_task_load_mongo(arg: dict) -> None:
         global_metadata = arg.get('global_metadata', False)
         upload_to_object_storage = not global_metadata
         filename = download_snapshot(asof, upload_to_object_storage=upload_to_object_storage).split('/')[-1]
-        print(f'filename after download is {filename}', flush=True)
+        logger.debug(f'filename after download is {filename}')
         for f in os.listdir(PV_MOUNT):
             if f == filename:
                 snapshot_to_mongo(f'{PV_MOUNT}/{f}', global_metadata=global_metadata)
