@@ -9,14 +9,16 @@ def chunks(lst, n):
 
 def normalize_license(x: str) -> str:
     if x is None:
-        return 'no license'
+        normalized_license = 'no license'
     elif 'elsevier-specific' in x:
-        return 'elsevier-specific'
+        normalized_license = 'elsevier-specific'
     elif '-specific' in x:
-        return 'publisher-specific'
+        normalized_license = 'publisher-specific'
     elif x in ['pd', 'cc0']:
-        return 'cc0-public-domain'
-    return x
+        normalized_license = 'cc0-public-domain'
+    else:
+        normalized_license = x
+    return normalized_license
 
 
 def reduce_license(all_licenses: list) -> list:
@@ -105,10 +107,10 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             repositories_url.append(current_repo_url)
             repositories_institution.append(current_repo_instit)
             licence_repositories.append(licence)
-        elif host_type == "publisher":
+        elif host_type == 'publisher':
             licence_publisher.append(licence)
-            if has_apc is False and elem.get('journal_is_in_doaj'):
-                status = "diamond"
+            if not has_apc and elem.get('journal_is_in_doaj'):
+                status = 'diamond'
             elif elem.get('journal_is_oa') == 1:
                 status = 'gold'
             else:
