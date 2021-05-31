@@ -1,8 +1,7 @@
 import redis
 import requests
-
-from rq import Connection, Queue
 from flask import Blueprint, current_app, jsonify, render_template, request
+from rq import Connection, Queue
 
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_load_mongo
 

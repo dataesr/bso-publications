@@ -1,8 +1,9 @@
 import datetime
 import os
 import re
-import requests
 import shutil
+
+import requests
 
 from bso.server.main.utils_swift import upload_object
 
