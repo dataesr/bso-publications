@@ -6,8 +6,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class BaseConfig(object):
     """Base configuration."""
     WTF_CSRF_ENABLED = True
-    REDIS_URL = "redis://redis:6379/0"
-    QUEUES = ["bso-publications"]
+    REDIS_URL = 'redis://redis:6379/0'
+    QUEUES = ['bso-publications']
 
 
 class DevelopmentConfig(BaseConfig):

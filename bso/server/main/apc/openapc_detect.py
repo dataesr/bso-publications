@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-s = requests.get("https://github.com/OpenAPC/openapc-de/blob/master/data/apc_de.csv?raw=true").content
+s = requests.get('https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/apc_de.csv').content
 
 apc = {}
 df_openapc = pd.read_csv(io.StringIO(s.decode('utf-8')))
@@ -16,7 +16,7 @@ for i, row in df_openapc.iterrows():
             openapc_doi[doi] = row['euro']
     for issn in ['issn', 'issn_l', 'issn_print', 'issn_electronic']:
         if not pd.isnull(row[issn]):
-            key = row[issn].strip() + ";" + str(row['period'])[0:4]
+            key = row[issn].strip() + ';' + str(row['period'])[0:4]
             if key not in apc:
                 apc[key] = []
             apc[key].append(row['euro'])
@@ -26,22 +26,23 @@ for k in apc:
     apc_avg[k] = np.mean(apc[k])
 
 
-def detect_openapc(doi, issns, date_str):
+def detect_openapc(doi: str, issns: list, date_str: str) -> dict:
     if doi in openapc_doi:
         return {
-            "has_apc": True,
-            "amount_apc_EUR": openapc_doi[doi],
-            "apc_source": "openAPC",
-            "amount_apc_openapc_EUR": openapc_doi[doi]
+            'has_apc': True,
+            'amount_apc_EUR': openapc_doi[doi],
+            'apc_source': 'openAPC',
+            'amount_apc_openapc_EUR': openapc_doi[doi]
         }
     for issn in issns:
         if issn:
-            if date_str: key = issn.strip() + ";" + date_str[0:4]
+            if date_str:
+                key = issn.strip() + ';' + date_str[0:4]
             if key in apc_avg:
                 return {
-                    "has_apc": True,
-                    "amount_apc_EUR": apc_avg[key],
-                    "apc_source": "openAPC estimation",
-                    "amount_apc_openapc_EUR": apc_avg[key]
+                    'has_apc': True,
+                    'amount_apc_EUR': apc_avg[key],
+                    'apc_source': 'openAPC estimation',
+                    'amount_apc_openapc_EUR': apc_avg[key]
                 }
-    return {"has_apc": None}
+    return {'has_apc': None}
