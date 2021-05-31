@@ -36,7 +36,7 @@ def detect_openapc(doi, issns, date_str):
         }
     for issn in issns:
         if issn:
-            if date_str:key = issn.strip() + ";" + date_str[0:4]
+            if date_str: key = issn.strip() + ";" + date_str[0:4]
             if key in apc_avg:
                 return {
                     "has_apc": True,

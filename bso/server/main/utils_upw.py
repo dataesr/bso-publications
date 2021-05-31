@@ -39,7 +39,7 @@ def reduce_status(all_statuses: list) -> list:
     for status in ['diamond', 'gold', 'hybrid']:
         if status in all_statuses:
             statuses.append(status)
-            break            
+            break
     return statuses
 
 

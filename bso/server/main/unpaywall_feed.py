@@ -44,7 +44,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False) -> None:
                   f" --collection {collection_name}"
     print(f"mongoimport {f} start at {start}", flush=True)
     print(f"{mongoimport}", flush=True)
-    os.system(mongoimport) 
+    os.system(mongoimport)
     end = datetime.datetime.now()
     delta = end - start
     print(f"mongoimport done in {delta}", flush=True)
@@ -71,7 +71,7 @@ def download_snapshot(asof: str = None, upload_to_object_storage: bool = True) -
 
 
 def download_daily(dt: str) -> str:
-    daily_files = requests.get(f'https://api.unpaywall.org/feed/changefiles?api_key={UPW_API_KEY}&interval=day')\
+    daily_files = requests.get(f'https://api.unpaywall.org/feed/changefiles?api_key={UPW_API_KEY}&interval=day') \
         .json()['list']
     daily_url = [e for e in daily_files if e.get('date') == dt and e.get('filetype') == 'jsonl'][0]['url']
     return download_file(daily_url)

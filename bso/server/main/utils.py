@@ -34,7 +34,7 @@ def download_file(url, upload_to_object_storage: bool = True, destination: str =
         if destination:
             local_filename = destination
         with open(local_filename, 'wb') as f:
-            shutil.copyfileobj(r.raw, f, length=16*1024*1024)
+            shutil.copyfileobj(r.raw, f, length=16 * 1024 * 1024)
     end = datetime.datetime.now()
     delta = end - start
     print(f'end download in {delta}', flush=True)

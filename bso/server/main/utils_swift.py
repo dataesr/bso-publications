@@ -19,11 +19,11 @@ conn = swiftclient.Connection(
     user=user,
     key=key,
     os_options={
-            'user_domain_name': 'Default',
-            'project_domain_name': 'Default',
-            'project_id': project_id,
-            'project_name': project_name,
-            'region_name': 'GRA'
+        'user_domain_name': 'Default',
+        'project_domain_name': 'Default',
+        'project_id': project_id,
+        'project_name': project_name,
+        'region_name': 'GRA'
     },
     auth_version='3'
 )

@@ -53,13 +53,13 @@ for i, row in df_doaj.iterrows():
                     apc_currency = row['Currency']
                 else:
                     apc_currency = None
-                    
+
                 if apc_currency is None:
                     sp = split_currency(apc_amount)
                     if sp:
                         apc_amount = sp.get('amount')
                         apc_currency = sp.get('currency')
-            has_apc = None 
+            has_apc = None
             if 'Journal article processing charges (APCs)' in row:
                 has_apc = row['Journal article processing charges (APCs)']
             elif 'APC' in row:
