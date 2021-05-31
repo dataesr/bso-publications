@@ -29,7 +29,7 @@ conn = swiftclient.Connection(
 )
 
 
-def upload_object(container, filename):
+def upload_object(container: str, filename: str) -> str:
     object_name = filename.split('/')[-1]
     logger.debug(f"uploading {filename} in {container} as {object_name}")
     cmd = f"swift --os-auth-url https://auth.cloud.ovh.net/v3 --auth-version 3\
@@ -45,7 +45,7 @@ def upload_object(container, filename):
     return f"https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{object_name}"
 
 
-def download_object(container, filename, out):
+def download_object(container: str, filename: str, out: str) -> None:
     logger.debug(f"downloading {filename} from {container} to {out}")
     cmd = f"swift --os-auth-url https://auth.cloud.ovh.net/v3 --auth-version 3\
       --key {key} --user {user} \
@@ -58,7 +58,7 @@ def download_object(container, filename, out):
     os.system(cmd)
 
 
-def exists_in_storage(container, filename):
+def exists_in_storage(container: str, filename: str) -> bool:
     try:
         conn.head_object(container, filename)
         return True
@@ -66,16 +66,16 @@ def exists_in_storage(container, filename):
         return False
 
 
-def get_objects(container, path):
+def get_objects(container: str, path: str) -> dict:
     try:
         df = pd.read_json(BytesIO(conn.get_object(container, path)[1]), compression='gzip')
     except:
         df = pd.DataFrame([])
-    return df.to_dict("records")
+    return df.to_dict('records')
 
 
-def set_objects(all_objects, container, path):
-    logger.debug(f"setting object {container} {path}")
+def set_objects(all_objects, container: str, path: str) -> None:
+    logger.debug(f'setting object {container} {path}')
     if isinstance(all_objects, list):
         all_notices_content = pd.DataFrame(all_objects)
     else:
@@ -84,11 +84,11 @@ def set_objects(all_objects, container, path):
     with gzip.GzipFile(mode='w', fileobj=gz_buffer) as gz_file:
         all_notices_content.to_json(TextIOWrapper(gz_file, 'utf8'), orient='records')
     conn.put_object(container, path, contents=gz_buffer.getvalue())
-    logger.debug(f"done")
+    logger.debug('done')
     return
 
 
-def delete_folder(cont_name, folder):
+def delete_folder(cont_name: str, folder: str) -> None:
     cont = conn.get_container(cont_name)
     for n in [e['name'] for e in cont[1] if folder in e['name']]:
         logger.debug(n)

@@ -7,19 +7,19 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 
-def normalize_license(x):
+def normalize_license(x: str) -> str:
     if x is None:
         return 'no license'
     elif 'elsevier-specific' in x:
         return 'elsevier-specific'
     elif '-specific' in x:
         return 'publisher-specific'
-    elif x in ["pd", "cc0"]:
-        return "cc0-public-domain"
+    elif x in ['pd', 'cc0']:
+        return 'cc0-public-domain'
     return x
 
 
-def reduce_license(all_licenses):
+def reduce_license(all_licenses: list) -> list:
     if 'cc0' in all_licenses:
         return ['cc0-public-domain']
     ccbys = [e for e in all_licenses if 'cc-by' in e]
@@ -32,7 +32,7 @@ def reduce_license(all_licenses):
     return ['no license']
 
 
-def reduce_status(all_statuses):
+def reduce_status(all_statuses: list) -> list:
     statuses = []
     if 'green' in all_statuses:
         statuses.append('green')
@@ -43,30 +43,30 @@ def reduce_status(all_statuses):
     return statuses
 
 
-def get_color_with_publisher_prio(oa_colors):
+def get_color_with_publisher_prio(oa_colors: list) -> list:
     if len(oa_colors) == 1 and 'green' in oa_colors:
         oa_colors_with_priority = ['green_only']
     else:
-        oa_colors_with_priority = [c for c in oa_colors if c != "green"]
+        oa_colors_with_priority = [c for c in oa_colors if c != 'green']
     return oa_colors_with_priority
 
 
-def get_millesime(x):
-    if x[0:4] < "2021":
+def get_millesime(x: str) -> str:
+    if x[0:4] < '2021':
         return x[0:4]
     month = int(x[4:6])
     if 1 <= month <= 3:
-        return x[0:4]+"Q1"
+        return x[0:4] + 'Q1'
     if 4 <= month <= 6:
-        return x[0:4]+"Q2"
+        return x[0:4] + 'Q2'
     if 7 <= month <= 9:
-        return x[0:4]+"Q3"
+        return x[0:4] + 'Q3'
     if 10 <= month <= 12:
-        return x[0:4]+"Q4"
+        return x[0:4] + 'Q4'
     return 'unk'
 
 
-def format_upw_millesime(elem, asof, has_apc):
+def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     res = {'snapshot_date': asof}
     millesime = get_millesime(asof)
     res['observation_date'] = millesime

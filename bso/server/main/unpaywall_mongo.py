@@ -6,18 +6,18 @@ from pymongo import MongoClient
 
 from bso.server.main.utils_swift import upload_object
 
-PV_MOUNT = "/upw_data/"
+PV_MOUNT = '/upw_data/'
 
 
-def drop_collection(coll):
-    print(f"dropping {coll}", flush=True)
+def drop_collection(collection: str) -> None:
+    print(f'dropping {collection}', flush=True)
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
-    collection = db[coll]
+    collection = db[collection]
     collection.drop()
 
 
-def clean(res, coll):
+def clean(res: dict, coll: str) -> dict:
     if res:
         if '_id' in res:
             del res['_id']
@@ -25,7 +25,7 @@ def clean(res, coll):
     return res
 
 
-def get_doi(doi, coll):
+def get_doi(doi, coll: str):
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     collection = db[coll]
@@ -41,7 +41,7 @@ def get_doi(doi, coll):
     return {}
 
 
-def get_doi_full(dois):
+def get_doi_full(dois: list) -> dict:
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     res = {}
@@ -61,26 +61,26 @@ def get_doi_full(dois):
     return res
 
 
-def aggregate(coll, pipeline, output):
-    print(f"aggregate {pipeline}", flush=True)
+def aggregate(coll: str, pipeline: str, output: str) -> str:
+    print(f'aggregate {pipeline}', flush=True)
     pipeline_type = type(pipeline)
-    print(f"pipeline_type = {pipeline_type}", flush=True)
+    print(f'pipeline_type = {pipeline_type}', flush=True)
     if isinstance(pipeline, str):
         pipeline = json.loads(pipeline.replace("'", '"'))
     pipeline_type = type(pipeline)
-    print(f"pipeline_type = {pipeline_type}", flush=True)
+    print(f'pipeline_type = {pipeline_type}', flush=True)
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     rdm = random.randint(1, 10000)
-    results_col = f"results_{output}_{rdm}"
+    results_col = f'results_{output}_{rdm}'
     pipeline.append({"$out": results_col})
     print(pipeline, flush=True)
     db[coll].aggregate(pipeline, allowDiskUse=True)
-    output_json = f"{PV_MOUNT}{results_col}"
+    output_json = f'{PV_MOUNT}{results_col}'
     export_cmd = f"mongoexport --forceTableScan --uri mongodb://mongo:27017/unpaywall -c {results_col}  " \
                  f"--out={output_json}"
     os.system(export_cmd)
     db[results_col].drop()
-    res = upload_object("tmp", output_json)
-    os.system("rm -rf {output_json}")
+    res = upload_object('tmp', output_json)
+    os.system(f'rm -rf {output_json}')
     return res
