@@ -26,7 +26,7 @@ def run_task_forward():
 @main_blueprint.route('/enrich', methods=['POST'])
 def run_task_enrich():
     args = request.get_json(force=True)
-    logger.debug(args, flush=True)
+    logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=216000)
         task = q.enqueue(create_task_enrich, args)
@@ -37,7 +37,7 @@ def run_task_enrich():
 @main_blueprint.route('/download_unpaywall', methods=['POST'])
 def run_task_download_unpaywall():
     args = request.get_json(force=True)
-    logger.debug(args, flush=True)
+    logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=21600)
         task = q.enqueue(create_task_download_unpaywall, args)
@@ -48,7 +48,7 @@ def run_task_download_unpaywall():
 @main_blueprint.route('/load_mongo', methods=['POST'])
 def run_task_load_mongo():
     args = request.get_json(force=True)
-    logger.debug(args, flush=True)
+    logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=216000)
         task = q.enqueue(create_task_load_mongo, args)
