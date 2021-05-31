@@ -4,13 +4,15 @@ import random
 
 from pymongo import MongoClient
 
+from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
 PV_MOUNT = '/upw_data/'
+logger = get_logger(__name__)
 
 
 def drop_collection(collection: str) -> None:
-    print(f'dropping {collection}', flush=True)
+    logger.debug(f'Dropping {collection}')
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     collection = db[collection]
@@ -62,19 +64,19 @@ def get_doi_full(dois: list) -> dict:
 
 
 def aggregate(coll: str, pipeline: str, output: str) -> str:
-    print(f'aggregate {pipeline}', flush=True)
+    logger.debug(f'aggregate {pipeline}')
     pipeline_type = type(pipeline)
-    print(f'pipeline_type = {pipeline_type}', flush=True)
+    logger.debug(f'pipeline_type = {pipeline_type}')
     if isinstance(pipeline, str):
         pipeline = json.loads(pipeline.replace("'", '"'))
     pipeline_type = type(pipeline)
-    print(f'pipeline_type = {pipeline_type}', flush=True)
+    logger.debug(f'pipeline_type = {pipeline_type}')
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     rdm = random.randint(1, 10000)
     results_col = f'results_{output}_{rdm}'
     pipeline.append({"$out": results_col})
-    print(pipeline, flush=True)
+    logger.debug(pipeline)
     db[coll].aggregate(pipeline, allowDiskUse=True)
     output_json = f'{PV_MOUNT}{results_col}'
     export_cmd = f"mongoexport --forceTableScan --uri mongodb://mongo:27017/unpaywall -c {results_col}  " \

@@ -5,6 +5,9 @@ import pandas as pd
 import requests
 from currency_converter import CurrencyConverter
 
+from bso.server.main.logger import get_logger
+
+logger = get_logger(__name__)
 c = CurrencyConverter(fallback_on_wrong_date=True)
 s = requests.get('https://doaj.org/csv').content
 df_doaj = pd.read_csv(io.StringIO(s.decode('utf-8')))
@@ -65,7 +68,7 @@ for i, row in df_doaj.iterrows():
             elif 'APC' in row:
                 has_apc = row['APC']
             else:
-                print('missing has_APC info in DOAJ', flush=True)
+                logger.warning('Missing has_APC info in DOAJ')
             if has_apc == 'Yes':
                 has_apc = True
             elif has_apc == 'No':
