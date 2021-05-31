@@ -23,7 +23,7 @@ def update_list_publishers():
                 domain = get_domain(url)
                 name = a.get_text(' ')
                 publishers.append({'url': url, 'publisher': name, 'domain': domain})
-        
+
     df_publishers = pd.DataFrame(publishers)
     return df_publishers.to_dict(orient="records")
 
