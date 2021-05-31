@@ -8,6 +8,7 @@ from bso.server.main.strings import remove_punction
 from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file
 from bso.server.main.utils_upw import chunks, format_upw_millesime
+from bso.server.main.field_detect import detect_fields
 
 PV_MOUNT = '/src/models/'
 models = {}
@@ -53,21 +54,28 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # apc
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('published_date', '2020-01-01'))
         res.update(info_apc)
+
         # language
         if 'language' not in res or len(res['language']) < 2:
             publi_title_abstract = ''
-            if res.get('title'):
-                publi_title_abstract += res.get('title') + ' '
-            if res.get('abstract'):
-                publi_title_abstract += res.get('abstract')
+            if isinstance(res.get('title'), str):
+                publi_title_abstract += res.get('title', '') + ' '
+            if isinstance(res.get('abstract'), str):
+                publi_title_abstract += res.get('abstract', '')
             if len(publi_title_abstract) > 5:
                 res['language'] = identify_language(publi_title_abstract.strip())
+        
         # predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
+
+        #fields detection
+        res = detect_fields(res)
+        
         # retraction info
         # retraction_info = detect_retraction(x.get('doi'), x.get('pmid'))
         # res.update(retraction_info)
+        
         res['oa_details'] = []
         for asof in dois_infos[doi]:
             if asof == 'global':
@@ -75,6 +83,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             else:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].append(tmp)
+        
         final.append(res)
     return final
 
