@@ -5,12 +5,15 @@ import pandas as pd
 import requests
 from currency_converter import CurrencyConverter
 
+from bso.server.main.logger import get_logger
+
+logger = get_logger(__name__)
 c = CurrencyConverter(fallback_on_wrong_date=True)
-s = requests.get("https://doaj.org/csv").content
+s = requests.get('https://doaj.org/csv').content
 df_doaj = pd.read_csv(io.StringIO(s.decode('utf-8')))
 
 
-def is_digit_only(x):
+def is_digit_only(x: str) -> bool:
     digits_only = True
     for w in x.strip():
         if w not in string.digits:
@@ -22,22 +25,22 @@ def split_currency(x):
     if pd.isnull(x):
         return None
     if is_digit_only(x):
-        return {"amount": int(x), "currency": "USD"}
+        return {'amount': int(x), 'currency': 'USD'}
     currency = x[-3:].upper()
     for w in currency:
         if w not in string.ascii_uppercase:
             return None
-    amount = x.replace(currency, "").strip()
+    amount = x.replace(currency, '').strip()
     try:
         amount = int(amount)
     except:
         return None
-    return {"amount": amount, "currency": currency}
+    return {'amount': amount, 'currency': currency}
 
 
 doaj_infos = {}
 for i, row in df_doaj.iterrows():
-    for issn_type in ["Journal ISSN (print version)", "Journal EISSN (online version)"]:
+    for issn_type in ['Journal ISSN (print version)', 'Journal EISSN (online version)']:
         if issn_type in row:
             issn = row[issn_type]
             if not isinstance(issn, str):
@@ -65,10 +68,10 @@ for i, row in df_doaj.iterrows():
             elif 'APC' in row:
                 has_apc = row['APC']
             else:
-                print("missing has_APC info in DOAJ", flush=True)
-            if has_apc == "Yes":
+                logger.warning('Missing has_APC info in DOAJ')
+            if has_apc == 'Yes':
                 has_apc = True
-            elif has_apc == "No":
+            elif has_apc == 'No':
                 has_apc = False
             current_info = {
                 'has_apc': has_apc,
@@ -79,7 +82,7 @@ for i, row in df_doaj.iterrows():
             doaj_infos[issn] = current_info
 
 
-def detect_doaj(issns, date_str):
+def detect_doaj(issns: list, date_str: str) -> dict:
     for issn in issns:
         if issn in doaj_infos:
             info = doaj_infos[issn]
@@ -92,11 +95,11 @@ def detect_doaj(issns, date_str):
                 except:
                     amount_eur = None
                 return {
-                    "has_apc": has_apc,
-                    "amount_apc_EUR": amount_eur,
-                    "apc_source": "doaj",
-                    "amount_apc_doaj_EUR": amount_eur,
-                    "amount_apc_doaj": amount,
-                    "currency_apc_doaj": currency
+                    'has_apc': has_apc,
+                    'amount_apc_EUR': amount_eur,
+                    'apc_source': 'doaj',
+                    'amount_apc_doaj_EUR': amount_eur,
+                    'amount_apc_doaj': amount,
+                    'currency_apc_doaj': currency
                 }
-    return {"has_apc": None}
+    return {'has_apc': None}
