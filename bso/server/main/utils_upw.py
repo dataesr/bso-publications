@@ -121,9 +121,9 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             status = 'unknown'
         oa_colors.append(status)
     if licence_publisher:
-        res['licence_publisher'] = reduce_license(licence_publisher)
+        res['licence_publisher'] = dedup_sort(reduce_license(licence_publisher))
     if licence_repositories:
-        res['licence_repositories'] = reduce_license(licence_repositories)
+        res['licence_repositories'] = dedup_sort(reduce_license(licence_repositories))
     if repositories:
         res['repositories'] = dedup_sort(repositories)
     if repositories_url:

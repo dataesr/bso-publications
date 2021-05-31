@@ -56,15 +56,15 @@ pred_p_domain = [normalize(e['domain']) for e in pred_publishers]
 def detect_predatory(publisher, journal):
     predatory_publisher = False
     predatory_journal = False
-    if publisher and normalize(publisher) in pred_p:
+    if isinstance(publisher, str) and normalize(publisher) in pred_p:
         predatory_publisher = True
         predatory_journal = True
-    elif publisher and normalize(publisher) in pred_p_domain:
+    elif isinstance(publisher, str) and normalize(publisher) in pred_p_domain:
         predatory_publisher = True
         predatory_journal = True
-    elif journal and normalize(journal) in pred_j:
+    elif isinstance(journal, str) and normalize(journal) in pred_j:
         predatory_journal = True
-    elif journal and normalize(journal) in pred_j_domain:
+    elif isinstance(journal, str) and normalize(journal) in pred_j_domain:
         predatory_journal = True
     return {
         'predatory_publisher': predatory_publisher,
