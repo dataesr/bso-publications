@@ -14,17 +14,17 @@ os.system(f'mkdir -p {PV_MOUNT}')
 project_id = os.getenv('OS_TENANT_ID')
 
 
-def init_model_lang():
+def init_model_lang() -> None:
     print('init model lang', flush=True)
     lid_model_name = f'{PV_MOUNT}lid.176.bin'
-    if os.path.exists(lid_model_name) is False:
+    if not os.path.exists(lid_model_name):
         download_file(f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/models/lid.176.bin',
                       upload_to_object_storage=False, destination=lid_model_name)
     lid_model = fasttext.load_model(lid_model_name)
     models['lid'] = lid_model
 
 
-def identify_language(text):
+def identify_language(text: str) -> str:
     if 'lid' not in models:
         init_model_lang()
     if len(text) < 3 or text is None:
@@ -33,21 +33,7 @@ def identify_language(text):
     return (models['lid'].predict(text, 1)[0][0]).replace('__label__', '')
 
 
-def enrich(publis):
-    publis_dict = {}
-    for p in publis:
-        if 'doi' in p:
-            doi = p['doi'].lower()
-            publis_dict[doi] = p
-    all_updated = []
-    for publi_chunk in chunks(publis, 100):
-        doi_chunk = [p.get('doi') for p in publi_chunk if ('doi' in p and '10' in p['doi'])]
-        data = get_doi_full(doi_chunk) 
-        all_updated += format_upw(data, publis_dict)
-    return all_updated
-
-
-def format_upw(dois_infos, extra_data):
+def format_upw(dois_infos: dict, extra_data: dict) -> list:
     final = []
     for doi in dois_infos:
         if 'global' not in dois_infos[doi]:
@@ -68,9 +54,9 @@ def format_upw(dois_infos, extra_data):
         res.update(info_apc)
         # language
         if 'language' not in res or len(res['language']) < 2:
-            publi_title_abstract = ""
+            publi_title_abstract = ''
             if res.get('title'):
-                publi_title_abstract += res.get('title') + " "
+                publi_title_abstract += res.get('title') + ' '
             if res.get('abstract'):
                 publi_title_abstract += res.get('abstract')
             if len(publi_title_abstract) > 5:
@@ -90,3 +76,17 @@ def format_upw(dois_infos, extra_data):
                 res['oa_details'].append(tmp)
         final.append(res)
     return final
+
+
+def enrich(publis: list) -> list:
+    publis_dict = {}
+    for p in publis:
+        if 'doi' in p:
+            doi = p['doi'].lower()
+            publis_dict[doi] = p
+    all_updated = []
+    for publi_chunk in chunks(publis, 100):
+        doi_chunk = [p.get('doi') for p in publi_chunk if ('doi' in p and '10' in p['doi'])]
+        data = get_doi_full(doi_chunk)
+        all_updated += format_upw(data, publis_dict)
+    return all_updated
