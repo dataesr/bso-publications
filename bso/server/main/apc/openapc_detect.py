@@ -35,9 +35,8 @@ def detect_openapc(doi: str, issns: list, date_str: str) -> dict:
             'amount_apc_openapc_EUR': openapc_doi[doi]
         }
     for issn in issns:
-        if issn:
-            if date_str:
-                key = issn.strip() + ';' + date_str[0:4]
+        if isinstance(issn, str) and isinstance(date_str, str):
+            key = issn.strip() + ';' + date_str[0:4]
             if key in apc_avg:
                 return {
                     'has_apc': True,
