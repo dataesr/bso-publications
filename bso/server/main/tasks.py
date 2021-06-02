@@ -15,22 +15,22 @@ def create_task_enrich(args: dict) -> list:
 
 
 def create_task_download_unpaywall(args: dict) -> str:
-    snap = None
     if args.get('type') == 'snapshot':
         snap = download_snapshot(asof=args.get('asof'))
     elif args.get('type') == 'daily':
         today = datetime.date.today()
-        snap = download_daily(f'{today}')
+        snap = download_daily(date=f'{today}')
+    else:
+        snap = None
     return snap
 
 
-def create_task_load_mongo(arg: dict) -> None:
-    asof = arg.get('asof')
-    #global_metadata = arg.get('global_metadata', False)
-    #upload_to_object_storage = not global_metadata
-    filename = download_snapshot(asof, upload_to_object_storage=True).split('/')[-1]
-    logger.debug(f'filename after download is {filename}')
-    for f in os.listdir(PV_MOUNT):
-        if f == filename:
-            snapshot_to_mongo(f'{PV_MOUNT}/{f}', global_metadata=True)
-            snapshot_to_mongo(f'{PV_MOUNT}/{f}', global_metadata=False)
+def create_task_load_mongo(args: dict) -> None:
+    asof = args.get('asof')
+    if asof:
+        filename = download_snapshot(asof).split('/')[-1]
+        logger.debug(f'filename after download is {filename}')
+        for f in os.listdir(PV_MOUNT):
+            if f == filename:
+                snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True)
+                snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False)

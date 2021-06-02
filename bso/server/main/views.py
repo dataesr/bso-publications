@@ -26,7 +26,7 @@ def run_task_forward():
 @main_blueprint.route('/enrich', methods=['POST'])
 def run_task_enrich():
     args = request.get_json(force=True)
-    logger.debug("starting task enrich")
+    logger.debug('Starting task enrich')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=216000)
         task = q.enqueue(create_task_enrich, args)
