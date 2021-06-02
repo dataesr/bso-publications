@@ -4,11 +4,13 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 from rq import Connection, Queue
 
 from bso.server.main.logger import get_logger
-from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_load_mongo
+from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
+    create_task_load_mongo
 
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
 default_timeout = 216000
+
 
 @main_blueprint.route('/', methods=['GET'])
 def home():
@@ -73,3 +75,14 @@ def get_status(task_id):
     else:
         response_object = {'status': 'error'}
     return jsonify(response_object)
+
+
+@main_blueprint.route('/etl', methods=['POST'])
+def run_task_enrich():
+    args = request.get_json(force=True)
+    logger.debug('Starting task etl')
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue('bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(create_task_etl, args)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202

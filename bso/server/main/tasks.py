@@ -2,6 +2,7 @@ import datetime
 import os
 
 from bso.server.main.affiliation_matcher import filter_publications_by_country
+from bso.server.main.elastic import load_in_es
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
@@ -36,3 +37,11 @@ def create_task_load_mongo(args: dict) -> None:
             if f == filename:
                 snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True)
                 snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False)
+
+
+def create_task_etl(args: dict) -> None:
+    index = 'bso-publications'
+    publications = args.get('publications', [])
+    french_publications = filter_publications_by_country(publications=publications)
+    data = enrich(publications=french_publications)
+    load_in_es(data=data, index=index)
