@@ -26,11 +26,11 @@ def create_task_download_unpaywall(args: dict) -> str:
 
 def create_task_load_mongo(arg: dict) -> None:
     asof = arg.get('asof')
-    if asof:
-        global_metadata = arg.get('global_metadata', False)
-        upload_to_object_storage = not global_metadata
-        filename = download_snapshot(asof, upload_to_object_storage=upload_to_object_storage).split('/')[-1]
-        logger.debug(f'filename after download is {filename}')
-        for f in os.listdir(PV_MOUNT):
-            if f == filename:
-                snapshot_to_mongo(f'{PV_MOUNT}/{f}', global_metadata=global_metadata)
+    #global_metadata = arg.get('global_metadata', False)
+    #upload_to_object_storage = not global_metadata
+    filename = download_snapshot(asof, upload_to_object_storage=True).split('/')[-1]
+    logger.debug(f'filename after download is {filename}')
+    for f in os.listdir(PV_MOUNT):
+        if f == filename:
+            snapshot_to_mongo(f'{PV_MOUNT}/{f}', global_metadata=True)
+            snapshot_to_mongo(f'{PV_MOUNT}/{f}', global_metadata=False)
