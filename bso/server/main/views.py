@@ -8,7 +8,7 @@ from bso.server.main.tasks import create_task_download_unpaywall, create_task_en
 
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
-
+default_timeout = 216000
 
 @main_blueprint.route('/', methods=['GET'])
 def home():
@@ -28,7 +28,7 @@ def run_task_enrich():
     args = request.get_json(force=True)
     logger.debug('Starting task enrich')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=216000)
+        q = Queue('bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_enrich, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -39,7 +39,7 @@ def run_task_download_unpaywall():
     args = request.get_json(force=True)
     logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=21600)
+        q = Queue('bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_download_unpaywall, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -50,7 +50,7 @@ def run_task_load_mongo():
     args = request.get_json(force=True)
     logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=216000)
+        q = Queue('bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_load_mongo, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202

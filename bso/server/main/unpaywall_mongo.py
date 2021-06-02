@@ -50,27 +50,27 @@ def get_doi_full(dois: list) -> dict:
     for d in dois:
         res[d] = {}
     for coll in db.list_collection_names():
-        if coll in ["pubmed"]:
+        if coll in ['pubmed']:
             continue
         current_list = get_doi(dois, coll)
         for e in current_list:
             d = e['doi']
             asof = e['asof']
             del e['asof']
-            if asof != "global":
+            if asof != 'global':
                 del e['doi']
             res[d].update({asof: e})
     return res
 
 
 def aggregate(coll: str, pipeline: str, output: str) -> str:
-    logger.debug(f'aggregate {pipeline}')
+    logger.debug(f'Aggregate {pipeline}')
     pipeline_type = type(pipeline)
-    logger.debug(f'pipeline_type = {pipeline_type}')
+    logger.debug(f'Pipeline_type = {pipeline_type}')
     if isinstance(pipeline, str):
         pipeline = json.loads(pipeline.replace("'", '"'))
     pipeline_type = type(pipeline)
-    logger.debug(f'pipeline_type = {pipeline_type}')
+    logger.debug(f'Pipeline_type = {pipeline_type}')
     client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     rdm = random.randint(1, 10000)
