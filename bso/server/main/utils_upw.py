@@ -77,7 +77,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         res['oa_host_type'] = ["closed"]
         res['oa_colors'] = ["closed"]
         res['oa_colors_with_priority_to_publisher'] = ['closed']
-        return res
+        return {millesime: res}
     oa_loc = elem.get('oa_locations', [])
     if oa_loc is None:
         oa_loc = []
@@ -135,4 +135,4 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     res['oa_colors'] = reduce_status(oa_colors)
     res['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(res['oa_colors'])
     res['oa_host_type'] = ";".join(dedup_sort(host_types))
-    return res
+    return {millesime: res}
