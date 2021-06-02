@@ -84,7 +84,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 continue
             else:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
-                res['oa_details'].append(tmp)
+                res['oa_details'].update(tmp)
         
         final.append(res)
     return final
