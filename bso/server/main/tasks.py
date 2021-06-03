@@ -42,6 +42,6 @@ def create_task_load_mongo(args: dict) -> None:
 def create_task_etl(args: dict) -> None:
     index = 'bso-publications'
     publications = args.get('publications', [])
-    filtered_publications = filter_publications_by_country(publications=publications)
+    filtered_publications = filter_publications_by_country(publications=publications, country='fr')
     data = enrich(publications=filtered_publications)
     load_in_es(data=data, index=index)

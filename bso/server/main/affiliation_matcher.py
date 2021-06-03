@@ -5,7 +5,7 @@ import requests
 AFFILIATION_MATCHER_SERVICE = os.getenv('AFFILIATION_MATCHER_SERVICE')
 
 
-def filter_publications_by_country(publications: list, country: str = 'fr') -> list:
+def filter_publications_by_country(publications: list, country: str = None) -> list:
     field_name = 'detected_countries'
     endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
     all_countries = []
@@ -25,5 +25,8 @@ def filter_publications_by_country(publications: list, country: str = 'fr') -> l
                 affiliation[field_name] = countries
                 all_countries += countries
         publication[field_name] = list(set(countries))
-    filtered_publications = [publication for publication in publications if country.lower() in publication[field_name]]
+    if country is None:
+        filtered_publications = publications
+    else:
+        filtered_publications = [publication for publication in publications if country.lower() in publication[field_name]]
     return filtered_publications
