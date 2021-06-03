@@ -49,17 +49,17 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     end = datetime.datetime.now()
     delta = end - start
     logger.debug(f"mongoimport done in {delta}")
-    logger.debug(f"checking indexes on collection {collection_name}")
+    logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     mycol.create_index('doi')
     mycol.create_index('year')
     mycol.create_index('is_oa')
     mycol.create_index('publisher')
     logger.debug(f'deleting {output_json}')
-    os.system(f'rm -rf {output_json}')
+    os.remove(output_json)
     if delete_input:
-        logger.debug(f'deleting {f}')
-        os.system(f'rm -rf {f}')
+        logger.debug(f'Deleting {f}')
+        os.remove(f)
 
 
 def download_snapshot(asof: str = None, upload_to_object_storage: bool = True) -> str:

@@ -23,7 +23,7 @@ def get_filename_from_cd(cd: str):
 
 
 def download_file(url: str, upload_to_object_storage: bool = True, destination: str = None) -> str:
-    os.system(f'mkdir -p {PV_MOUNT}')
+    os.makedirs(PV_MOUNT, exist_ok=True)
     start = datetime.datetime.now()
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
