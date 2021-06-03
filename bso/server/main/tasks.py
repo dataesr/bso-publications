@@ -13,8 +13,7 @@ logger = get_logger(__name__)
 
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
-    french_publications = filter_publications_by_country(publications=publications)
-    return enrich(publications=french_publications)
+    return enrich(publications=publications)
 
 
 def create_task_download_unpaywall(args: dict) -> str:
@@ -29,20 +28,20 @@ def create_task_download_unpaywall(args: dict) -> str:
 
 
 def create_task_load_mongo(args: dict) -> None:
-    asof = args.get('asof', 'nodate') # if nodate, today's snapshot will be used
+    asof = args.get('asof', 'nodate')  # if nodate, today's snapshot will be used
     filename = download_snapshot(asof).split('/')[-1]
     logger.debug(f'Filename after download is {filename}')
-    for f in os.listdir(PV_MOUNT):
-        if f == filename:
-            snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True, delete_input=False)
-            snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False, delete_input=False)
-    logger.debug(f'deleting file {PV_MOUNT}/{filename}')
-    os.system(f"rm -rf {PV_MOUNT}/{filename}")
+    path = f'{PV_MOUNT}/{filename}'
+    if os.path.exists(path=path):
+        snapshot_to_mongo(f=path, global_metadata=True, delete_input=False)
+        snapshot_to_mongo(f=path, global_metadata=False, delete_input=False)
+        logger.debug(f'Deleting file {path}')
+        os.remove(path)
 
 
 def create_task_etl(args: dict) -> None:
     index = 'bso-publications'
     publications = args.get('publications', [])
-    french_publications = filter_publications_by_country(publications=publications)
-    data = enrich(publications=french_publications)
+    filtered_publications = filter_publications_by_country(publications=publications)
+    data = enrich(publications=filtered_publications)
     load_in_es(data=data, index=index)
