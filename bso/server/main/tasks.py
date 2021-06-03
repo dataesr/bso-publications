@@ -35,8 +35,8 @@ def create_task_load_mongo(args: dict) -> None:
         logger.debug(f'Filename after download is {filename}')
         for f in os.listdir(PV_MOUNT):
             if f == filename:
-                snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True)
-                snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False)
+                #snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True, delete_input=False)
+                snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False, delete_input=True)
 
 
 def create_task_etl(args: dict) -> None:
