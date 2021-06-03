@@ -10,12 +10,13 @@ from bso.server.main.utils_swift import upload_object
 PV_MOUNT = '/upw_data/'
 logger = get_logger(__name__)
 
+client = MongoClient('mongodb://mongo:27017/')
+db = client.unpaywall
 
-def drop_collection(collection: str) -> None:
-    logger.debug(f'Dropping {collection}')
-    client = MongoClient('mongodb://mongo:27017/')
-    db = client.unpaywall
-    collection = db[collection]
+
+def drop_collection(coll: str) -> None:
+    logger.debug(f'Dropping {coll}')
+    collection = db[coll]
     collection.drop()
 
 
@@ -28,8 +29,6 @@ def clean(res: dict, coll: str) -> dict:
 
 
 def get_doi(doi, coll: str):
-    client = MongoClient('mongodb://mongo:27017/')
-    db = client.unpaywall
     collection = db[coll]
     if isinstance(doi, str):
         res = collection.find_one({'doi': doi})
@@ -44,8 +43,6 @@ def get_doi(doi, coll: str):
 
 
 def get_doi_full(dois: list) -> dict:
-    client = MongoClient('mongodb://mongo:27017/')
-    db = client.unpaywall
     res = {}
     for d in dois:
         res[d] = {}
@@ -71,8 +68,6 @@ def aggregate(coll: str, pipeline: str, output: str) -> str:
         pipeline = json.loads(pipeline.replace("'", '"'))
     pipeline_type = type(pipeline)
     logger.debug(f'Pipeline_type = {pipeline_type}')
-    client = MongoClient('mongodb://mongo:27017/')
-    db = client.unpaywall
     rdm = random.randint(1, 10000)
     results_col = f'results_{output}_{rdm}'
     pipeline.append({"$out": results_col})
@@ -84,5 +79,5 @@ def aggregate(coll: str, pipeline: str, output: str) -> str:
     os.system(export_cmd)
     db[results_col].drop()
     res = upload_object('tmp', output_json)
-    os.system(f'rm -rf {output_json}')
+    os.remove(output_json)
     return res
