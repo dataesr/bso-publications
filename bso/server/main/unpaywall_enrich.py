@@ -142,6 +142,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         res['author_useful_rank_fr'] = author_useful_rank_fr
         res['author_useful_rank_countries'] = author_useful_rank_countries
         # OA Details
+        res['observation_dates'] = []
         res['oa_details'] = []
         for asof in dois_infos[doi]:
             if asof == 'global':
@@ -149,6 +150,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             else:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].update(tmp)
+                res['observation_dates'].append(tmp['observation_date'])
         final.append(res)
     return final
 
