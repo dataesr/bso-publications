@@ -78,7 +78,7 @@ def get_status(task_id):
 
 
 @main_blueprint.route('/etl', methods=['POST'])
-def run_task_enrich():
+def run_task_etl():
     args = request.get_json(force=True)
     logger.debug('Starting task etl')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
