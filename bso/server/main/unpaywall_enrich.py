@@ -11,11 +11,12 @@ from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 
-PV_MOUNT = '/src/models/'
 logger = get_logger(__name__)
 models = {}
-os.system(f'mkdir -p {PV_MOUNT}')
 project_id = os.getenv('OS_TENANT_ID')
+PV_MOUNT = '/src/models/'
+
+os.makedirs(PV_MOUNT, exist_ok=True)
 
 
 def init_model_lang() -> None:
@@ -31,7 +32,7 @@ def init_model_lang() -> None:
 def identify_language(text: str) -> str:
     if 'lid' not in models:
         init_model_lang()
-    if len(text) < 3 or text is None:
+    if text is None or len(text) < 3:
         return None
     text = remove_punction(text.replace('\n', ' ').replace('\xa0', ' ')).strip()
     return (models['lid'].predict(text, 1)[0][0]).replace('__label__', '')
@@ -101,12 +102,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         if doi in extra_data:
             res.update(extra_data[doi])
         if 'z_authors' in res:
-            if 'authors' in res:
-                # todo implement a merge 
-                del res['z_authors']
-            else:
+            # todo implement a merge if 'authors' is in res
+            if 'authors' not in res:
                 res['authors'] = res['z_authors']
-                del res['z_authors']
+            del res['z_authors']
         # APC
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('published_date', '2020-01-01'))
         res.update(info_apc)
