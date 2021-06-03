@@ -29,14 +29,15 @@ def create_task_download_unpaywall(args: dict) -> str:
 
 
 def create_task_load_mongo(args: dict) -> None:
-    asof = args.get('asof')
-    if asof:
-        filename = download_snapshot(asof).split('/')[-1]
-        logger.debug(f'Filename after download is {filename}')
-        for f in os.listdir(PV_MOUNT):
-            if f == filename:
-                #snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True, delete_input=False)
-                snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False, delete_input=True)
+    asof = args.get('asof', 'nodate') # if nodate, today's snapshot will be used
+    filename = download_snapshot(asof).split('/')[-1]
+    logger.debug(f'Filename after download is {filename}')
+    for f in os.listdir(PV_MOUNT):
+        if f == filename:
+            snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=True, delete_input=False)
+            snapshot_to_mongo(f=f'{PV_MOUNT}/{f}', global_metadata=False, delete_input=False)
+    logger.debug(f'deleting file {PV_MOUNT}/{filename}')
+    os.system(f"rm -rf {PV_MOUNT}/{filename}")
 
 
 def create_task_etl(args: dict) -> None:
