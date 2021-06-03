@@ -19,7 +19,7 @@ url_snapshot = f'http://api.unpaywall.org/feed/snapshot?api_key={UPW_API_KEY}'
 url = url_snapshot
 
 
-def snapshot_to_mongo(f: str, global_metadata: bool = False) -> None:
+def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool = False) -> None:
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['unpaywall']
     output_json = f'{f}_mongo.jsonl'
@@ -57,8 +57,9 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False) -> None:
     mycol.create_index('publisher')
     logger.debug(f'deleting {output_json}')
     os.system(f'rm -rf {output_json}')
-    logger.debug(f'deleting {f}')
-    os.system(f'rm -rf {f}')
+    if delete_input:
+        logger.debug(f'deleting {f}')
+        os.system(f'rm -rf {f}')
 
 
 def download_snapshot(asof: str = None, upload_to_object_storage: bool = True) -> str:
