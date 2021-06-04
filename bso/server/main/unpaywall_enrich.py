@@ -143,7 +143,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         res['author_useful_rank_countries'] = author_useful_rank_countries
         # OA Details
         res['observation_dates'] = []
-        res['oa_details'] = []
+        res['oa_details'] = {}
         for asof in dois_infos[doi]:
             if asof == 'global':
                 continue
