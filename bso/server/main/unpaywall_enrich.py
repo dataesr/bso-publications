@@ -150,7 +150,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             else:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].update(tmp)
-                res['observation_dates'].append(tmp['observation_date'])
+                res['observation_dates'].append(list(tmp.keys())[0]) # getting the key that is the observation date 
         final.append(res)
     return final
 
