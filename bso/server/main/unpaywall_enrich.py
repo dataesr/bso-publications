@@ -132,9 +132,15 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         res['french_affiliations_types'] = fr_affil_types
         # Authors useful rank
         author_useful_rank_countries = []
-        nb_authors = len(res.get('authors', []))
-        for index, author in enumerate(res.get('authors', [])):
-            for affiliation in author.get('affiliations', []):
+        authors = res.get('authors', [])
+        if not isinstance(authors, list):
+            authors = []
+        nb_authors = len(authors)
+        for index, author in enumerate(authors):
+            affiliations = author.get('affiliations', [])
+            if not isinstance(affiliations, list):
+                affiliations = []
+            for affiliation in affiliations:
                 if index == 0 or index == nb_authors - 1:
                     author_useful_rank_countries += affiliation.get('matched_countries', [])
         author_useful_rank_countries = list(set(author_useful_rank_countries))
