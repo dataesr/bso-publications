@@ -150,13 +150,15 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # OA Details
         res['observation_dates'] = []
         res['oa_details'] = {}
+        if res['has_apc']:
+            res['has_apc'] = 1.0
         for asof in dois_infos[doi]:
             if asof == 'global':
                 continue
             else:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].update(tmp)
-                res['observation_dates'].append(list(tmp.keys())[0]) # getting the key that is the observation date 
+                res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
         final.append(res)
     return final
 
