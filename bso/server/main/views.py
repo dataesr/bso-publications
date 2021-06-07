@@ -20,8 +20,11 @@ def home():
 @main_blueprint.route('/forward', methods=['POST'])
 def run_task_forward():
     args = request.get_json(force=True)
-    logger.debug(args)
-    response_object = requests.post(args.get('url'), json=args.get('params')).json()
+    method = args.get('method', 'POST')
+    if method.upper() == 'GET':
+        response_object = requests.get(args.get('url')).json()
+    else:
+        response_object = requests.post(args.get('url'), json=args.get('params')).json()
     return jsonify(response_object), 202
 
 

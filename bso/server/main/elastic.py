@@ -37,8 +37,7 @@ def reset_index(index):
 
 def load_in_es(data: list, index: str) -> None:
     actions = [{'_index': index, '_source': datum} for datum in data]
-    #helpers.bulk(client=client, actions=actions, chunk_size=500, request_timeout=60)
     for success, info in helpers.parallel_bulk(client=client, actions=actions, chunk_size=500, request_timeout=60):
         if not success:
-            logger.debug(f"A document failed: {info}")
+            logger.debug(f'A document failed: {info}')
     logger.debug(f'{len(data)} elements imported into {index}')
