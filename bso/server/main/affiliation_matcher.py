@@ -11,6 +11,7 @@ def filter_publications_by_country(publications: list, country: str = None) -> l
     all_countries = []
     for publication in publications:
         affiliations = publication.get('affiliations', [])
+        affiliations = [] if affiliations is None else affiliations
         for affiliation in affiliations:
             query = affiliation.get('name')
             countries = requests.post(endpoint_url, json={'query': query, 'type': 'country'}).json()['logs']
