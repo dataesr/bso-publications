@@ -1,6 +1,7 @@
 import os
 
 import fasttext
+import pandas as pd
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.field_detect import detect_fields
@@ -110,7 +111,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('published_date', '2020-01-01'))
         res.update(info_apc)
         # Language
-        if 'language' not in res or len(res['language']) < 2:
+        if 'language' not in res or res['language'] is None or len(res['language']) < 2:
             publi_title_abstract = ''
             if isinstance(res.get('title'), str):
                 publi_title_abstract += res.get('title', '') + ' '
@@ -127,7 +128,9 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # retraction_info = detect_retraction(x.get('doi'), x.get('pmid'))
         # res.update(retraction_info)
         # Affiliations
-        fr_affil = [a.get('name', '') for a in res.get('affiliations', []) if has_fr(a.get('countries'))]
+        affiliations = res.get('affiliations', [])
+        affiliations = [] if affiliations is None else affiliations
+        fr_affil = [a.get('name', '') for a in affiliations if has_fr(a.get('countries'))]
         fr_affil_types = compute_affiliations_types(fr_affil)
         res['french_affiliations_types'] = fr_affil_types
         # Authors useful rank
@@ -159,6 +162,13 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].update(tmp)
                 res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
+        for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print', 'grants',
+                      'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
+            if pd.isna(res[field]):
+                res[field] = None
+        for field in ['has_coi', 'has_grant', 'is_paratext']:
+            if res[field] == 0.0:
+                res[field] = False
         final.append(res)
     return final
 
