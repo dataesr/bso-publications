@@ -6,7 +6,7 @@ from bso.server.main.elastic import load_in_es
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import get_objects
+from bso.server.main.utils_swift import get_objects_by_prefix
 
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
@@ -42,7 +42,7 @@ def create_task_load_mongo(args: dict) -> None:
 
 def create_task_etl(args: dict) -> None:
     index = 'bso-publications'
-    publications = get_objects(container='pubmed', path=f'enriched/2021/03/22/enriched_20210322.json.gz')
+    publications = get_objects_by_prefix(container='pubmed', prefix='parsed/')
     filtered_publications = filter_publications_by_country(publications=publications, country='fr')
     enriched_publications = enrich(publications=filtered_publications)
     load_in_es(data=enriched_publications, index=index)
