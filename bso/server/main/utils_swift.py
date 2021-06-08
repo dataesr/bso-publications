@@ -60,12 +60,25 @@ def exists_in_storage(container: str, path: str) -> bool:
         return False
 
 
-def get_objects(container: str, path: str) -> dict:
+def get_objects(container: str, path: str) -> list:
     try:
         df = pd.read_json(BytesIO(conn.get_object(container, path)[1]), compression='gzip')
     except:
         df = pd.DataFrame([])
     return df.to_dict('records')
+
+
+def get_objects_by_prefix(container: str, prefix: str) -> list:
+    filenames = []
+    for file in conn.get_container(container=container)[1]:
+        filename = file['name']
+        if filename.startswith(prefix):
+            filenames.append(filename)
+    results = []
+    for filename in filenames:
+        objects = get_objects(container=container, path=filename)
+        results.append(objects)
+    return results
 
 
 def set_objects(all_objects, container: str, path: str) -> None:
