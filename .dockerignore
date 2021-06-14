@@ -1,0 +1,20 @@
+# Python
+__pycache__
+*.pyc
+*.pyi
+venv
+.cache
+
+# IDE
+.idea
+
+# Logs
+*.log
+
+# Build
+dist
+*.egg-info
+
+# Git
+.git/
+.github
