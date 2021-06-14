@@ -1,5 +1,5 @@
 DOCKER_IMAGE_NAME=dataesr/bso-publications
-CURRENT_VERSION=$(shell cat bso/__init__.py | grep -P '(\d\.?){3}' -o)
+CURRENT_VERSION=$(shell cat bso/__init__.py | grep -P '(\d+\.?){3}' -o)
 
 install:
 	@echo Installing dependencies...
