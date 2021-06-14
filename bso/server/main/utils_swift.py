@@ -8,6 +8,7 @@ import swiftclient
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
+SWIFT_SIZE = 10000
 key = os.getenv('OS_PASSWORD')
 project_name = os.getenv('OS_PROJECT_NAME')
 project_id = os.getenv('OS_TENANT_ID')
@@ -69,16 +70,16 @@ def get_objects(container: str, path: str) -> list:
 
 
 def get_objects_by_prefix(container: str, prefix: str) -> list:
-    filenames = []
-    for file in conn.get_container(container=container)[1]:
-        filename = file['name']
-        if filename.startswith(prefix):
-            filenames.append(filename)
-    results = []
-    for filename in filenames:
-        objects = get_objects(container=container, path=filename)
-        results.append(objects)
-    return results
+    objects = []
+    marker = None
+    keep_going = True
+    while keep_going:
+        content = conn.get_container(container=container, marker=marker)[1]
+        filenames = [file['name'] for file in content if file['name'].startswith(prefix)]
+        objects += [get_objects(container=container, path=filename) for filename in filenames]
+        keep_going = len(content) == SWIFT_SIZE
+        marker = content[-1]['name']
+    return objects
 
 
 def set_objects(all_objects, container: str, path: str) -> None:
