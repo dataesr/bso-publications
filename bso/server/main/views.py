@@ -29,7 +29,7 @@ def run_task_forward():
             response_object = response.json()
         except:
             logger.error("response is not a valid json")
-            logger.error(response)
+            logger.error(response.text)
             response_object = {}
     return jsonify(response_object), 202
 
