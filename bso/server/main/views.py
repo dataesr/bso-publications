@@ -22,15 +22,15 @@ def run_task_forward():
     args = request.get_json(force=True)
     method = args.get('method', 'POST')
     if method.upper() == 'GET':
-        response_object = requests.get(args.get('url')).json()
+        response = requests.get(args.get('url')).json()
     else:
         response = requests.post(args.get('url'), json=args.get('params'))
-        try:
-            response_object = response.json()
-        except:
-            logger.error("response is not a valid json")
-            logger.error(response.text)
-            response_object = {}
+    try:
+        response_object = response.json()
+    except:
+        logger.error('Response is not a valid json')
+        logger.error(response.text)
+        response_object = {}
     return jsonify(response_object), 202
 
 
