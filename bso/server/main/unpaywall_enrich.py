@@ -164,10 +164,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print', 'grants',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
-            if pd.isna(res[field]):
+            if pd.isna(res.get(field)):
                 res[field] = None
         for field in ['has_coi', 'has_grant', 'is_paratext']:
-            if res[field] == 0.0:
+            if res.get(field, 0.0) == 0.0:
                 res[field] = False
         final.append(res)
     return final
