@@ -43,6 +43,6 @@ def create_task_load_mongo(args: dict) -> None:
 def create_task_etl(args: dict) -> None:
     index = 'bso-publications'
     publications = get_objects_by_prefix(container='pubmed', prefix='parsed/')
-    filtered_publications = filter_publications_by_country(publications=publications, country='fr')
+    filtered_publications = filter_publications_by_country(publications=publications, countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
     enriched_publications = enrich(publications=filtered_publications)
     load_in_es(data=enriched_publications, index=index)
