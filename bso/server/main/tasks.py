@@ -2,7 +2,7 @@ import datetime
 import os
 
 from bso.server.main.affiliation_matcher import filter_publications_by_country
-from bso.server.main.elastic import load_in_es
+from bso.server.main.elastic import load_in_es, reset_index
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
@@ -41,8 +41,9 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
-    index = 'bso-publications'
+    index = 'bso-publications-test'
     publications = get_objects_by_prefix(container='pubmed', prefix='parsed/')
     filtered_publications = filter_publications_by_country(publications=publications, countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
     enriched_publications = enrich(publications=filtered_publications)
+    reset_index(index=index)
     load_in_es(data=enriched_publications, index=index)
