@@ -70,6 +70,7 @@ def get_objects(container: str, path: str) -> list:
 
 
 def get_objects_by_prefix(container: str, prefix: str) -> list:
+    logger.debug(f"retrieving object from container {container} and prefix {prefix}")
     objects = []
     marker = None
     keep_going = True
@@ -79,6 +80,7 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
         objects += [get_objects(container=container, path=filename) for filename in filenames]
         keep_going = len(content) == SWIFT_SIZE
         marker = content[-1]['name']
+        logger.debug(f"now {len(objects)} objects and counting")
     return objects
 
 
