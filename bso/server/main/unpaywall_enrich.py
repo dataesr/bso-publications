@@ -132,7 +132,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # Affiliations
         affiliations = res.get('affiliations', [])
         affiliations = [] if affiliations is None else affiliations
-        fr_affil = [a.get('name', '') for a in affiliations if has_fr(a.get('countries'))]
+        fr_affil = [a.get('name', '') for a in affiliations if has_fr(a.get('detected_countries'))]
         fr_affil_types = compute_affiliations_types(fr_affil)
         res['french_affiliations_types'] = fr_affil_types
         # Authors useful rank
@@ -147,7 +147,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 affiliations = []
             for affiliation in affiliations:
                 if index == 0 or index == nb_authors - 1:
-                    author_useful_rank_countries += affiliation.get('matched_countries', [])
+                    author_useful_rank_countries += affiliation.get('detected_countries', [])
         author_useful_rank_countries = list(set(author_useful_rank_countries))
         author_useful_rank_fr = has_fr(author_useful_rank_countries)
         res['author_useful_rank_fr'] = author_useful_rank_fr
