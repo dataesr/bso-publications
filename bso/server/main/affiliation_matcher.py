@@ -3,7 +3,10 @@ import requests
 
 AFFILIATION_MATCHER_SERVICE = os.getenv('AFFILIATION_MATCHER_SERVICE')
 
-def filter_publications_by_country(publications: list, countries_to_keep: list = []) -> list:
+
+def filter_publications_by_country(publications: list, countries_to_keep: list = None) -> list:
+    if countries_to_keep is None:
+        countries_to_keep = []
     field_name = 'detected_countries'
     endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
     all_countries = []
@@ -27,6 +30,7 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
     if not countries_to_keep:
         filtered_publications = publications
     else:
-        countries_in_publi = set(publication[field_name])
-        filtered_publications = [publication for publication in publications if len(countries_in_publi.intersection(countries_to_keep)) > 0 ]
+        countries_to_keep_set = set(countries_to_keep)
+        filtered_publications = [publication for publication in publications
+                                 if len(set(publication[field_name]).intersection(countries_to_keep_set)) > 0]
     return filtered_publications
