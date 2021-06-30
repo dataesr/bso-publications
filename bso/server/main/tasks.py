@@ -42,13 +42,21 @@ def create_task_load_mongo(args: dict) -> None:
 
 def create_task_etl(args: dict) -> None:
     index = args.get('index', 'bso-publications')
-    logger.debug(f"getting parsed objects from object storage")
-    publications = get_objects_by_prefix(container='pubmed', prefix=args.get('prefix', 'parsed/'))
-    logger.debug(f"{len(publications)} objects retrieved from object storage")
-    logger.debug(f"start country detection")
-    filtered_publications = filter_publications_by_country(publications=publications, countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
-    logger.debug(f"{len(filtered_publications)} publications remaining")
-    enriched_publications = enrich(publications=filtered_publications)
-    logger.debug(f"now indexing in {index}")
+    logger.debug(f"reset index {index}")
     reset_index(index=index)
-    load_in_es(data=enriched_publications, index=index)
+   
+    start_date = datetime.date(2013,1,1)
+    end_date = datetime.date.today()
+    nb_days = (end_date - start_date).days
+    for delta in range(nb_days):
+        current_date = start_date + datetime.timedelta(days = delta)
+        current_date_str = current_date.strftime("%Y/%m/%d")
+        logger.debug(f"getting parsed objects for {current_date_str} from object storage")
+        publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/{current_date_str}')
+        logger.debug(f"{len(publications)} objects retrieved from object storage")
+        logger.debug(f"start country detection")
+        filtered_publications = filter_publications_by_country(publications=publications, countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
+        logger.debug(f"{len(filtered_publications)} / {len(publications)} publications remaining")
+        enriched_publications = enrich(publications=filtered_publications)
+        logger.debug(f"now indexing in {index}")
+        load_in_es(data=enriched_publications, index=index)
