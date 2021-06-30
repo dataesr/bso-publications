@@ -38,3 +38,15 @@ def normalize(x: str) -> str:
     y = normalizer.normalize_str(delete_punct(x))
     y = y.replace('\n', ' ')
     return re.sub(' +', ' ', y).strip()
+
+
+def get_words(x):
+    if isinstance(x, str):
+        return x
+    elif isinstance(x, dict):
+        return get_words([get_words(w) for w in list(x.values())])
+    elif isinstance(x, list):
+        return " ".join([get_words(w) for w in x])
+    else:
+        logger.debug("get_words is called on {type(x)} object when it should be a str, list or dict !")
+        return ""

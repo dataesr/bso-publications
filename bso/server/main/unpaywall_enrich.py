@@ -7,7 +7,7 @@ from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
-from bso.server.main.strings import dedup_sort, normalize, remove_punction
+from bso.server.main.strings import dedup_sort, normalize, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file
 from bso.server.main.utils_upw import chunks, format_upw_millesime
@@ -111,14 +111,16 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('published_date', '2020-01-01'))
         res.update(info_apc)
         # Language
-        if 'language' not in res or res['language'] is None or len(res['language']) < 2:
+        if 'lang' not in res or res['lang'] is None or len(res['lang']) < 2:
             publi_title_abstract = ''
-            if isinstance(res.get('title'), str):
-                publi_title_abstract += res.get('title', '') + ' '
-            if isinstance(res.get('abstract'), str):
-                publi_title_abstract += res.get('abstract', '')
+            words_title = get_words(res.get('title'))
+            if isinstance(words_title, str):
+                publi_title_abstract += words_title + ' '
+            words_abstract = get_words(res.get('abstract'))
+            if isinstance(words_abstract, str):
+                publi_title_abstract += words_abstract
             if len(publi_title_abstract) > 5:
-                res['language'] = identify_language(publi_title_abstract.strip())
+                res['lang'] = identify_language(publi_title_abstract.strip())
         # Predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
@@ -147,7 +149,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 if index == 0 or index == nb_authors - 1:
                     author_useful_rank_countries += affiliation.get('matched_countries', [])
         author_useful_rank_countries = list(set(author_useful_rank_countries))
-        author_useful_rank_fr = 'FR' in author_useful_rank_countries
+        author_useful_rank_fr = has_fr(author_useful_rank_countries)
         res['author_useful_rank_fr'] = author_useful_rank_fr
         res['author_useful_rank_countries'] = author_useful_rank_countries
         # OA Details
