@@ -81,7 +81,8 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
         keep_going = len(content) == SWIFT_SIZE
         marker = content[-1]['name']
         logger.debug(f"now {len(objects)} objects and counting")
-    return objects
+    flat_list = [item for sublist in objects for item in sublist]
+    return flat_list
 
 def set_objects(all_objects, container: str, path: str) -> None:
     logger.debug(f'setting object {container} {path}')
