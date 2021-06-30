@@ -10,6 +10,7 @@ NB_AFFILIATION_MATCHER = 5
 logger = get_logger(__name__)
 
 def get_country(affiliation):
+    endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
     countries = requests.post(endpoint_url, json={'query': affiliation, 'type': 'country'}).json()['results']
     return countries
 
@@ -18,7 +19,6 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
     if countries_to_keep is None:
         countries_to_keep = []
     field_name = 'detected_countries'
-    endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
     # Retrieve all affiliations
     all_affiliations = []
     for publication in publications:
