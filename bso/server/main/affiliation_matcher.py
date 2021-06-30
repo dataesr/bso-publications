@@ -33,7 +33,7 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
     logger.debug(f'Found {len(all_affiliations)} affiliations in total.')
     # Deduplicate affiliations
     all_affiliations_list = list(filter(None, list(set(all_affiliations))))
-    logger.debug(f'Found {len(all_affiliations)} different affiliations in total.')
+    logger.debug(f'Found {len(all_affiliations_list)} different affiliations in total.')
     # Transform list into dict
     all_affiliations_dict = {key: None for key in all_affiliations_list}
     # Retrieve countries for all publications
