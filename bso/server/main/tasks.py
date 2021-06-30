@@ -1,5 +1,6 @@
 import datetime
 import os
+import dateutil.parser
 
 from bso.server.main.affiliation_matcher import filter_publications_by_country
 from bso.server.main.elastic import load_in_es, reset_index
@@ -44,8 +45,10 @@ def create_task_etl(args: dict) -> None:
     index = args.get('index', 'bso-publications')
     logger.debug(f"reset index {index}")
     reset_index(index=index)
-    start_date = datetime.date(2013, 1, 1)
-    end_date = datetime.date.today()
+    start_string = args.get('start', "2013-01-01")
+    end_string = args.get('end', datetime.date.today().isoformat())
+    start_date = dateutil.parser.parse(start_string).date()
+    end_date = dateutil.parser.parse(end_string).date()
     nb_days = (end_date - start_date).days
     for days in range(nb_days):
         current_date = start_date + datetime.timedelta(days=days)
