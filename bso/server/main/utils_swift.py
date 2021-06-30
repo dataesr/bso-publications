@@ -75,14 +75,13 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
     marker = None
     keep_going = True
     while keep_going:
-        content = conn.get_container(container=container, marker=marker)[1]
-        filenames = [file['name'] for file in content if file['name'].startswith(prefix)]
+        content = conn.get_container(container=container, marker=marker, prefix=prefix)[1]
+        filenames = [file['name'] for file in content]
         objects += [get_objects(container=container, path=filename) for filename in filenames]
         keep_going = len(content) == SWIFT_SIZE
         marker = content[-1]['name']
         logger.debug(f"now {len(objects)} objects and counting")
     return objects
-
 
 def set_objects(all_objects, container: str, path: str) -> None:
     logger.debug(f'setting object {container} {path}')

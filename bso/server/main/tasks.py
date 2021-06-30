@@ -41,9 +41,9 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
-    index = 'bso-publications-test'
+    index = args.get('index', 'bso-publications')
     logger.debug(f"getting parsed objects from object storage")
-    publications = get_objects_by_prefix(container='pubmed', prefix='parsed/')
+    publications = get_objects_by_prefix(container='pubmed', prefix=args.get('prefix', 'parsed/'))
     logger.debug(f"{len(publications)} objects retrieved from object storage")
     logger.debug(f"start country detection")
     filtered_publications = filter_publications_by_country(publications=publications, countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
