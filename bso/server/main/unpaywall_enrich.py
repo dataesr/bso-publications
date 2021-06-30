@@ -88,7 +88,7 @@ def has_fr(countries: list):
     if not countries or not isinstance(countries, list):
         return False
     for country in countries:
-        if country.lower() == 'fr':
+        if country.lower() in ['fr', 'gp', 'mq', 'gf', 're']:
             return True
     return False
 
