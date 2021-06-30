@@ -55,7 +55,7 @@ def create_task_etl(args: dict) -> None:
         current_date_str = current_date.strftime("%Y/%m/%d")
         logger.debug(f'Getting parsed objects for {current_date_str} from object storage')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/{current_date_str}')
-        logger.debug(f'{len(publications)} objects retrieved from object storage')
+        logger.debug(f'{len(publications)} publications retrieved from object storage')
         logger.debug(f'Start country detection')
         filtered_publications = filter_publications_by_country(publications=publications,
                                                                countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
