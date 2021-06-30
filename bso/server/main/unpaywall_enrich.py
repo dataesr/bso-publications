@@ -162,7 +162,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].update(tmp)
                 res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
-        for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print', 'grants',
+        for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
             if pd.isna(res.get(field)):
                 res[field] = None
