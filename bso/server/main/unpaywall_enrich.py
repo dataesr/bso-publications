@@ -176,7 +176,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
 def enrich(publications: list) -> list:
     publis_dict = {}
     for p in publications:
-        if 'doi' in p:
+        if 'doi' in p and p['doi']:
             doi = p['doi'].lower()
             publis_dict[doi] = p
     all_updated = []
