@@ -1,12 +1,11 @@
 import os
-
 import requests
 
 from bso.server.main.logger import get_logger
 
-logger = get_logger(__name__)
-
 SCIENTIFIC_TAGGER_SERVICE = os.getenv('SCIENTIFIC_TAGGER_SERVICE')
+
+logger = get_logger(__name__)
 
 
 def detect_fields(a_publication):
