@@ -183,7 +183,7 @@ def enrich(publications: list) -> list:
             publis_dict[doi] = p
     all_updated = []
     for publi_chunk in chunks(publications, 100):
-        doi_chunk = [p.get('doi') for p in publi_chunk if ('doi' in p and '10' in p['doi'])]
+        doi_chunk = [p.get('doi') for p in publi_chunk if (p and isinstance(p.get('doi'), str) and '10' in p['doi'])]
         data = get_doi_full(doi_chunk)
         all_updated += format_upw(data, publis_dict)
     return all_updated
