@@ -30,7 +30,7 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
         all_affiliations += [affiliation.get('name') for affiliation in affiliations]
         authors = publication.get('authors', [])
         for author in authors:
-            affiliations = author.get('affiliation', [])
+            affiliations = author.get('affiliations', [])
             affiliations = [] if affiliations is None else affiliations
             all_affiliations += [affiliation.get('name') for affiliation in affiliations]
     logger.debug(f'Found {len(all_affiliations)} affiliations in total.')
@@ -61,7 +61,7 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
                 countries_by_publication += countries
         authors = publication.get('authors', [])
         for author in authors:
-            affiliations = author.get('affiliation', [])
+            affiliations = author.get('affiliations', [])
             for affiliation in affiliations:
                 query = affiliation.get('name')
                 if query in all_affiliations_dict:
