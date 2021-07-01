@@ -50,11 +50,12 @@ def create_task_etl(args: dict) -> None:
     start_date = dateutil.parser.parse(start_string).date()
     end_date = dateutil.parser.parse(end_string).date()
     nb_days = (end_date - start_date).days
-    for days in range(nb_days):
-        current_date = start_date + datetime.timedelta(days=days)
-        current_date_str = current_date.strftime("%Y/%m/%d")
-        logger.debug(f'Getting parsed objects for {current_date_str} from object storage')
-        publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/{current_date_str}')
+    prefix_format = args.get('prefix_format', '%Y/%m')
+    prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format) for days in range(nb_days)]))
+    prefixes.sort()
+    for prefix in prefixes:
+        logger.debug(f'Getting parsed objects for {prefix} from object storage')
+        publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/{prefix}')
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         logger.debug(f'Start country detection')
         filtered_publications = filter_publications_by_country(publications=publications,
