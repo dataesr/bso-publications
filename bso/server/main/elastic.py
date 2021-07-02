@@ -18,6 +18,15 @@ def delete_index(index: str):
     response = client.indices.delete(index=index, ignore=[400, 404])
     logger.debug(response)
 
+def update_alias(alias, old_index, new_index):
+    logger.debug(f"updating alias {alias} from {old_index} to {new_index}")
+    res = client.indices.update_aliases({
+    "actions": [
+        { "remove": { "index": old_index, "alias": alias }},
+        { "add":    { "index": new_index, "alias": alias }}
+    ]
+    })
+    logger.debug(res)
 
 def reset_index(index):
     try:
