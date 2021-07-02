@@ -77,12 +77,12 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
         for ix, affiliation in enumerate(all_affiliations_list_chunk):
             all_affiliations_dict[affiliation] = countries_list[ix]
         logger.debug(f'{len(all_affiliations_dict)} / {len(all_affiliations_list)} treated in country_matcher')
-    
-    cache = []
-    for ix, affiliation in enumerate(all_affiliations_list):
-        if affiliation in all_affiliations_dict and all_affiliations_dict[affiliation]['in_cache'] is False:
-            cache.append({'affiliation': affiliation, 'countries': all_affiliations_dict[affiliation]['countries']})
-    load_in_es(data=cache, index='bso-cache-country')
+        logger.debug(f'loading in cache')
+        cache = []
+        for ix, affiliation in enumerate(all_affiliations_list_chunk):
+            if affiliation in all_affiliations_dict and all_affiliations_dict[affiliation]['in_cache'] is False:
+                cache.append({'affiliation': affiliation, 'countries': all_affiliations_dict[affiliation]['countries']})
+        load_in_es(data=cache, index='bso-cache-country')
 
     logger.debug('All countries of all affiliations have been retrieved.')
     # Map countries with affiliations
