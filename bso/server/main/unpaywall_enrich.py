@@ -11,6 +11,7 @@ from bso.server.main.strings import dedup_sort, normalize, remove_punction, get_
 from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file
 from bso.server.main.utils_upw import chunks, format_upw_millesime
+from bso.server.main.utils import FRENCH_ALPHA2
 
 logger = get_logger(__name__)
 models = {}
@@ -88,7 +89,7 @@ def has_fr(countries: list):
     if not countries or not isinstance(countries, list):
         return False
     for country in countries:
-        if country.lower() in ['fr', 'gp', 'mq', 'gf', 're']:
+        if country.lower() in FRENCH_ALPHA2:
             return True
     return False
 
