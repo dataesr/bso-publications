@@ -11,6 +11,7 @@ from bso.server.main.utils_swift import upload_object
 PV_MOUNT = '/upw_data/'
 logger = get_logger(__name__)
 
+FRENCH_ALPHA2 = ["fr", "gp", "gf", "mq", "re", "yt", "pm", "mf", "bl", "wf", "tf", "nc", "pf"]
 
 def get_filename_from_cd(cd: str):
     """ Get filename from content-disposition """

@@ -8,10 +8,10 @@ from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import get_objects_by_prefix
+from bso.server.main.utils import FRENCH_ALPHA2
 
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
-
 
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
@@ -59,7 +59,7 @@ def create_task_etl(args: dict) -> None:
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         logger.debug(f'Start country detection')
         filtered_publications = filter_publications_by_country(publications=publications,
-                                                               countries_to_keep=['fr', 'gp', 'mq', 'gf', 're'])
+                                                               countries_to_keep=FRENCH_ALPHA2)
         logger.debug(f'{len(filtered_publications)} / {len(publications)} publications remaining')
         enriched_publications = enrich(publications=filtered_publications)
         logger.debug(f'Now indexing in {index}')
