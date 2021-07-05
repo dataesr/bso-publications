@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 
 client = None
 try:
-    client = Elasticsearch(os.getenv('ES_URL'), http_auth=(os.getenv('ES_LOGIN'), os.getenv('ES_PASSWORD')))
+    client = Elasticsearch(os.getenv('ES_URL'), http_auth=(os.getenv('ES_LOGIN_BSO_BACK'), os.getenv('ES_PASSWORD_BSO_BACK')))
 except:
     logger.debug('Cannot connect to es')
 
