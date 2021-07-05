@@ -22,7 +22,7 @@ def run_task_forward():
     args = request.get_json(force=True)
     method = args.get('method', 'POST')
     if method.upper() == 'GET':
-        response = requests.get(args.get('url')).json()
+        response = requests.get(args.get('url'), timeout=1000).json()
     else:
         response = requests.post(args.get('url'), json=args.get('params'))
     try:
