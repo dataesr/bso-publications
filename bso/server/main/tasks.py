@@ -3,7 +3,7 @@ import os
 import dateutil.parser
 
 from bso.server.main.affiliation_matcher import filter_publications_by_country
-from bso.server.main.elastic import load_in_es, reset_index
+from bso.server.main.elastic import load_in_es, reset_index, update_alias
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
@@ -42,7 +42,9 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
-    index = args.get('index', 'bso-publications')
+    current_month=datetime.date.today().isoformat()[0:7]
+    index = args.get('index', f'bso-publications-{current_month}')
+    alias = 'bso-publications'
     logger.debug(f"reset index {index}")
     reset_index(index=index)
     start_string = args.get('start', "2013-01-01")
@@ -55,12 +57,13 @@ def create_task_etl(args: dict) -> None:
     prefixes.sort()
     for prefix in prefixes:
         logger.debug(f'Getting parsed objects for {prefix} from object storage')
-        publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/{prefix}')
+        publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
         logger.debug(f'{len(publications)} publications retrieved from object storage')
-        logger.debug(f'Start country detection')
-        filtered_publications = filter_publications_by_country(publications=publications,
-                                                               countries_to_keep=FRENCH_ALPHA2)
-        logger.debug(f'{len(filtered_publications)} / {len(publications)} publications remaining')
+        #logger.debug(f'Start country detection')
+        #filtered_publications = filter_publications_by_country(publications=publications,
+        #                                                       countries_to_keep=FRENCH_ALPHA2)
+        #logger.debug(f'{len(filtered_publications)} / {len(publications)} publications remaining')
         enriched_publications = enrich(publications=filtered_publications)
         logger.debug(f'Now indexing in {index}')
         load_in_es(data=enriched_publications, index=index)
+    update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
