@@ -1,5 +1,6 @@
 import datetime
 import os
+import json
 import dateutil.parser
 
 from bso.server.main.affiliation_matcher import filter_publications_by_country
@@ -7,8 +8,9 @@ from bso.server.main.elastic import load_in_es, reset_index, update_alias
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import get_objects_by_prefix
+from bso.server.main.utils_swift import get_objects_by_prefix, download_object
 from bso.server.main.utils import FRENCH_ALPHA2
+from bso.server.main.utils_upw import chunks
 
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
@@ -55,6 +57,7 @@ def create_task_etl(args: dict) -> None:
     prefix_format = args.get('prefix_format', '%Y/%m')
     prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format) for days in range(nb_days)]))
     prefixes.sort()
+    doi_in_index=[]
     for prefix in prefixes:
         logger.debug(f'Getting parsed objects for {prefix} from object storage')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
@@ -64,6 +67,16 @@ def create_task_etl(args: dict) -> None:
         #                                                       countries_to_keep=FRENCH_ALPHA2)
         #logger.debug(f'{len(filtered_publications)} / {len(publications)} publications remaining')
         enriched_publications = enrich(publications=filtered_publications)
-        logger.debug(f'Now indexing in {index}')
+        logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
         load_in_es(data=enriched_publications, index=index)
+        doi_in_index += [p['doi'] for p in enriched_publications]
+    logger.debug("pubmed publications indexed. now indexing other french publications") 
+    download_object("publications-related", "dois_fr.json", f"{PV_MOUNT}/dois_fr.json")
+    fr_dois = json.load(open(f"{PV_MOUNT}/dois_fr.json", 'r'))
+    remaining_dois = list(set(fr_dois) - set(doi_in_index))
+    for chunk in chunks(remaining_dois, 5000):
+        enriched_publications = enrich(publications=[{'doi': d} for d in chunk])
+        logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+        load_in_es(data=enriched_publications, index=index)
+    
     update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
