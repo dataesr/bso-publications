@@ -3,8 +3,10 @@ import re
 import string
 import unicodedata
 
+from bso.server.main.logger import get_logger
 from tokenizers.normalizers import BertNormalizer, Sequence, Strip
 
+logger = get_logger(__name__)
 
 def dedup_sort(x: list) -> list:
     y = list(set([e for e in x if e]))
