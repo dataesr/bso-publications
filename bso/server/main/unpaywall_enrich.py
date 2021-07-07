@@ -114,10 +114,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # Language
         if 'lang' not in res or res['lang'] is None or len(res['lang']) < 2:
             publi_title_abstract = ''
-            words_title = get_words(res.get('title'))
+            words_title = get_words(res.get('title', ''))
             if isinstance(words_title, str):
                 publi_title_abstract += words_title + ' '
-            words_abstract = get_words(res.get('abstract'))
+            words_abstract = get_words(res.get('abstract', ''))
             if isinstance(words_abstract, str):
                 publi_title_abstract += words_abstract
             if len(publi_title_abstract) > 5:

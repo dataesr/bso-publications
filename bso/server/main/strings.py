@@ -45,6 +45,8 @@ def normalize(x: str) -> str:
 def get_words(x):
     if isinstance(x, str):
         return x
+    elif x is None:
+        return ''
     elif isinstance(x, dict):
         return get_words([get_words(w) for w in list(x.values())])
     elif isinstance(x, list):
