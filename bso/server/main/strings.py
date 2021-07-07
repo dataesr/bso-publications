@@ -50,5 +50,5 @@ def get_words(x):
     elif isinstance(x, list):
         return " ".join([get_words(w) for w in x])
     else:
-        logger.debug("get_words is called on {type(x)} object when it should be a str, list or dict !")
+        logger.debug(f"get_words is called on {type(x)} object when it should be a str, list or dict !")
         return ""
