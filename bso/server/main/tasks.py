@@ -66,7 +66,7 @@ def create_task_etl(args: dict) -> None:
         #filtered_publications = filter_publications_by_country(publications=publications,
         #                                                       countries_to_keep=FRENCH_ALPHA2)
         #logger.debug(f'{len(filtered_publications)} / {len(publications)} publications remaining')
-        enriched_publications = enrich(publications=filtered_publications)
+        enriched_publications = enrich(publications=publications)
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
         load_in_es(data=enriched_publications, index=index)
         doi_in_index += [p['doi'] for p in enriched_publications]
