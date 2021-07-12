@@ -73,7 +73,12 @@ def create_task_etl(args: dict) -> None:
     logger.debug("pubmed publications indexed. now indexing other french publications") 
     download_object("publications-related", "dois_fr.json", f"{PV_MOUNT}/dois_fr.json")
     fr_dois = json.load(open(f"{PV_MOUNT}/dois_fr.json", 'r'))
-    remaining_dois = list(set(fr_dois) - set(doi_in_index))
+    doi_in_index_set = set(doi_in_index)
+    fr_dois_set = set(fr_dois)
+    remaining_dois = list(fr_dois_set - doi_in_index_set)
+    logger.debug("DOI already in index: {len(doi_in_index_set)}") 
+    logger.debug("french DOI: {len(fr_dois_set)}") 
+    logger.debug("remaining dois to index: {len(remaining_dois)}") 
     for chunk in chunks(remaining_dois, 5000):
         enriched_publications = enrich(publications=[{'doi': d} for d in chunk])
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
