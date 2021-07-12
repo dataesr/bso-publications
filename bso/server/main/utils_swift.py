@@ -79,8 +79,9 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
         filenames = [file['name'] for file in content]
         objects += [get_objects(container=container, path=filename) for filename in filenames]
         keep_going = len(content) == SWIFT_SIZE
-        marker = content[-1]['name']
-        logger.debug(f"now {len(objects)} objects and counting")
+        if len(content) > 0:
+            marker = content[-1]['name']
+            logger.debug(f"now {len(objects)} objects and counting")
     flat_list = [item for sublist in objects for item in sublist]
     return flat_list
 
