@@ -45,6 +45,11 @@ def reduce_status(all_statuses: list) -> list:
     return statuses
 
 
+def get_repository(a_repo: str) -> str:
+    if a_rep.replace('www.', '')[0:3].lower() == 'hal':
+        return 'HAL'
+    return a_repo
+
 def get_color_with_publisher_prio(oa_colors: list) -> list:
     if len(oa_colors) == 1 and 'green' in oa_colors:
         oa_colors_with_priority = ['green_only']
@@ -84,7 +89,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     host_types = []
     oa_colors = []
     repositories = []
-    repositories_url, repositories_institution = [], []
+    repositories_pmh, repositories_url, repositories_institution = [], [], []
     licence_repositories = []
     licence_publisher = []
     for loc in oa_loc:
@@ -103,7 +108,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                 if len(pmh_id_l) > 1:
                     current_repo_pmh = pmh_id_l[1]
             current_repo_instit = loc.get('repository_institution')
-            repositories.append(current_repo_pmh)
+            repositories_pmh.append(current_repo_pmh)
             repositories_url.append(current_repo_url)
             repositories_institution.append(current_repo_instit)
             licence_repositories.append(licence)
@@ -122,6 +127,10 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         else:
             status = 'unknown'
         oa_colors.append(status)
+    for r in (repositories_pmh + repositories_url):
+        repository_value = get_repository(r)
+        if repository_value not in repositories:
+            repositories.append(repository_value)
     if licence_publisher:
         res['licence_publisher'] = dedup_sort(reduce_license(licence_publisher))
     if licence_repositories:
@@ -130,9 +139,13 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         res['repositories'] = dedup_sort(repositories)
     if repositories_url:
         res['repositories_url'] = dedup_sort(repositories_url)
+    if repositories_pmh:
+        res['repositories_pmh'] = dedup_sort(repositories_pmh)
     if repositories_institution:
         res['repositories_institution'] = dedup_sort(repositories_institution)
     res['oa_colors'] = reduce_status(oa_colors)
     res['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(res['oa_colors'])
     res['oa_host_type'] = ";".join(dedup_sort(host_types))
     return {millesime: res}
+
+
