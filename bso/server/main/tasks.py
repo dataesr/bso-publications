@@ -44,8 +44,8 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
-    current_month=datetime.date.today().isoformat()[0:7]
-    index = args.get('index', f'bso-publications-{current_month}')
+    current_date=datetime.date.today().isoformat()
+    index = args.get('index', f'bso-publications-{current_date}')
     alias = 'bso-publications'
     logger.debug(f"reset index {index}")
     reset_index(index=index)
