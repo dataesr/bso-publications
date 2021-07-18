@@ -105,15 +105,23 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             pmh_id = loc.get('pmh_id')
             if pmh_id:
                 pmh_id_l = pmh_id.split(':')
-                if len(pmh_id_l) > 1:
+                if len(pmh_id_l) >= 2:
                     current_repo_pmh = pmh_id_l[1]
+                    if current_repo_pmh.lower() == "oai" and len(pmh_id_l) >= 3:
+                        current_repo_pmh = pmh_id_l[2]
+
             current_repo_instit = loc.get('repository_institution')
-            repositories_pmh.append(current_repo_pmh)
-            repositories_url.append(current_repo_url)
-            repositories_institution.append(current_repo_instit)
-            licence_repositories.append(licence)
+            if current_repo_pmh:
+                repositories_pmh.append(current_repo_pmh)
+            if current_repo_url:
+                repositories_url.append(current_repo_url)
+            if current_repo_instit:
+                repositories_institution.append(current_repo_instit)
+            if licence:
+                licence_repositories.append(licence)
         elif host_type == 'publisher':
-            licence_publisher.append(licence)
+            if licence:
+                licence_publisher.append(licence)
             if not has_apc and elem.get('journal_is_in_doaj'):
                 status = 'diamond'
             elif elem.get('journal_is_oa') == 1:
@@ -128,6 +136,8 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             status = 'unknown'
         oa_colors.append(status)
     for r in (repositories_pmh + repositories_url):
+        if not isinstance(r, str):
+            continue
         repository_value = get_repository(r)
         if repository_value not in repositories:
             repositories.append(repository_value)
