@@ -100,6 +100,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         host_types.append(host_type)
         if host_type == 'repository':
             status = 'green'
+            current_repo_instit = loc.get('repository_institution')
             current_repo_url = loc['url'].split('/')[2]
             current_repo_pmh = None
             pmh_id = loc.get('pmh_id')
@@ -110,13 +111,20 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                     if current_repo_pmh.lower() == "oai" and len(pmh_id_l) >= 3:
                         current_repo_pmh = pmh_id_l[2]
 
-            current_repo_instit = loc.get('repository_institution')
-            if current_repo_pmh:
+            current_repo = None
+            if current_repo_pmh and isinstance(current_repo_pmh, str):
                 repositories_pmh.append(current_repo_pmh)
-            if current_repo_url:
+                current_repo = get_repository(current_repo_pmh)
+            if current_repo_url and isinstance(current_repo_url, str) and current_repo_url.lower() not in ['doi.org']:
                 repositories_url.append(current_repo_url)
-            if current_repo_instit:
+                if current_repo is None:
+                    current_repo = get_repository(current_repo_url)
+            if current_repo_instit and isinstance(current_repo_instit, str):
                 repositories_institution.append(current_repo_instit)
+                if current_repo is None:
+                    current_repo = get_repository(current_repo_instit)
+            if current_repo:
+                repositories.append(current_repo)
             if licence:
                 licence_repositories.append(licence)
         elif host_type == 'publisher':
@@ -135,12 +143,6 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         else:
             status = 'unknown'
         oa_colors.append(status)
-    for r in (repositories_pmh + repositories_url):
-        if not isinstance(r, str):
-            continue
-        repository_value = get_repository(r)
-        if repository_value not in repositories:
-            repositories.append(repository_value)
     if licence_publisher:
         res['licence_publisher'] = dedup_sort(reduce_license(licence_publisher))
     if licence_repositories:
