@@ -7,20 +7,20 @@ from pymongo import MongoClient
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
-PV_MOUNT = '/upw_data/'
-logger = get_logger(__name__)
-    
 client = None
+logger = get_logger(__name__)
+PV_MOUNT = '/upw_data/'
+
 
 def get_client():
     global client
     if client is None:
         client = MongoClient('mongodb://mongo:27017/')
 
+
 def drop_collection(coll: str) -> None:
     logger.debug(f'Dropping {coll}')
     get_client()
-    #client = MongoClient('mongodb://mongo:27017/')
     db = client.unpaywall
     collection = db[coll]
     collection.drop()
@@ -35,7 +35,6 @@ def clean(res: dict, coll: str) -> dict:
 
 
 def get_doi(doi, coll: str):
-    #client = MongoClient('mongodb://mongo:27017/')
     get_client()
     db = client.unpaywall
     collection = db[coll]
@@ -52,8 +51,7 @@ def get_doi(doi, coll: str):
 
 
 def get_doi_full(dois: list) -> dict:
-    logger.debug(f"getting doi info for {len(dois)} dois")
-    #client = MongoClient('mongodb://mongo:27017/')
+    logger.debug(f'Getting doi info for {len(dois)} dois')
     get_client()
     db = client.unpaywall
     res = {}
@@ -74,7 +72,6 @@ def get_doi_full(dois: list) -> dict:
 
 
 def aggregate(coll: str, pipeline: str, output: str) -> str:
-    #client = MongoClient('mongodb://mongo:27017/')
     get_client()
     db = client.unpaywall
     logger.debug(f'Aggregate {pipeline}')

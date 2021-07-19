@@ -1,5 +1,6 @@
 import redis
 import requests
+
 from flask import Blueprint, current_app, jsonify, render_template, request
 from rq import Connection, Queue
 
