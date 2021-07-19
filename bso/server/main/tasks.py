@@ -1,19 +1,19 @@
 import datetime
-import os
 import json
+import os
+
 import dateutil.parser
 
-from bso.server.main.affiliation_matcher import filter_publications_by_country
 from bso.server.main.elastic import load_in_es, reset_index, update_alias
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import get_objects_by_prefix, download_object
-from bso.server.main.utils import FRENCH_ALPHA2
+from bso.server.main.utils_swift import download_object, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
 
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
+
 
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
@@ -44,44 +44,40 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
-    current_date=datetime.date.today().isoformat()
+    current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
     alias = 'bso-publications'
-    logger.debug(f"reset index {index}")
+    logger.debug(f'Reset index {index}')
     reset_index(index=index)
-    start_string = args.get('start', "2013-01-01")
+    start_string = args.get('start', '2013-01-01')
     end_string = args.get('end', datetime.date.today().isoformat())
     start_date = dateutil.parser.parse(start_string).date()
     end_date = dateutil.parser.parse(end_string).date()
     nb_days = (end_date - start_date).days
     prefix_format = args.get('prefix_format', '%Y/%m')
-    prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format) for days in range(nb_days)]))
+    prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format)
+                         for days in range(nb_days)]))
     prefixes.sort()
-    doi_in_index=[]
+    doi_in_index = []
     for prefix in prefixes:
         logger.debug(f'Getting parsed objects for {prefix} from object storage')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
         logger.debug(f'{len(publications)} publications retrieved from object storage')
-        #logger.debug(f'Start country detection')
-        #filtered_publications = filter_publications_by_country(publications=publications,
-        #                                                       countries_to_keep=FRENCH_ALPHA2)
-        #logger.debug(f'{len(filtered_publications)} / {len(publications)} publications remaining')
         enriched_publications = enrich(publications=publications)
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
         load_in_es(data=enriched_publications, index=index)
         doi_in_index += [p['doi'] for p in enriched_publications]
-    logger.debug("pubmed publications indexed. now indexing other french publications") 
-    download_object("publications-related", "dois_fr.json", f"{PV_MOUNT}/dois_fr.json")
-    fr_dois = json.load(open(f"{PV_MOUNT}/dois_fr.json", 'r'))
+    logger.debug('Pubmed publications indexed. now indexing other french publications')
+    download_object('publications-related', 'dois_fr.json', f'{PV_MOUNT}/dois_fr.json')
+    fr_dois = json.load(open(f'{PV_MOUNT}/dois_fr.json', 'r'))
     doi_in_index_set = set(doi_in_index)
     fr_dois_set = set(fr_dois)
     remaining_dois = list(fr_dois_set - doi_in_index_set)
-    logger.debug("DOI already in index: {len(doi_in_index_set)}") 
-    logger.debug("french DOI: {len(fr_dois_set)}") 
-    logger.debug("remaining dois to index: {len(remaining_dois)}") 
+    logger.debug(f'DOI already in index: {len(doi_in_index_set)}')
+    logger.debug(f'French DOI: {len(fr_dois_set)}')
+    logger.debug(f'Remaining dois to index: {len(remaining_dois)}')
     for chunk in chunks(remaining_dois, 5000):
         enriched_publications = enrich(publications=[{'doi': d} for d in chunk])
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
         load_in_es(data=enriched_publications, index=index)
-    
     update_alias(alias=alias, old_index='bso-publications-*', new_index=index)

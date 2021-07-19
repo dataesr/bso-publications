@@ -85,7 +85,7 @@ def compute_affiliations_types(affiliations: list) -> list:
     return result
 
 
-def has_fr(countries: list):
+def has_fr(countries: list) -> bool:
     if not countries or not isinstance(countries, list):
         return False
     for country in countries:
@@ -127,9 +127,6 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         res.update(pred_info)
         # Fields detection
         res = detect_fields(res)
-        # Retraction info
-        # retraction_info = detect_retraction(x.get('doi'), x.get('pmid'))
-        # res.update(retraction_info)
         # Affiliations
         affiliations = res.get('affiliations', [])
         affiliations = [] if affiliations is None else affiliations
