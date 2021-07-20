@@ -15,7 +15,7 @@ PV_MOUNT = '/upw_data/'
 def get_client():
     global client
     if client is None:
-        client = MongoClient('mongodb://mongo:27017/')
+        client = MongoClient('mongodb://mongo:27017/', connectTimeoutMS=60000)
 
 
 def drop_collection(coll: str) -> None:
