@@ -38,17 +38,22 @@ def get_doi(doi, coll: str):
     get_client()
     db = client.unpaywall
     collection = db[coll]
+    for i in range(0, 5):
+        while True:
+            try:
+                if isinstance(doi, str):
+                    res = collection.find_one({'doi': doi})
+                    res = clean(res, coll)
+                elif isinstance(doi, list):
+                    res = [e for e in collection.find({'doi': {'$in': doi}})]
+                    for ix, e in enumerate(res):
+                        res[ix] = clean(e, coll)
+                return res
+            except:
+                continue
+            break
     res = {}
-    try:
-        if isinstance(doi, str):
-            res = collection.find_one({'doi': doi})
-            res = clean(res, coll)
-        elif isinstance(doi, list):
-            res = [e for e in collection.find({'doi': {'$in': doi}})]
-            for ix, e in enumerate(res):
-                res[ix] = clean(e, coll)
-    except:
-        logger.error(f'Error while searching for doi {doi} into Mongo')
+    logger.error(f'Error while searching for doi {doi} into Mongo')
     return res
 
 
