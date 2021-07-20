@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import time
 
 from pymongo import MongoClient
 
@@ -34,7 +35,7 @@ def clean(res: dict, coll: str) -> dict:
     return res
 
 
-def get_doi(doi, coll: str):
+def get_doi(doi, coll: str) -> dict:
     get_client()
     db = client.unpaywall
     collection = db[coll]
@@ -50,6 +51,7 @@ def get_doi(doi, coll: str):
                         res[ix] = clean(e, coll)
                 return res
             except:
+                time.sleep(60)
                 continue
             break
     res = {}
@@ -64,10 +66,18 @@ def get_doi_full(dois: list) -> dict:
     res = {}
     for d in dois:
         res[d] = {}
-    for coll in db.list_collection_names():
-        if coll in ['pubmed']:
+    for i in range(0, 5):
+        while True:
+            try:
+                collections = db.list_collection_names()
+            except:
+                time.sleep(60)
+                continue
+            break
+    for collection in collections:
+        if collection in ['pubmed']:
             continue
-        current_list = get_doi(dois, coll)
+        current_list = get_doi(dois, collection)
         for e in current_list:
             d = e['doi']
             asof = e['asof']
