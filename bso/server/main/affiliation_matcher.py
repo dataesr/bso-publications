@@ -1,43 +1,45 @@
 import os
 import requests
-from concurrent.futures import ThreadPoolExecutor
+
+from bso.server.main.elastic import client, load_in_es
 from bso.server.main.utils_upw import chunks
-from bso.server.main.elastic import client, load_in_es, reset_index
+from concurrent.futures import ThreadPoolExecutor
 
 from bso.server.main.logger import get_logger
 
 AFFILIATION_MATCHER_SERVICE = os.getenv('AFFILIATION_MATCHER_SERVICE')
 NB_AFFILIATION_MATCHER = 3
-matcher_endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
+MATCHER_ENDPOINT_URL = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
 
 logger = get_logger(__name__)
 
-def check_matcher_health():
-    res = requests.post(matcher_endpoint_url, json={'query': 'france', 'type': 'country'})
+
+def check_matcher_health() -> bool:
+    res = requests.post(MATCHER_ENDPOINT_URL, json={'query': 'france', 'type': 'country'})
     try:
         assert('results' in res.json())
-        logger.debug("matcher seems healthy")
+        logger.debug('Matcher seems healthy')
         return True
     except:
-        logger.debug("matcher does not seem loaded, lets load it")
+        logger.debug('Matcher does not seem loaded, lets load it')
         load_res = requests.get(f'{AFFILIATION_MATCHER_SERVICE}/load', timeout=1000)
         logger.debug(load_res.json())
         return True
 
-def get_country(affiliation):
-    in_cache = False
 
-    params={
-        "size": 1,
-        "query": {
-            "term": {
-                "affiliation.keyword": affiliation
+def get_country(affiliation: str) -> dict:
+    in_cache = False
+    params = {
+        'size': 1,
+        'query': {
+            'term': {
+                'affiliation.keyword': affiliation
             }
         }
     }
     r = client.search(index='bso-cache-country', body=params)
     hits = r['hits']['hits']
-    if len(hits)>=1:
+    if len(hits) >= 1:
         in_cache = True
         countries = hits[0]['_source']['countries']
     else:
@@ -48,12 +50,14 @@ def get_country(affiliation):
                 ['country_all_names'],
                 ['country_subdivisions', 'country_alpha3']
         ]
-
-        countries = requests.post(matcher_endpoint_url, json={'query': affiliation, 'type': 'country', 'strategies': strategies}).json()['results']
+        countries = requests.post(MATCHER_ENDPOINT_URL, json={'query': affiliation, 'type': 'country',
+                                                              'strategies': strategies}).json()['results']
     return {'countries': countries, 'in_cache': in_cache}
 
-def is_na(x):
+
+def is_na(x) -> bool:
     return not(not x)
+
 
 def filter_publications_by_country(publications: list, countries_to_keep: list = None) -> list:
     logger.debug(f'Filter {len(publications)} publication against {",".join(countries_to_keep)} countries.')
@@ -77,24 +81,19 @@ def filter_publications_by_country(publications: list, countries_to_keep: list =
     logger.debug(f'Found {len(all_affiliations_list)} different affiliations in total.')
     # Transform list into dict
     all_affiliations_dict = {}
-    # Retrieve countries for all publications
-    #for affiliation in all_affiliations:
-    #    countries = requests.post(endpoint_url, json={'query': affiliation, 'type': 'country'}).json()['results']
-    #    all_affiliations[affiliation] = countries
     check_matcher_health()
     for all_affiliations_list_chunk in chunks(all_affiliations_list, 1000):
         with ThreadPoolExecutor(max_workers=NB_AFFILIATION_MATCHER) as pool:
-            countries_list = list(pool.map(get_country,all_affiliations_list_chunk))
+            countries_list = list(pool.map(get_country, all_affiliations_list_chunk))
         for ix, affiliation in enumerate(all_affiliations_list_chunk):
             all_affiliations_dict[affiliation] = countries_list[ix]
         logger.debug(f'{len(all_affiliations_dict)} / {len(all_affiliations_list)} treated in country_matcher')
         logger.debug(f'loading in cache')
         cache = []
         for ix, affiliation in enumerate(all_affiliations_list_chunk):
-            if affiliation in all_affiliations_dict and all_affiliations_dict[affiliation]['in_cache'] is False:
+            if affiliation in all_affiliations_dict and not all_affiliations_dict[affiliation]['in_cache']:
                 cache.append({'affiliation': affiliation, 'countries': all_affiliations_dict[affiliation]['countries']})
         load_in_es(data=cache, index='bso-cache-country')
-
     logger.debug('All countries of all affiliations have been retrieved.')
     # Map countries with affiliations
     for publication in publications:
