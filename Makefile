@@ -1,6 +1,13 @@
 DOCKER_IMAGE_NAME=dataesr/bso-publications
 CURRENT_VERSION=$(shell cat bso/__init__.py | cut -d "'" -f 2)
 
+test: unit
+
+unit:
+	@echo Running unit tests...
+	python3 -m pytest
+	@echo End of unit tests
+
 install:
 	@echo Installing dependencies...
 	pip install -r requirements.txt
