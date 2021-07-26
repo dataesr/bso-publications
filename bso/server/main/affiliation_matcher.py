@@ -1,21 +1,20 @@
-import os
 import requests
 
 from bso.server.main.elastic import client, load_in_es
 from bso.server.main.utils_upw import chunks
 from concurrent.futures import ThreadPoolExecutor
 
+from bso.server.main.config import AFFILIATION_MATCHER_SERVICE
 from bso.server.main.logger import get_logger
 
-AFFILIATION_MATCHER_SERVICE = os.getenv('AFFILIATION_MATCHER_SERVICE')
 NB_AFFILIATION_MATCHER = 3
-MATCHER_ENDPOINT_URL = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
+AFFILIATION_MATCHER_ENDPOINT_URL = f'{AFFILIATION_MATCHER_SERVICE}/match_api'
 
 logger = get_logger(__name__)
 
 
 def check_matcher_health() -> bool:
-    res = requests.post(MATCHER_ENDPOINT_URL, json={'query': 'france', 'type': 'country'})
+    res = requests.post(AFFILIATION_MATCHER_ENDPOINT_URL, json={'query': 'france', 'type': 'country'})
     try:
         assert('results' in res.json())
         logger.debug('Matcher seems healthy')
@@ -50,7 +49,7 @@ def get_country(affiliation: str) -> dict:
                 ['country_all_names'],
                 ['country_subdivisions', 'country_alpha3']
         ]
-        countries = requests.post(MATCHER_ENDPOINT_URL, json={'query': affiliation, 'type': 'country',
+        countries = requests.post(AFFILIATION_MATCHER_ENDPOINT_URL, json={'query': affiliation, 'type': 'country',
                                                               'strategies': strategies}).json()['results']
     return {'countries': countries, 'in_cache': in_cache}
 

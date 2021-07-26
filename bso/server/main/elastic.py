@@ -1,8 +1,7 @@
-import os
-
 from elasticsearch import Elasticsearch, helpers
 
 from bso.server.main.logger import get_logger
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL
 
 client = None
 logger = get_logger(__name__)
@@ -13,8 +12,7 @@ def get_client():
     if client is not None:
         return client
     try:
-        client = Elasticsearch(os.getenv('ES_URL'),
-                               http_auth=(os.getenv('ES_LOGIN_BSO_BACK'), os.getenv('ES_PASSWORD_BSO_BACK')))
+        client = Elasticsearch(ES_URL, http_auth=(ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK))
         return client
     except:
         logger.debug('Cannot connect to es')
