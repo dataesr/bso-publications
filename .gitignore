@@ -4,6 +4,9 @@
 .mypy*
 venv
 
+# Unit tests
+.pytest_cache/
+
 # IDE
 .idea
 .vscode
