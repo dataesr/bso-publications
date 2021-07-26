@@ -43,12 +43,12 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     start = datetime.datetime.now()
     mongoimport = f"mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/unpaywall --file {output_json}" \
                   f" --collection {collection_name}"
-    logger.debug(f"mongoimport {f} start at {start}")
-    logger.debug(f"{mongoimport}")
+    logger.debug(f'Mongoimport {f} start at {start}')
+    logger.debug(f'{mongoimport}')
     os.system(mongoimport)
     end = datetime.datetime.now()
     delta = end - start
-    logger.debug(f"mongoimport done in {delta}")
+    logger.debug(f'Mongoimport done in {delta}')
     logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     mycol.create_index('doi')

@@ -3,10 +3,12 @@ import re
 import string
 import unicodedata
 
-from bso.server.main.logger import get_logger
 from tokenizers.normalizers import BertNormalizer, Sequence, Strip
 
+from bso.server.main.logger import get_logger
+
 logger = get_logger(__name__)
+
 
 def dedup_sort(x: list) -> list:
     y = list(set([e for e in x if e]))
@@ -50,7 +52,7 @@ def get_words(x):
     elif isinstance(x, dict):
         return get_words([get_words(w) for w in list(x.values())])
     elif isinstance(x, list):
-        return " ".join([get_words(w) for w in x])
+        return ' '.join([get_words(w) for w in x])
     else:
-        logger.debug(f"get_words is called on {type(x)} object when it should be a str, list or dict !")
-        return ""
+        logger.debug(f'Get_words is called on {type(x)} object when it should be a str, list or dict !')
+        return ''
