@@ -1,10 +1,10 @@
 import json
 import os
+import pymongo
 import random
 import time
-from typing import Union
 
-import pymongo
+from typing import Union
 
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
@@ -30,7 +30,7 @@ def get_client() -> Union[pymongo.MongoClient, None]:
     global client
     if client is None:
         client = pymongo.MongoClient('mongodb://mongo:27017/', connectTimeoutMS=60000)
-        return client
+    return client
 
 
 @exception_handler

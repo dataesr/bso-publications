@@ -1,7 +1,8 @@
+import fasttext
 import os
 
-import fasttext
 import pandas as pd
+from typing import Union
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.field_detect import detect_fields
@@ -9,9 +10,8 @@ from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.strings import dedup_sort, normalize, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_doi_full
-from bso.server.main.utils import download_file
+from bso.server.main.utils import download_file, FRENCH_ALPHA2
 from bso.server.main.utils_upw import chunks, format_upw_millesime
-from bso.server.main.utils import FRENCH_ALPHA2
 
 logger = get_logger(__name__)
 models = {}
@@ -31,7 +31,7 @@ def init_model_lang() -> None:
     models['lid'] = lid_model
 
 
-def identify_language(text: str) -> str:
+def identify_language(text: str) -> Union[str, None]:
     if 'lid' not in models:
         init_model_lang()
     if text is None or len(text) < 3:

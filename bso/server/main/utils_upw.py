@@ -50,6 +50,7 @@ def get_repository(a_repo: str) -> str:
         return 'HAL'
     return a_repo
 
+
 def get_color_with_publisher_prio(oa_colors: list) -> list:
     if len(oa_colors) == 1 and 'green' in oa_colors:
         oa_colors_with_priority = ['green_only']
