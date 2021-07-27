@@ -1,6 +1,5 @@
 import datetime
 import os
-
 import pymongo
 import requests
 
