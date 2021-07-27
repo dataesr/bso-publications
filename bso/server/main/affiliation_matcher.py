@@ -12,24 +12,36 @@ NB_AFFILIATION_MATCHER = 3
 logger = get_logger(__name__)
 
 
-def check_matcher_health() -> bool:
+def load_matcher_data() -> bool:
+    """ Initialize matcher by loading data """
     try:
-        res = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match_api', json={'query': 'france', 'type': 'country'})
-        try:
-            assert('results' in res.json())
-            logger.debug('Matcher seems healthy')
-            return True
-        except:
-            logger.debug('Matcher does not seem loaded, lets load it')
-            try:
-                load_res = requests.get(f'{AFFILIATION_MATCHER_SERVICE}/load', timeout=1000)
-                logger.debug(load_res.json())
-                return True
-            except requests.exceptions.RequestException as error:
-                logger.error(f'Error while loading here : {AFFILIATION_MATCHER_SERVICE}/load')
-                logger.error(error)
-                return False
-    except requests.exceptions.RequestException as error:
+        load_res = requests.get(f'{AFFILIATION_MATCHER_SERVICE}/load', timeout=1000)
+        logger.debug(load_res.json())
+        return True
+    except Exception as error:
+        logger.error(f'Error while loading here : {AFFILIATION_MATCHER_SERVICE}/load')
+        logger.error(error)
+        return False
+
+
+def check_matcher_data_is_loaded(response: requests.Response) -> bool:
+    """ Check that the matcher data is loaded """
+    try:
+        assert ('results' in response.json())
+        logger.debug('Matcher seems healthy')
+        return True
+    except Exception:
+        logger.debug('Matcher does not seem loaded, let\'s load it')
+        return load_matcher_data()
+
+
+def check_matcher_health() -> bool:
+    """ Check that the matcher is available """
+    try:
+        response = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match_api', json={'query': 'france',
+                                                                                   'type': 'country'})
+        return check_matcher_data_is_loaded(response)
+    except Exception as error:
         logger.error(f'Error while searching here : {AFFILIATION_MATCHER_SERVICE}/match_api')
         logger.error(error)
         return False
