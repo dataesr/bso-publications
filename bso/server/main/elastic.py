@@ -1,21 +1,11 @@
 from elasticsearch import Elasticsearch, helpers
 
-from bso.server.main.logger import get_logger
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL
+from bso.server.main.decorator import exception_handler
+from bso.server.main.logger import get_logger
 
 client = None
 logger = get_logger(__name__)
-
-
-def exception_handler(func):
-    def inner_function(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as exception:
-            logger.error(f'{func.__name__} raises an error through decorator "exception_handler".')
-            logger.error(exception)
-            return None
-    return inner_function
 
 
 @exception_handler
