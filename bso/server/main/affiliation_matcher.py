@@ -3,6 +3,7 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 
 from bso.server.main.config import AFFILIATION_MATCHER_SERVICE
+from bso.server.main.decorator import exception_handler
 from bso.server.main.elastic import client, load_in_es
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_upw import chunks
@@ -10,17 +11,6 @@ from bso.server.main.utils_upw import chunks
 NB_AFFILIATION_MATCHER = 3
 
 logger = get_logger(__name__)
-
-
-def exception_handler(func):
-    def inner_function(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as exception:
-            logger.error(f'{func.__name__} raises an error through decorator "exception_handler".')
-            logger.error(exception)
-            return False
-    return inner_function
 
 
 @exception_handler

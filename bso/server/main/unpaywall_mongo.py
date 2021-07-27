@@ -7,23 +7,13 @@ import time
 from typing import Union
 
 from bso.server.main.config import MONGO_URL
+from bso.server.main.decorator import exception_handler
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
 client = None
 logger = get_logger(__name__)
 PV_MOUNT = '/upw_data/'
-
-
-def exception_handler(func):
-    def inner_function(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as exception:
-            logger.error(f'{func.__name__} raises an error through decorator "exception_handler".')
-            logger.error(exception)
-            return None
-    return inner_function
 
 
 @exception_handler
@@ -35,7 +25,7 @@ def get_client() -> Union[pymongo.MongoClient, None]:
 
 
 @exception_handler
-def get_database(database: str = 'unpaywall') -> Union[pymongo.database.Databse, None]:
+def get_database(database: str = 'unpaywall') -> Union[pymongo.database.Database, None]:
     _client = get_client()
     db = _client[database]
     return db
@@ -90,6 +80,7 @@ def get_doi_full(dois: list) -> dict:
     res = {}
     for d in dois:
         res[d] = {}
+    collections = []
     for i in range(0, 5):
         while True:
             try:
