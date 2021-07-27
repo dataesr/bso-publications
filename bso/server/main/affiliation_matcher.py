@@ -12,16 +12,23 @@ NB_AFFILIATION_MATCHER = 3
 logger = get_logger(__name__)
 
 
+def exception_handler(func):
+    def inner_function(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as exception:
+            logger.error(f'{func.__name__} can not request the matcher.')
+            logger.error(exception)
+            return False
+    return inner_function
+
+
+@exception_handler
 def load_matcher_data() -> bool:
     """ Initialize matcher by loading data """
-    try:
-        load_res = requests.get(f'{AFFILIATION_MATCHER_SERVICE}/load', timeout=1000)
-        logger.debug(load_res.json())
-        return True
-    except Exception as error:
-        logger.error(f'Error while loading here : {AFFILIATION_MATCHER_SERVICE}/load')
-        logger.error(error)
-        return False
+    load_res = requests.get(f'{AFFILIATION_MATCHER_SERVICE}/load', timeout=1000)
+    logger.debug(load_res.json())
+    return True
 
 
 def check_matcher_data_is_loaded(response: requests.Response) -> bool:
@@ -35,16 +42,11 @@ def check_matcher_data_is_loaded(response: requests.Response) -> bool:
         return load_matcher_data()
 
 
+@exception_handler
 def check_matcher_health() -> bool:
     """ Check that the matcher is available """
-    try:
-        response = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match_api', json={'query': 'france',
-                                                                                   'type': 'country'})
-        return check_matcher_data_is_loaded(response)
-    except Exception as error:
-        logger.error(f'Error while searching here : {AFFILIATION_MATCHER_SERVICE}/match_api')
-        logger.error(error)
-        return False
+    response = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match_api', json={'query': 'france', 'type': 'country'})
+    return check_matcher_data_is_loaded(response)
 
 
 def get_country(affiliation: str) -> dict:
