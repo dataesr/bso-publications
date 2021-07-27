@@ -17,7 +17,7 @@ def exception_handler(func):
         try:
             return func(*args, **kwargs)
         except Exception as exception:
-            logger.error(f'{func.__name__} can not request the matcher.')
+            logger.error(f'{func.__name__} raises an error through decorator "exception_handler".')
             logger.error(exception)
             return False
     return inner_function

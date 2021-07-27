@@ -2,8 +2,9 @@ import json
 import os
 import random
 import time
+from typing import Union
 
-from pymongo import MongoClient
+import pymongo
 
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
@@ -13,17 +14,42 @@ logger = get_logger(__name__)
 PV_MOUNT = '/upw_data/'
 
 
-def get_client():
+def exception_handler(func):
+    def inner_function(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as exception:
+            logger.error(f'{func.__name__} raises an error through decorator "exception_handler".')
+            logger.error(exception)
+            return None
+    return inner_function
+
+
+@exception_handler
+def get_client() -> Union[pymongo.MongoClient, None]:
     global client
     if client is None:
-        client = MongoClient('mongodb://mongo:27017/', connectTimeoutMS=60000)
+        client = pymongo.MongoClient('mongodb://mongo:27017/', connectTimeoutMS=60000)
+        return client
 
 
-def drop_collection(coll: str) -> None:
-    logger.debug(f'Dropping {coll}')
-    get_client()
-    db = client.unpaywall
-    collection = db[coll]
+@exception_handler
+def get_database(database: str = 'unpaywall') -> Union[pymongo.database.Databse, None]:
+    _client = get_client()
+    db = _client[database]
+    return db
+
+
+@exception_handler
+def get_collection(collection_name: str) -> Union[pymongo.collection.Collection, None]:
+    db = get_database()
+    collection = db[collection_name]
+    return collection
+
+
+def drop_collection(collection_name: str) -> None:
+    logger.debug(f'Dropping {collection_name}')
+    collection = get_collection(collection_name=collection_name)
     collection.drop()
 
 
@@ -35,20 +61,18 @@ def clean(res: dict, coll: str) -> dict:
     return res
 
 
-def get_doi(doi, coll: str) -> dict:
-    get_client()
-    db = client.unpaywall
-    collection = db[coll]
+def get_doi(doi, collection_name: str) -> dict:
+    collection = get_collection(collection_name=collection_name)
     for i in range(0, 5):
         while True:
             try:
                 if isinstance(doi, str):
                     res = collection.find_one({'doi': doi})
-                    res = clean(res, coll)
+                    res = clean(res, collection_name)
                 elif isinstance(doi, list):
                     res = [e for e in collection.find({'doi': {'$in': doi}})]
                     for ix, e in enumerate(res):
-                        res[ix] = clean(e, coll)
+                        res[ix] = clean(e, collection_name)
                 return res
             except:
                 time.sleep(60)
@@ -61,8 +85,7 @@ def get_doi(doi, coll: str) -> dict:
 
 def get_doi_full(dois: list) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
-    get_client()
-    db = client.unpaywall
+    db = get_database()
     res = {}
     for d in dois:
         res[d] = {}
@@ -89,8 +112,7 @@ def get_doi_full(dois: list) -> dict:
 
 
 def aggregate(coll: str, pipeline: str, output: str) -> str:
-    get_client()
-    db = client.unpaywall
+    db = get_database()
     logger.debug(f'Aggregate {pipeline}')
     pipeline_type = type(pipeline)
     logger.debug(f'Pipeline_type = {pipeline_type}')
