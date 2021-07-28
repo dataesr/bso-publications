@@ -85,6 +85,7 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
     flat_list = [item for sublist in objects for item in sublist]
     return flat_list
 
+
 def set_objects(all_objects, container: str, path: str) -> None:
     logger.debug(f'setting object {container} {path}')
     if isinstance(all_objects, list):

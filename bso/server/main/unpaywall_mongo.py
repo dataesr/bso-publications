@@ -2,9 +2,9 @@ import json
 import os
 import pymongo
 import random
-import time
 
 from typing import Union
+from retry import retry
 
 from bso.server.main.config import MONGO_URL
 from bso.server.main.decorator import exception_handler
@@ -52,43 +52,28 @@ def clean(res: dict, coll: str) -> dict:
     return res
 
 
+@retry(delay=60, tries=5)
 def get_doi(doi, collection_name: str) -> dict:
     collection = get_collection(collection_name=collection_name)
-    for i in range(0, 5):
-        while True:
-            try:
-                if isinstance(doi, str):
-                    res = collection.find_one({'doi': doi})
-                    res = clean(res, collection_name)
-                elif isinstance(doi, list):
-                    res = [e for e in collection.find({'doi': {'$in': doi}})]
-                    for ix, e in enumerate(res):
-                        res[ix] = clean(e, collection_name)
-                return res
-            except:
-                time.sleep(60)
-                continue
-            break
     res = {}
-    logger.error(f'Error while searching for doi {doi} into Mongo')
+    if isinstance(doi, str):
+        res = collection.find_one({'doi': doi})
+        res = clean(res, collection_name)
+    elif isinstance(doi, list):
+        res = [e for e in collection.find({'doi': {'$in': doi}})]
+        for ix, e in enumerate(res):
+            res[ix] = clean(e, collection_name)
     return res
 
 
+@retry(delay=60, tries=5)
 def get_doi_full(dois: list) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
     db = get_database()
     res = {}
     for d in dois:
         res[d] = {}
-    collections = []
-    for i in range(0, 5):
-        while True:
-            try:
-                collections = db.list_collection_names()
-            except:
-                time.sleep(60)
-                continue
-            break
+    collections = db.list_collection_names()
     for collection in collections:
         if collection in ['pubmed']:
             continue
