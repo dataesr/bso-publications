@@ -19,5 +19,6 @@ python-keystoneclient==4.0.0
 python-swiftclient==3.9.0
 redis==3.5.3
 requests==2.19.1
+retry~=0.9.2
 rq==1.9.0
 tokenizers==0.10.1
