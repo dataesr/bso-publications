@@ -6,7 +6,7 @@ from rq import Connection, Queue
 
 from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
-    create_task_load_mongo
+    create_task_load_mongo, create_task_unpaywall_to_crawler
 
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
@@ -33,6 +33,20 @@ def run_task_forward():
         logger.error(response.text)
         response_object = {}
     return jsonify(response_object), 202
+
+
+@main_blueprint.route("/update_daily", methods=["GET"])
+def update_daily():
+    with Connection(redis.from_url(current_app.config["REDIS_URL"])):
+        q = Queue('unpaywall_to_crawler', default_timeout = default_timeout)
+        task = q.enqueue(create_task_unpaywall_to_crawler, {})
+    response_object = {
+        "status": "success",
+        "data": {
+            "task_id": task.get_id()
+        }
+    }
+    return jsonify(response_object)
 
 
 @main_blueprint.route('/enrich', methods=['POST'])
