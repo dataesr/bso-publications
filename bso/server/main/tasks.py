@@ -1,7 +1,8 @@
 import datetime
 import json
 import os
-
+import requests
+import pandas as pd
 import dateutil.parser
 
 from bso.server.main.elastic import load_in_es, reset_index, update_alias
@@ -10,6 +11,7 @@ from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
+from bso.server.main.utils import download_file
 
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
@@ -29,6 +31,26 @@ def create_task_download_unpaywall(args: dict) -> str:
     else:
         snap = None
     return snap
+
+def create_task_unpaywall_to_crawler(arg):
+    UPW_API_KEY = os.getenv('UPW_API_KEY')
+    CRAWLER_URL = os.getenv('CRAWLER_SERVICE')
+    daily_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={UPW_API_KEY}&interval=day'
+    daily_files = requests.get(daily_files_url).json()['list']
+    destination=f'{PV_MOUNT}/daily_upw.jsonl.gz'
+    download_file(daily_files[0]['url'], upload_to_object_storage=False, destination=destination)
+    df = pd.read_json(destination, lines=True)
+    logger.debug(f'{len(df)} lines in daily upw file')
+    for i, row in df[df.year >= 2013].iterrows():
+        title = row.title
+        doi = row.doi
+        if title and doi:
+            title = title.strip()
+            doi = doi.strip()
+            url = f'http://doi.org/{doi}'
+            logger.debug(f"sending doi {doi} ({title}) to crawler")
+            requests.post(f"{CRAWLER_URL}/tasks", json={'url': url, 'title': title})
+
 
 
 def create_task_load_mongo(args: dict) -> None:

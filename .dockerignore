@@ -4,6 +4,7 @@ __pycache__
 *.pyi
 venv
 .cache
+notebooks/*
 
 # IDE
 .idea
