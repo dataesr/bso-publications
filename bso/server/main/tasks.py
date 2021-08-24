@@ -9,7 +9,7 @@ from bso.server.main.elastic import load_in_es, reset_index, update_alias
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import download_object, get_objects_by_prefix
+from bso.server.main.utils_swift import download_object, get_objects_by_prefix, get_objects_by_page
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file
 
