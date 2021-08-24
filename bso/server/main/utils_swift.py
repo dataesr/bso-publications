@@ -95,6 +95,8 @@ def get_objects_by_page(container: str, page: int) -> list:
     while keep_going:
         content = conn.get_container(container=container, marker=marker, limit=1000)[1]
         filenames = [file['name'] for file in content]
+        if len(filenames) == 0:
+            return []
         current_page += 1
         keep_going = (page > current_page)
         if len(content) > 0:

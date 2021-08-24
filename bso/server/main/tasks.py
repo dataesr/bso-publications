@@ -81,8 +81,9 @@ def create_task_etl(args: dict) -> None:
                          for days in range(nb_days)]))
     prefixes.sort()
     doi_in_index = []
+    # pubmed data
     for prefix in prefixes:
-        logger.debug(f'Getting parsed objects for {prefix} from object storage')
+        logger.debug(f'Getting parsed objects for {prefix} from object storage (pubmed)')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         enriched_publications = enrich(publications=publications)
@@ -90,6 +91,21 @@ def create_task_etl(args: dict) -> None:
         load_in_es(data=enriched_publications, index=index)
         doi_in_index += [p['doi'] for p in enriched_publications]
     logger.debug('Pubmed publications indexed. now indexing other french publications')
+    doi_in_index_set = set(doi_in_index)
+    # crawled data
+    for page in range(1, 100000):
+        logger.debug(f'Getting parsed objects for page {page} from object storage (crawled)')
+        publications = get_objects_by_page(container='parsed_fr', page=page)
+        logger.debug(f'{len(publications)} publications retrieved from object storage')
+        if len(publications) == 0:
+            break
+        publications_not_indexed_yet = [p for p in publications if p['doi'] not in doi_in_index_set]
+        logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
+        enriched_publications = enrich(publications=publications_not_indexed_yet)
+        logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+        load_in_es(data=enriched_publications, index=index)
+        doi_in_index += [p['doi'] for p in enriched_publications]
+    # other dois
     download_object('publications-related', 'dois_fr.json', f'{PV_MOUNT}/dois_fr.json')
     fr_dois = json.load(open(f'{PV_MOUNT}/dois_fr.json', 'r'))
     doi_in_index_set = set(doi_in_index)
