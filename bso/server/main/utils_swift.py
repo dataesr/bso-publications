@@ -86,6 +86,24 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
     return flat_list
 
 
+def get_objects_by_page(container: str, page: int) -> list:
+    logger.debug(f"retrieving object from container {container} and page {page}")
+    objects = []
+    marker = None
+    keep_going = True
+    current_page = 0 
+    while keep_going:
+        content = conn.get_container(container=container, marker=marker, limit=1000)[1]
+        filenames = [file['name'] for file in content]
+        current_page += 1
+        keep_going = (page > current_page)
+        if len(content) > 0:
+            marker = content[-1]['name']
+    objects = [get_objects(container=container, path=filename) for filename in filenames]
+    flat_list = [item for sublist in objects for item in sublist]
+    return flat_list
+
+
 def set_objects(all_objects, container: str, path: str) -> None:
     logger.debug(f'setting object {container} {path}')
     if isinstance(all_objects, list):
