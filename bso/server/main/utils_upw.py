@@ -48,6 +48,8 @@ def reduce_status(all_statuses: list) -> list:
 def get_repository(a_repo: str) -> str:
     if a_repo.replace('www.', '')[0:3].lower() == 'hal':
         return 'HAL'
+    if 'biorxiv' in a_repo.lower():
+        return 'bioRxiv'
     return a_repo
 
 
