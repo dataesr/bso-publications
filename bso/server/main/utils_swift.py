@@ -1,6 +1,7 @@
 import gzip
 import os
 from io import BytesIO, TextIOWrapper
+from retry import retry
 
 import pandas as pd
 import swiftclient
@@ -38,6 +39,7 @@ conn = swiftclient.Connection(
 )
 
 
+@retry(delay=2, tries=50)
 def upload_object(container: str, filename: str) -> str:
     object_name = filename.split('/')[-1]
     logger.debug(f'uploading {filename} in {container} as {object_name}')
@@ -47,12 +49,14 @@ def upload_object(container: str, filename: str) -> str:
     return f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{object_name}'
 
 
+@retry(delay=2, tries=50)
 def download_object(container: str, filename: str, out: str) -> None:
     logger.debug(f'downloading {filename} from {container} to {out}')
     cmd = init_cmd + f' download {container} {filename} -o {out}'
     os.system(cmd)
 
 
+@retry(delay=2, tries=50)
 def exists_in_storage(container: str, path: str) -> bool:
     try:
         conn.head_object(container, path)
@@ -61,6 +65,7 @@ def exists_in_storage(container: str, path: str) -> bool:
         return False
 
 
+@retry(delay=2, tries=50)
 def get_objects(container: str, path: str) -> list:
     try:
         df = pd.read_json(BytesIO(conn.get_object(container, path)[1]), compression='gzip')
@@ -69,6 +74,7 @@ def get_objects(container: str, path: str) -> list:
     return df.to_dict('records')
 
 
+@retry(delay=2, tries=50)
 def get_objects_by_prefix(container: str, prefix: str) -> list:
     logger.debug(f"retrieving object from container {container} and prefix {prefix}")
     objects = []
@@ -86,6 +92,7 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
     return flat_list
 
 
+@retry(delay=2, tries=50)
 def get_objects_by_page(container: str, page: int) -> list:
     logger.debug(f"retrieving object from container {container} and page {page}")
     objects = []
@@ -106,6 +113,7 @@ def get_objects_by_page(container: str, page: int) -> list:
     return flat_list
 
 
+@retry(delay=2, tries=50)
 def set_objects(all_objects, container: str, path: str) -> None:
     logger.debug(f'setting object {container} {path}')
     if isinstance(all_objects, list):
@@ -120,6 +128,7 @@ def set_objects(all_objects, container: str, path: str) -> None:
     return
 
 
+@retry(delay=2, tries=50)
 def delete_object(container: str, folder: str) -> None:
     cont = conn.get_container(container)
     for n in [e['name'] for e in cont[1] if folder in e['name']]:
