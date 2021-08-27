@@ -85,6 +85,7 @@ for i, row in df_doaj.iterrows():
 def detect_doaj(issns: list, date_str: str) -> dict:
     for issn in issns:
         if issn in doaj_infos:
+            # si l'ISSN du doi est dans le DOAJ, on récupère les infos du DOAJ (après une éventuelle conversion en euros si besoin)
             info = doaj_infos[issn]
             amount = info['apc_amount']
             currency = info['apc_currency']

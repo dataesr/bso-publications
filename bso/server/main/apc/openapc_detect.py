@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import requests
 
+# téléchargement des dernières données openAPC
 s = requests.get('https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/apc_de.csv').content
 
 apc = {}
@@ -27,6 +28,7 @@ for k in apc:
 
 
 def detect_openapc(doi: str, issns: list, date_str: str) -> dict:
+    # si le doi est dans la base openAPC, on récupère directement les informations
     if doi in openapc_doi:
         return {
             'has_apc': True,
@@ -34,6 +36,8 @@ def detect_openapc(doi: str, issns: list, date_str: str) -> dict:
             'apc_source': 'openAPC',
             'amount_apc_openapc_EUR': openapc_doi[doi]
         }
+    # sinon, si des APC sont renseignés pour des articles avec le même ISSN (même revue) et la même année de publication
+    # on estime pour ce DOI les APC à la moyenne des APC des articles de la même revue la même année de publication
     for issn in issns:
         if isinstance(issn, str) and isinstance(date_str, str):
             key = issn.strip() + ';' + date_str[0:4]
