@@ -108,8 +108,11 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             if 'authors' not in res:
                 res['authors'] = res['z_authors']
             del res['z_authors']
+        # not exposing authors in index
+        if 'authors' in res:
+            del res['authors']
         # APC
-        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('published_date', '2020-01-01'))
+        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('published_date', '2020-01-01'), dois_infos)
         res.update(info_apc)
         # Language
         if 'lang' not in res or res['lang'] is None or len(res['lang']) < 2:
