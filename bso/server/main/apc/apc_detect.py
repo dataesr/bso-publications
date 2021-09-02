@@ -28,11 +28,14 @@ def detect_apc(doi: str, journal_issns: str, published_date: str, dois_info: dic
     res_openapc = detect_openapc(doi, issns, published_date)
 
     res = {'has_apc': None}
+    is_openapc_estimation_ok = False
     # on commence par tenter d'estimer d'éventuels APC avec openAPC
     if res_openapc.get('has_apc'):
         res.update(res_openapc)
+        if res_openapc.get('apc_source') in ['openAPC_estimation_issn_year', 'openAPC']: #present dans openAPC ou estimation avec la moyenne sur la revue x annee
+            is_openapc_estimation_ok = True
     # si OA avec hébergement éditeur et pas d'APC détecté avec openAPC, on vérifie si des APC sont renseignés dans le DOAJ
-    if (is_oa_publisher) and (not res_openapc.get('has_apc')) and (res_doaj.get('has_apc')):
+    if (is_oa_publisher) and (not is_openapc_estimation_ok) and (res_doaj.get('has_apc')):
         res.update(res_doaj)
    
     # dans tous les cas, on récupère les infos du DOAJ s'il y en a
