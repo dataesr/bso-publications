@@ -1,10 +1,10 @@
 import gzip
 import os
-from io import BytesIO, TextIOWrapper
-from retry import retry
-
 import pandas as pd
 import swiftclient
+
+from io import BytesIO, TextIOWrapper
+from retry import retry
 
 from bso.server.main.logger import get_logger
 
@@ -48,7 +48,7 @@ def get_connection() -> swiftclient.Connection:
 @retry(delay=2, tries=50)
 def upload_object(container: str, filename: str) -> str:
     object_name = filename.split('/')[-1]
-    logger.debug(f'uploading {filename} in {container} as {object_name}')
+    logger.debug(f'Uploading {filename} in {container} as {object_name}')
     cmd = init_cmd + f' upload {container} {filename} --object-name {object_name}' \
                      f' --segment-size 1048576000 --segment-threads 100'
     os.system(cmd)
@@ -57,7 +57,7 @@ def upload_object(container: str, filename: str) -> str:
 
 @retry(delay=2, tries=50)
 def download_object(container: str, filename: str, out: str) -> None:
-    logger.debug(f'downloading {filename} from {container} to {out}')
+    logger.debug(f'Downloading {filename} from {container} to {out}')
     cmd = init_cmd + f' download {container} {filename} -o {out}'
     os.system(cmd)
 
@@ -84,7 +84,7 @@ def get_objects(container: str, path: str) -> list:
 
 @retry(delay=2, tries=50)
 def get_objects_by_prefix(container: str, prefix: str) -> list:
-    logger.debug(f"retrieving object from container {container} and prefix {prefix}")
+    logger.debug(f'Retrieving object from container {container} and prefix {prefix}')
     objects = []
     marker = None
     keep_going = True
@@ -96,15 +96,14 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
         keep_going = len(content) == SWIFT_SIZE
         if len(content) > 0:
             marker = content[-1]['name']
-            logger.debug(f"now {len(objects)} objects and counting")
+            logger.debug(f'Now {len(objects)} objects and counting')
     flat_list = [item for sublist in objects for item in sublist]
     return flat_list
 
 
 @retry(delay=2, tries=50)
 def get_objects_by_page(container: str, page: int) -> list:
-    logger.debug(f"retrieving object from container {container} and page {page}")
-    objects = []
+    logger.debug(f'Retrieving object from container {container} and page {page}')
     marker = None
     keep_going = True
     current_page = 0 
@@ -125,7 +124,7 @@ def get_objects_by_page(container: str, page: int) -> list:
 
 @retry(delay=2, tries=50)
 def set_objects(all_objects, container: str, path: str) -> None:
-    logger.debug(f'setting object {container} {path}')
+    logger.debug(f'Setting object {container} {path}')
     if isinstance(all_objects, list):
         all_notices_content = pd.DataFrame(all_objects)
     else:
@@ -135,7 +134,7 @@ def set_objects(all_objects, container: str, path: str) -> None:
         all_notices_content.to_json(TextIOWrapper(gz_file, 'utf8'), orient='records')
     connection = get_connection()
     connection.put_object(container, path, contents=gz_buffer.getvalue())
-    logger.debug('done')
+    logger.debug('Done')
     return
 
 
