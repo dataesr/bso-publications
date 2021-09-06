@@ -13,7 +13,7 @@ openapc_doi = {}
 for i, row in df_openapc.iterrows():
     if not pd.isnull(row['doi']):
         doi = row['doi'].lower().strip()
-        if '10.' in doi:
+        if doi.startswith(str='10.'):
             openapc_doi[doi] = row['euro']
     for issn in ['issn', 'issn_l', 'issn_print', 'issn_electronic']:
         if not pd.isnull(row[issn]):
@@ -60,7 +60,7 @@ def detect_openapc(doi: str, issns: list, date_str: str) -> dict:
                     return {
                         'has_apc': True,
                         'amount_apc_EUR': apc_avg[key],
-                        'apc_source': 'openAPC_estimation_'+k
+                        'apc_source': 'openAPC_estimation_' + k,
                         'amount_apc_openapc_EUR': apc_avg[key]
                     }
     return {'has_apc': None}
