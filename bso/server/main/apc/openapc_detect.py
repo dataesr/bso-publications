@@ -60,7 +60,7 @@ def detect_openapc(doi: str, issns: list, date_str: str) -> dict:
                     return {
                         'has_apc': True,
                         'amount_apc_EUR': apc_avg[key],
-                        'apc_source': 'openAPC_estimation_'+k
+                        'apc_source': 'openAPC_estimation_'+k,
                         'amount_apc_openapc_EUR': apc_avg[key]
                     }
     return {'has_apc': None}
