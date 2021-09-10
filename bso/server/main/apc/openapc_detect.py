@@ -13,7 +13,7 @@ openapc_doi = {}
 for i, row in df_openapc.iterrows():
     if not pd.isnull(row['doi']):
         doi = row['doi'].lower().strip()
-        if doi.startswith(str='10.'):
+        if doi.startswith('10.'):
             openapc_doi[doi] = row['euro']
     for issn in ['issn', 'issn_l', 'issn_print', 'issn_electronic']:
         if not pd.isnull(row[issn]):
