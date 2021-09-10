@@ -3,8 +3,8 @@ import os
 import pymongo
 import random
 
-from typing import Union
 from retry import retry
+from typing import Union
 
 from bso.server.main.config import MONGO_URL
 from bso.server.main.decorator import exception_handler

@@ -1,10 +1,10 @@
 import gzip
 import os
-from io import BytesIO, TextIOWrapper
-from retry import retry
-
 import pandas as pd
 import swiftclient
+
+from io import BytesIO, TextIOWrapper
+from retry import retry
 
 from bso.server.main.logger import get_logger
 
@@ -23,26 +23,32 @@ init_cmd = f"swift --os-auth-url https://auth.cloud.ovh.net/v3 --auth-version 3 
       --os-project-id {project_id} \
       --os-project-name {project_name} \
       --os-region-name GRA"
+conn = None
 
-conn = swiftclient.Connection(
-    authurl='https://auth.cloud.ovh.net/v3',
-    user=user,
-    key=key,
-    os_options={
-        'user_domain_name': 'Default',
-        'project_domain_name': 'Default',
-        'project_id': project_id,
-        'project_name': project_name,
-        'region_name': 'GRA'
-    },
-    auth_version='3'
-)
+
+def get_connection() -> swiftclient.Connection:
+    global conn
+    if conn is None:
+        conn = swiftclient.Connection(
+            authurl='https://auth.cloud.ovh.net/v3',
+            user=user,
+            key=key,
+            os_options={
+                'user_domain_name': 'Default',
+                'project_domain_name': 'Default',
+                'project_id': project_id,
+                'project_name': project_name,
+                'region_name': 'GRA'
+            },
+            auth_version='3'
+        )
+    return conn
 
 
 @retry(delay=2, tries=50)
 def upload_object(container: str, filename: str) -> str:
     object_name = filename.split('/')[-1]
-    logger.debug(f'uploading {filename} in {container} as {object_name}')
+    logger.debug(f'Uploading {filename} in {container} as {object_name}')
     cmd = init_cmd + f' upload {container} {filename} --object-name {object_name}' \
                      f' --segment-size 1048576000 --segment-threads 100'
     os.system(cmd)
@@ -51,7 +57,7 @@ def upload_object(container: str, filename: str) -> str:
 
 @retry(delay=2, tries=50)
 def download_object(container: str, filename: str, out: str) -> None:
-    logger.debug(f'downloading {filename} from {container} to {out}')
+    logger.debug(f'Downloading {filename} from {container} to {out}')
     cmd = init_cmd + f' download {container} {filename} -o {out}'
     os.system(cmd)
 
@@ -59,7 +65,8 @@ def download_object(container: str, filename: str, out: str) -> None:
 @retry(delay=2, tries=50)
 def exists_in_storage(container: str, path: str) -> bool:
     try:
-        conn.head_object(container, path)
+        connection = get_connection()
+        connection.head_object(container, path)
         return True
     except:
         return False
@@ -68,7 +75,8 @@ def exists_in_storage(container: str, path: str) -> bool:
 @retry(delay=2, tries=50)
 def get_objects(container: str, path: str) -> list:
     try:
-        df = pd.read_json(BytesIO(conn.get_object(container, path)[1]), compression='gzip')
+        connection = get_connection()
+        df = pd.read_json(BytesIO(connection.get_object(container, path)[1]), compression='gzip')
     except:
         df = pd.DataFrame([])
     return df.to_dict('records')
@@ -76,31 +84,32 @@ def get_objects(container: str, path: str) -> list:
 
 @retry(delay=2, tries=50)
 def get_objects_by_prefix(container: str, prefix: str) -> list:
-    logger.debug(f"retrieving object from container {container} and prefix {prefix}")
+    logger.debug(f'Retrieving object from container {container} and prefix {prefix}')
     objects = []
     marker = None
     keep_going = True
     while keep_going:
-        content = conn.get_container(container=container, marker=marker, prefix=prefix)[1]
+        connection = get_connection()
+        content = connection.get_container(container=container, marker=marker, prefix=prefix)[1]
         filenames = [file['name'] for file in content]
         objects += [get_objects(container=container, path=filename) for filename in filenames]
         keep_going = len(content) == SWIFT_SIZE
         if len(content) > 0:
             marker = content[-1]['name']
-            logger.debug(f"now {len(objects)} objects and counting")
+            logger.debug(f'Now {len(objects)} objects and counting')
     flat_list = [item for sublist in objects for item in sublist]
     return flat_list
 
 
 @retry(delay=2, tries=50)
 def get_objects_by_page(container: str, page: int) -> list:
-    logger.debug(f"retrieving object from container {container} and page {page}")
-    objects = []
+    logger.debug(f'Retrieving object from container {container} and page {page}')
     marker = None
     keep_going = True
     current_page = 0 
     while keep_going:
-        content = conn.get_container(container=container, marker=marker, limit=1000)[1]
+        connection = get_connection()
+        content = connection.get_container(container=container, marker=marker, limit=1000)[1]
         filenames = [file['name'] for file in content]
         if len(filenames) == 0:
             return []
@@ -115,7 +124,7 @@ def get_objects_by_page(container: str, page: int) -> list:
 
 @retry(delay=2, tries=50)
 def set_objects(all_objects, container: str, path: str) -> None:
-    logger.debug(f'setting object {container} {path}')
+    logger.debug(f'Setting object {container} {path}')
     if isinstance(all_objects, list):
         all_notices_content = pd.DataFrame(all_objects)
     else:
@@ -123,14 +132,16 @@ def set_objects(all_objects, container: str, path: str) -> None:
     gz_buffer = BytesIO()
     with gzip.GzipFile(mode='w', fileobj=gz_buffer) as gz_file:
         all_notices_content.to_json(TextIOWrapper(gz_file, 'utf8'), orient='records')
-    conn.put_object(container, path, contents=gz_buffer.getvalue())
-    logger.debug('done')
+    connection = get_connection()
+    connection.put_object(container, path, contents=gz_buffer.getvalue())
+    logger.debug('Done')
     return
 
 
 @retry(delay=2, tries=50)
 def delete_object(container: str, folder: str) -> None:
-    cont = conn.get_container(container)
+    connection = get_connection()
+    cont = connection.get_container(container)
     for n in [e['name'] for e in cont[1] if folder in e['name']]:
         logger.debug(n)
-        conn.delete_object(container, n)
+        connection.delete_object(container, n)
