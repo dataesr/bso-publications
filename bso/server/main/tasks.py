@@ -34,7 +34,7 @@ def create_task_download_unpaywall(args: dict) -> str:
     return snap
 
 
-def create_task_unpaywall_to_crawler():
+def create_task_unpaywall_to_crawler(arg):
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
     daily_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
