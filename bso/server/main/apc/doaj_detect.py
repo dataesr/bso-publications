@@ -8,7 +8,7 @@ from currency_converter import CurrencyConverter
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
-c = CurrencyConverter(fallback_on_wrong_date=True)
+c = CurrencyConverter(fallback_on_missing_rate=True)
 s = requests.get('https://doaj.org/csv').content
 df_doaj = pd.read_csv(io.StringIO(s.decode('utf-8')))
 
