@@ -133,7 +133,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         elif host_type == 'publisher':
             if licence:
                 licence_publisher.append(licence)
-            if not has_apc and elem.get('journal_is_in_doaj'):
+            if (has_apc is not None) and (not has_apc) and elem.get('journal_is_in_doaj'):
                 status = 'diamond'
             elif elem.get('journal_is_oa') == 1:
                 status = 'gold'
