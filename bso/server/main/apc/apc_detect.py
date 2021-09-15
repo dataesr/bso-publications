@@ -28,18 +28,21 @@ def detect_apc(doi: str, journal_issns: str, published_date: str, dois_info: dic
     res_openapc = detect_openapc(doi, issns, published_date)
 
     res = {'has_apc': None}
-    is_openapc_estimation_ok = False
+    if not is_oa_publisher:
+        return res
+    is_openapc_estimation_accurate = False
     # on commence par tenter d'estimer d'éventuels APC avec openAPC
     if res_openapc.get('has_apc'):
         res.update(res_openapc)
-        if res_openapc.get('apc_source') in ['openAPC_estimation_issn_year', 'openAPC']: #present dans openAPC ou estimation avec la moyenne sur la revue x annee
-            is_openapc_estimation_ok = True
-    # si OA avec hébergement éditeur et pas d'APC détecté avec openAPC, on vérifie si des APC sont renseignés dans le DOAJ
-    if (is_oa_publisher) and (not is_openapc_estimation_ok) and (res_doaj.get('has_apc')):
-        res.update(res_doaj)
-   
+        if res_openapc.get('apc_source') in ['openAPC_estimation_issn_year', 'openAPC_estimation_issn', 'openAPC']: #present dans openAPC ou estimation avec la moyenne sur la revue x annee
+            is_openapc_estimation_accurate = True
     # dans tous les cas, on récupère les infos du DOAJ s'il y en a
     for field in ['amount_apc_doaj_EUR', 'amount_apc_doaj', 'currency_apc_doaj']:
         if field in res_doaj and res_doaj.get(field):
             res[field] = res_doaj.get(field)
+    # s'il y a une info dans le DOAJ et (pas d'info openAPC ou info trop imprécise dans openAPC), on met à jour avec doaj
+    if res_doaj['has_apc'] is not None and (res_openapc['has_apc'] is None or is_openapc_estimation_accurate is False):
+        res.update(res_doaj)
+
+   
     return res
