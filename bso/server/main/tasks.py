@@ -37,12 +37,12 @@ def create_task_download_unpaywall(args: dict) -> str:
 def create_task_unpaywall_to_crawler(arg):
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
-    daily_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
-    daily_files = requests.get(daily_files_url).json()['list']
-    destination = f'{PV_MOUNT}/daily_upw.jsonl.gz'
-    download_file(daily_files[0]['url'], upload_to_object_storage=False, destination=destination)
+    weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
+    weekly_files = requests.get(weekly_files_url).json()['list']
+    destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
+    download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
     df = pd.read_json(destination, lines=True)
-    logger.debug(f'{len(df)} lines in daily upw file')
+    logger.debug(f'{len(df)} lines in weekly upw file')
     for i, row in df[df.year >= 2013].iterrows():
         title = row.title
         doi = row.doi
