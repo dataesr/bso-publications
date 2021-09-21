@@ -41,17 +41,18 @@ def create_task_unpaywall_to_crawler(arg):
     weekly_files = requests.get(weekly_files_url).json()['list']
     destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
-    df = pd.read_json(destination, lines=True)
-    logger.debug(f'{len(df)} lines in weekly upw file')
-    for i, row in df[df.year >= 2013].iterrows():
-        title = row.title
-        doi = row.doi
-        if title and doi:
-            title = title.strip()
-            doi = doi.strip()
-            url = f'http://doi.org/{doi}'
-            logger.debug(f'Sending doi {doi} ({title}) to crawler')
-            requests.post(f'{crawler_url}/tasks', json={'url': url, 'title': title})
+    chunks = pd.read_json(destination, lines=True, chunksize = 50000)
+    for c in chunks:
+        logger.debug(f'{len(c)} lines in weekly upw file')
+        for i, row in c[c.year >= 2013].iterrows():
+            title = row.title
+            doi = row.doi
+            if title and doi:
+                title = title.strip()
+                doi = doi.strip()
+                url = f'http://doi.org/{doi}'
+                logger.debug(f'Sending doi {doi} ({title}) to crawler')
+                requests.post(f'{crawler_url}/tasks', json={'url': url, 'title': title})
 
 
 def create_task_load_mongo(args: dict) -> None:
