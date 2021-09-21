@@ -20,6 +20,10 @@ cols_bpc = ['doi', 'euro', 'isbn', 'isbn_print', 'isbn_electronic', 'period', 'p
 df_apc = pd.read_csv(io.StringIO(s_apc.decode('utf-8')))[cols_apc]
 df_bpc = pd.read_csv(io.StringIO(s_bpc.decode('utf-8')))[cols_bpc]
 df_ta = pd.read_csv(io.StringIO(s_ta.decode('utf-8')))[cols_apc]
+df_ta['transformative_agreement'] = True
+df_apc['transformative_agreement'] = False
+df_bpc['transformative_agreement'] = False
+
 df_openapc = pd.concat([df_apc, df_bpc, df_ta])
 
 openapc_doi = {}
@@ -32,6 +36,11 @@ for i, row in df_openapc.iterrows():
         doi = row['doi'].lower().strip()
         if doi.startswith('10.'):
             openapc_doi[doi] = row['euro']
+
+    # on n'utilise pas les TA pour construire les moyennes par issn, éditeur, année
+    if row.transformative_agreement:
+        continue
+
     year_ok, publisher_ok = None, None
     keys = []
     if row.get('period') and len(str(row['period'])) >= 4:
