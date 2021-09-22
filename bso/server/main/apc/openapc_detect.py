@@ -93,7 +93,8 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
     # à défaut, on prend la moyenne des APC rencontrés pour cet ISSN (quelle que soit l'année)
     # en dernier recours, en cas de revue inconnue dans openAPC, on assigne la moyenne des APC de l'année
     issns = [issn for issn in issns if isinstance(issn, str)]
-    year_ok = date_str[0:4]
+    if date_str:
+        year_ok = date_str[0:4]
     keys_to_try = []
     for issn in issns:
         keys_to_try.append({'method': 'issn_year', 'key': f'ISSN{issn.strip()};YEAR{year_ok}'})
