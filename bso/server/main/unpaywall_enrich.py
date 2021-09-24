@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 from typing import Union
+import dateutil.parser
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.field_detect import detect_fields
@@ -191,4 +192,8 @@ def enrich(publications: list) -> list:
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
         all_updated += [d for d in new_updated if len(d.get('oa_details', {})) > 0]
         logger.debug(f'{len(publi_chunk)} / {len(publications)} enriched')
+    for p in all_updated:
+        for field in p:
+            if '_date' in field and p.get(field):
+                p[field] = dateutil.parser.parse(p[field]).isoformat()
     return all_updated
