@@ -90,8 +90,8 @@ def create_task_etl(args: dict) -> None:
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         enriched_publications = enrich(publications=publications)
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-        load_in_es(data=enriched_publications, index=index)
-        doi_in_index += [p['doi'] for p in enriched_publications]
+        loaded = load_in_es(data=enriched_publications, index=index)
+        doi_in_index += [p['doi'] for p in loaded]
     logger.debug('Pubmed publications indexed. now indexing other french publications')
     doi_in_index_set = set(doi_in_index)
     # Crawled data
@@ -105,8 +105,8 @@ def create_task_etl(args: dict) -> None:
         logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
         enriched_publications = enrich(publications=publications_not_indexed_yet)
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-        load_in_es(data=enriched_publications, index=index)
-        doi_in_index += [p['doi'] for p in enriched_publications]
+        loaded = load_in_es(data=enriched_publications, index=index)
+        doi_in_index += [p['doi'] for p in loaded]
     # Other dois
     download_object(container='publications-related', filename='dois_fr.json', out=f'{PV_MOUNT}/dois_fr.json')
     fr_dois = json.load(open(f'{PV_MOUNT}/dois_fr.json', 'r'))
