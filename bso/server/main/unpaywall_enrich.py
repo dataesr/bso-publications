@@ -194,6 +194,9 @@ def enrich(publications: list) -> list:
         logger.debug(f'{len(publi_chunk)} / {len(publications)} enriched')
     for p in all_updated:
         for field in p:
-            if '_date' in field and p.get(field):
-                p[field] = dateutil.parser.parse(p[field]).isoformat()
+            if isinstance(p.get(field), str) and p[field][-5:] == '_date' :
+                try:
+                    p[field] = dateutil.parser.parse(p[field]).isoformat()
+                except:
+                    logger.debug(f"error for field {field} : {p[field]} of type {type(p[field])}")
     return all_updated

@@ -56,6 +56,7 @@ def load_in_es(data: list, index: str) -> None:
     es = get_client()
     actions = [{'_index': index, '_source': datum} for datum in data]
     ix = 0
+    indexed = []
     for success, info in helpers.parallel_bulk(client=es, actions=actions, chunk_size=500, request_timeout=60, raise_on_error=False):
         if not success:
             logger.debug(f'A document failed: {info}')
