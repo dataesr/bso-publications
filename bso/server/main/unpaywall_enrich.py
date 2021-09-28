@@ -112,6 +112,8 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # not exposing authors in index
         if 'authors' in res:
             del res['authors']
+        if 'references' in res:
+            del res['references']
         # APC
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos)
         res.update(info_apc)
@@ -194,7 +196,7 @@ def enrich(publications: list) -> list:
         logger.debug(f'{len(publi_chunk)} / {len(publications)} enriched')
     for p in all_updated:
         for field in p:
-            if isinstance(p.get(field), str) and p[field][-5:] == '_date' :
+            if isinstance(p.get(field), str) and field[-5:] == '_date' :
                 try:
                     p[field] = dateutil.parser.parse(p[field]).isoformat()
                 except:
