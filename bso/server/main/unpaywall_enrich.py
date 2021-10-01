@@ -118,7 +118,9 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos[doi])
         res.update(info_apc)
         # Language
-        if 'lang' not in res or res['lang'] is None or len(res['lang']) < 2:
+        if isinstance(res.get('lang'), str) and res.get('lang').lower() in ['english', 'french']:
+            res['lang'] = res['lang'].lower()[0:2]
+        elif 'lang' not in res or res['lang'] is None or len(res['lang']) != 2 or res['lang'] != res['lang'].lower():
             publi_title_abstract = ''
             words_title = get_words(res.get('title', ''))
             if isinstance(words_title, str):
