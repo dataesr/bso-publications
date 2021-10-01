@@ -115,7 +115,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         if 'references' in res:
             del res['references']
         # APC
-        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos)
+        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos[doi])
         res.update(info_apc)
         # Language
         if 'lang' not in res or res['lang'] is None or len(res['lang']) < 2:
@@ -159,8 +159,6 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # OA Details
         res['observation_dates'] = []
         res['oa_details'] = {}
-        if res['has_apc']:
-            res['has_apc'] = 1.0
         for asof in dois_infos[doi]:
             if asof == 'global':
                 continue

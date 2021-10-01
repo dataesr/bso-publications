@@ -43,6 +43,9 @@ def detect_apc(doi: str, journal_issns: str, publisher: str, published_date: str
     # s'il y a une info dans le DOAJ et (pas d'info openAPC ou info trop imprécise dans openAPC), on met à jour avec doaj
     if res_doaj['has_apc'] is not None and (res_openapc['has_apc'] is None or is_openapc_estimation_accurate is False):
         res.update(res_doaj)
+    # enfin, si le DOAJ donne l'info diamond, on garde cette info
+    if res_doaj['has_apc'] is False:
+        res.update(res_doaj)
 
    
     return res
