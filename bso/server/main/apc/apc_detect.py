@@ -9,16 +9,18 @@ def detect_apc(doi: str, journal_issns: str, publisher: str, published_date: str
         issns = [k.strip() for k in journal_issns.split(',')]
 
     is_oa_publisher = False
-    last_obs_date = max([k for k in dois_info.keys() if k != 'global'])
-    oa_loc = dois_info[last_obs_date].get('oa_locations', [])
-    if oa_loc is None:
-        oa_loc = []
-    for loc in oa_loc:
-        if loc is None:
-            continue
-        host_type = loc.get('host_type')
-        if host_type == 'publisher':
-            is_oa_publisher = True
+    obs_dates = [k for k in dois_info.keys() if k != 'global']
+    if obs_dates:
+        last_obs_date = max([k for k in dois_info.keys() if k != 'global'])
+        oa_loc = dois_info[last_obs_date].get('oa_locations', [])
+        if oa_loc is None:
+            oa_loc = []
+        for loc in oa_loc:
+            if loc is None:
+                continue
+            host_type = loc.get('host_type')
+            if host_type == 'publisher':
+                is_oa_publisher = True
 
 
     # estimation via le DOAJ
