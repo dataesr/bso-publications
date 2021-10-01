@@ -37,6 +37,13 @@ def split_currency(x):
         return None
     return {'amount': amount, 'currency': currency}
 
+# the column stating if there are APC changes name from time to time !!
+has_apc_potential_col = [col for col in df_doaj.columns if 'apc' in col.lower()]
+has_apc_col = 'has_apc_col'
+for col in has_apc_potential_col:
+    if (len(df_doaj[col].unique().tolist())) == 2:
+        has_apc_col = col
+        break
 
 doaj_infos = {}
 for i, row in df_doaj.iterrows():
@@ -63,16 +70,16 @@ for i, row in df_doaj.iterrows():
                         apc_amount = sp.get('amount')
                         apc_currency = sp.get('currency')
             has_apc = None
-            if 'Journal article processing charges (APCs)' in row:
-                has_apc = row['Journal article processing charges (APCs)']
-            elif 'APC' in row:
-                has_apc = row['APC']
+            if has_apc_col in row:
+                has_apc = row[has_apc_col]
             else:
                 logger.warning('Missing has_APC info in DOAJ')
             if has_apc == 'Yes':
                 has_apc = True
             elif has_apc == 'No':
                 has_apc = False
+                apc_amount = 0
+                apc_currency = 'EUR'
             current_info = {
                 'has_apc': has_apc,
                 'apc_amount': apc_amount,
@@ -90,7 +97,7 @@ def detect_doaj(issns: list, date_str: str) -> dict:
             amount = info['apc_amount']
             currency = info['apc_currency']
             has_apc = info['has_apc']
-            if amount and currency:
+            if amount is not None and currency:
                 try:
                     amount_eur = c.convert(amount, currency, 'EUR', date=pd.to_datetime(date_str))
                 except:

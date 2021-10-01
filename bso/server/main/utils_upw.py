@@ -80,7 +80,12 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     res = {'snapshot_date': asof}
     millesime = get_millesime(asof)
     res['observation_date'] = millesime
-    res['is_oa'] = elem.get('is_oa', False)
+    for f in ['is_oa', 'journal_is_in_doaj', 'journal_is_oa']:
+        current_value = elem.get(f, False)
+        if current_value:
+            res[f] = current_value
+        else:
+            res[f] = False
     if res['is_oa'] is False:
         res['oa_host_type'] = ["closed"]
         res['oa_colors'] = ["closed"]
