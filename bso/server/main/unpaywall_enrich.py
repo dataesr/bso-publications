@@ -195,10 +195,14 @@ def enrich(publications: list) -> list:
         all_updated += [d for d in new_updated if len(d.get('oa_details', {})) > 0]
         logger.debug(f'{len(publi_chunk)} / {len(publications)} enriched')
     for p in all_updated:
+        field_to_del = []
         for field in p:
             if isinstance(p.get(field), str) and field.endswith('_date'):
                 try:
                     p[field] = dateutil.parser.parse(p[field]).isoformat()
                 except:
-                    logger.debug(f"error for field {field} : {p[field]} of type {type(p[field])}")
+                    logger.debug(f"error for field {field} : {p[field]} of type {type(p[field])}, deleting field")
+                    field_to_del.append(field)
+        for field in field_to_del:
+            del p[field]
     return all_updated
