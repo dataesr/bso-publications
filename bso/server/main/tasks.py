@@ -40,12 +40,15 @@ def create_task_unpaywall_to_crawler(arg):
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
+    #daily_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
+    # START_YEAR = 2013
+    START_YEAR = 2021
     weekly_files = requests.get(weekly_files_url).json()['list']
     destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
     chunks = pd.read_json(destination, lines=True, chunksize = 5000)
     for c in chunks:
-        sub_df = c[c.year >= 2013]
+        sub_df = c[c.year >= START_YEAR]
         element_to_crawl = get_not_crawled(sub_df.doi.tolist())
         logger.debug(f'{len(c)} lines in weekly upw file')
         publis_with_affiliation = []
@@ -59,7 +62,6 @@ def create_task_unpaywall_to_crawler(arg):
                 title = title.strip()
                 doi = doi.strip()
                 url = f'http://doi.org/{doi}'
-                logger.debug(f'Sending doi {doi} ({title}) to crawler')
                 requests.post(f'{crawler_url}/tasks', json={'url': url, 'title': title})
             
             ## récupération des affiliations de crossref
