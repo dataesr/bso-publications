@@ -51,6 +51,14 @@ def clean(res: dict, coll: str) -> dict:
         res['asof'] = coll
     return res
 
+@retry(delay=60, tries=5)
+def get_not_crawled(doi) -> dict:
+    collection_name = 'inventory'
+    collection = get_collection(collection_name=collection_name)
+    crawled = set([e['doi'] for e in collection.find({'doi': {'$in': doi}})])
+    not_crawled = set(doi) - set(crawled)
+    return not_crawled
+
 
 @retry(delay=60, tries=5)
 def get_doi(doi, collection_name: str) -> dict:
