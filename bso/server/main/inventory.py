@@ -3,6 +3,7 @@ import os
 import pymongo
 import requests
 import json
+import pandas as pd
 
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
@@ -15,7 +16,8 @@ def update_inventory(elts: list) -> None:
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['unpaywall']
     output_json = f'{PV_MOUNT}current_list_inventory_mongo.jsonl'
-    json.dump(x, fp = open(output_json, 'w'), indent=2, ensure_ascii=False)
+    #json.dump(elts, fp = open(output_json, 'w'), indent=2, ensure_ascii=False)
+    pd.DataFrame(elts).to_json(output_json, lines=True, orient='records')
     start = datetime.datetime.now()
     collection_name = 'inventory'
     mongoimport = f"mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/unpaywall --file {output_json}" \
