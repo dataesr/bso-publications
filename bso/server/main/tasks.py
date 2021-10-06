@@ -9,10 +9,12 @@ from dateutil import parser
 from bso.server.main.elastic import load_in_es, reset_index, update_alias
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
+from bso.server.main.unpaywall_mongo import get_not_crawled
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file
+from bso.server.main.inventory import update_inventory
 
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
@@ -41,18 +43,40 @@ def create_task_unpaywall_to_crawler(arg):
     weekly_files = requests.get(weekly_files_url).json()['list']
     destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
-    chunks = pd.read_json(destination, lines=True, chunksize = 50000)
+    chunks = pd.read_json(destination, lines=True, chunksize = 5000)
     for c in chunks:
+        sub_df = c[c.year >= 2013]
+        element_to_crawl = get_not_crawled(sub_df.doi.tolist())
         logger.debug(f'{len(c)} lines in weekly upw file')
-        for i, row in c[c.year >= 2013].iterrows():
+        publis_with_affiliation = []
+        for i, row in sub_df.iterrows():
             title = row.title
             doi = row.doi
+            if doi not in element_to_crawl:
+                continue
+            # crawler
             if title and doi:
                 title = title.strip()
                 doi = doi.strip()
                 url = f'http://doi.org/{doi}'
                 logger.debug(f'Sending doi {doi} ({title}) to crawler')
                 requests.post(f'{crawler_url}/tasks', json={'url': url, 'title': title})
+            
+            ## récupération des affiliations de crossref
+            affiliations = []
+            if not isinstance(row.z_authors, list):
+                continue
+            for a in row.z_authors:
+                if 'affiliation' in a:
+                    for aff in a['affiliation']:
+                        if aff not in affiliations:
+                            affiliations.append(aff)
+            if affiliations:
+                p = {'doi': row.doi, 'affiliations': affiliations, 'authors': row.z_authors}
+                publis_with_affiliation.append(p)
+
+
+        update_inventory([{'doi': doi, 'crawl': True, 'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl])
 
 
 def create_task_load_mongo(args: dict) -> None:
