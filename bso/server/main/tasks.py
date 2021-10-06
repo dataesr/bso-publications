@@ -19,6 +19,14 @@ from bso.server.main.inventory import update_inventory
 PV_MOUNT = '/upw_data'
 logger = get_logger(__name__)
 
+HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
+parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
+
+def send_to_parser(json):
+    if HTML_PARSER_SERVICE:
+        r = requests.post(parser_endpoint_url, json={'doi': json['doi'], 'json': json})
+        task_id = r.json()['data']['task_id']
+        print(f"new task {task_id} for parser", flush=True)
 
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
@@ -51,7 +59,6 @@ def create_task_unpaywall_to_crawler(arg):
         sub_df = c[c.year >= START_YEAR]
         element_to_crawl = get_not_crawled(sub_df.doi.tolist())
         logger.debug(f'{len(c)} lines in weekly upw file')
-        publis_with_affiliation = []
         for i, row in sub_df.iterrows():
             title = row.title
             doi = row.doi
@@ -75,8 +82,7 @@ def create_task_unpaywall_to_crawler(arg):
                             affiliations.append(aff)
             if affiliations:
                 p = {'doi': row.doi, 'affiliations': affiliations, 'authors': row.z_authors}
-                publis_with_affiliation.append(p)
-
+                send_to_parser(p) # match country and store results in crossref object storage
 
         update_inventory([{'doi': doi, 'crawl': True, 'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl])
 
@@ -120,19 +126,20 @@ def create_task_etl(args: dict) -> None:
         doi_in_index += [p['doi'] for p in loaded]
     logger.debug('Pubmed publications indexed. now indexing other french publications')
     doi_in_index_set = set(doi_in_index)
-    # Crawled data
-    for page in range(1, 100000):
-        logger.debug(f'Getting parsed objects for page {page} from object storage (crawled)')
-        publications = get_objects_by_page(container='parsed_fr', page=page)
-        logger.debug(f'{len(publications)} publications retrieved from object storage')
-        if len(publications) == 0:
-            break
-        publications_not_indexed_yet = [p for p in publications if p['doi'] not in doi_in_index_set]
-        logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
-        enriched_publications = enrich(publications=publications_not_indexed_yet)
-        logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-        loaded = load_in_es(data=enriched_publications, index=index)
-        doi_in_index += [p['doi'] for p in loaded]
+    # Crawled data and affiliation data in crossref
+    for container in ['parsed_fr', 'crossref_fr']:
+        for page in range(1, 1000000):
+            logger.debug(f'Getting parsed objects for page {page} from object storage ({container})')
+            publications = get_objects_by_page(container=container, page=page)
+            logger.debug(f'{len(publications)} publications retrieved from object storage')
+            if len(publications) == 0:
+                break
+            publications_not_indexed_yet = [p for p in publications if p['doi'] not in doi_in_index_set]
+            logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
+            enriched_publications = enrich(publications=publications_not_indexed_yet)
+            logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+            loaded = load_in_es(data=enriched_publications, index=index)
+            doi_in_index += [p['doi'] for p in loaded]
     # Other dois
     download_object(container='publications-related', filename='dois_fr.json', out=f'{PV_MOUNT}/dois_fr.json')
     fr_dois = json.load(open(f'{PV_MOUNT}/dois_fr.json', 'r'))
