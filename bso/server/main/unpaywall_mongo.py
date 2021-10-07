@@ -83,7 +83,7 @@ def get_doi_full(dois: list) -> dict:
         res[d] = {}
     collections = db.list_collection_names()
     for collection in collections:
-        if collection in ['pubmed']:
+        if collection in ['pubmed', 'inventory']:
             continue
         current_list = get_doi(dois, collection)
         for e in current_list:
