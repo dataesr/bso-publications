@@ -109,11 +109,6 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             if 'authors' not in res:
                 res['authors'] = res['z_authors']
             del res['z_authors']
-        # not exposing authors in index
-        if 'authors' in res:
-            del res['authors']
-        if 'references' in res:
-            del res['references']
         # APC
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos[doi])
         res.update(info_apc)
@@ -175,6 +170,11 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         for field in ['has_coi', 'has_grant', 'is_paratext']:
             if res.get(field, 0.0) == 0.0:
                 res[field] = False
+        # not exposing authors in index
+        if 'authors' in res:
+            del res['authors']
+        if 'references' in res:
+            del res['references']
         final.append(res)
     return final
 
