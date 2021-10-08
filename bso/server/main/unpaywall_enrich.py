@@ -6,6 +6,7 @@ from typing import Union
 import dateutil.parser
 
 from bso.server.main.apc.apc_detect import detect_apc
+from bso.server.main.publisher.publisher_detect import publisher_apc
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
@@ -190,6 +191,10 @@ def enrich(publications: list) -> list:
     for publi_chunk in chunks(lst=publications, n=5000):
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
         data = get_doi_full(dois=doi_chunk)
+        # normalisation des editeurs
+        for d in data:
+            if isinstance(d.get('publisher'), str):
+                d['publisher'] = detect_publisher(d['publisher']) 
         # Remove data with no oa details info (not indexed in unpaywall)
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
         all_updated += [d for d in new_updated if len(d.get('oa_details', {})) > 0]
