@@ -50,6 +50,8 @@ def get_repository(a_repo: str) -> str:
         return 'HAL'
     if 'biorxiv' in a_repo.lower():
         return 'bioRxiv'
+    if 'medrxiv' in a_repo.lower():
+        return 'medRxiv'
     return a_repo
 
 
