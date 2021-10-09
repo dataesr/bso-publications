@@ -119,8 +119,9 @@ def create_task_etl(args: dict) -> None:
     for prefix in prefixes:
         logger.debug(f'Getting parsed objects for {prefix} from object storage (pubmed)')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
+        publications_not_indexed_yet = [p for p in publications if p['doi'] not in doi_in_index_set]
         logger.debug(f'{len(publications)} publications retrieved from object storage')
-        enriched_publications = enrich(publications=publications)
+        enriched_publications = enrich(publications=publications_not_indexed_yet)
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
         loaded = load_in_es(data=enriched_publications, index=index)
         doi_in_index += [p['doi'] for p in loaded]
