@@ -49,8 +49,8 @@ def create_task_unpaywall_to_crawler(arg):
     crawler_url = os.getenv('CRAWLER_SERVICE')
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
     #daily_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
-    # START_YEAR = 2013
-    START_YEAR = 2021
+    START_YEAR = 2013
+    #START_YEAR = 2021
     weekly_files = requests.get(weekly_files_url).json()['list']
     destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
