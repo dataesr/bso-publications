@@ -78,6 +78,8 @@ def create_task_unpaywall_to_crawler(arg):
             for a in row.z_authors:
                 if 'affiliation' in a:
                     for aff in a['affiliation']:
+                        if isinstance(aff, str):
+                            aff = {'name': aff} 
                         if aff not in affiliations:
                             affiliations.append(aff)
             if affiliations:
