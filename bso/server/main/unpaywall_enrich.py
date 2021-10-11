@@ -6,7 +6,7 @@ from typing import Union
 import dateutil.parser
 
 from bso.server.main.apc.apc_detect import detect_apc
-from bso.server.main.publisher.publisher_detect import publisher_apc
+from bso.server.main.publisher.publisher_detect import detect_publisher
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
