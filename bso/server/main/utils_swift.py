@@ -17,7 +17,8 @@ tenant_name = os.getenv('OS_TENANT_NAME')
 username = os.getenv('OS_USERNAME')
 user = f'{tenant_name}:{username}'
 init_cmd = f"swift --os-auth-url https://auth.cloud.ovh.net/v3 --auth-version 3 \
-      --key {key} --user {user} \
+      --key {key}\
+      --user {user} \
       --os-user-domain-name Default \
       --os-project-domain-name Default \
       --os-project-id {project_id} \
