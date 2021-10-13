@@ -114,8 +114,16 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos[doi])
         res.update(info_apc)
         # Language
-        if isinstance(res.get('lang'), str) and res.get('lang').lower() in ['english', 'french']:
-            res['lang'] = res['lang'].lower()[0:2]
+        lang_mapping = {
+                'english': 'en',
+                'french': 'fr',
+                'spanish': 'es',
+                'german': 'de',
+                'dutch': 'nl',
+                'italian': 'it'
+        }
+        if isinstance(res.get('lang'), str) and res.get('lang').lower() in lang_mapping:
+            res['lang'] = lang_mapping[res['lang'].lower()]
         elif 'lang' not in res or res['lang'] is None or len(res['lang']) != 2 or res['lang'] != res['lang'].lower():
             publi_title_abstract = ''
             words_title = get_words(res.get('title', ''))
@@ -194,7 +202,8 @@ def enrich(publications: list) -> list:
         # normalisation des editeurs
         for d in data:
             if isinstance(d.get('publisher'), str):
-                d['publisher'] = detect_publisher(d['publisher']) 
+                publisher_clean = detect_publisher(d['publisher']) 
+                d.update(publisher_clean)
         # Remove data with no oa details info (not indexed in unpaywall)
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
         all_updated += [d for d in new_updated if len(d.get('oa_details', {})) > 0]

@@ -10,5 +10,5 @@ for i, row in df_publisher.iterrows():
 # normalise le nom de l'éditeur
 
 def detect_publisher(publisher: str) -> str:
-   
-    return publisher_map.get(publisher.strip(), publisher)
+    publisher_normalized = publisher_map.get(publisher.strip(), publisher)   
+    return {'publisher_normalized': publisher_normalized}
