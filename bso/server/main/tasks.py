@@ -156,4 +156,5 @@ def create_task_etl(args: dict) -> None:
         enriched_publications = enrich(publications=[{'doi': d} for d in chunk])
         logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
         load_in_es(data=enriched_publications, index=index)
-    update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
+    # alias update is done manually !
+    # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
