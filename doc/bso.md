@@ -29,9 +29,35 @@ keywords:
 
 # 2. Method
 
+## 2.1 Publications
+
+### 2.1.1 Open access dynamic
+
+### 2.1.2 Discipline impact
+
+### 2.1.3 Publishers strategies
+
+#### 2.1.3.1 Business models
+
+#### 2.1.3.2 Licences
+
+#### 2.1.3.3 Article Processing Charges (APC)
+
+### 2.1.4 The role of the open repositories
+
+### 2.1.5 Other impacts on open access
+
+#### 2.1.5.1 Funding
+
+#### 2.1.5.2 Main authors affiliation country
+
+#### 2.1.5.3 Authors affiliations
+
+### 2.1.6 Data collection system and architecture
+
+## 2.2 Clinical trials and observational studies
 
 # 3. Results
-
 
 # 4. Discussion and conclusion
 
