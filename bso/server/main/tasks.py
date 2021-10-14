@@ -9,7 +9,7 @@ from dateutil import parser
 from bso.server.main.elastic import load_in_es, reset_index, update_alias
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
-from bso.server.main.unpaywall_mongo import get_not_crawled
+from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
@@ -102,11 +102,16 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
+    output = args.get('output', 'bso-index')
     current_date = datetime.date.today().isoformat()
-    index = args.get('index', f'bso-publications-{current_date}')
     alias = 'bso-publications'
-    logger.debug(f'Reset index {index}')
-    reset_index(index=index)
+    index = args.get('index', f'bso-publications-{current_date}')
+    collection_name = args.get('collection_name')
+    file_part = 0
+    if output == 'bso-index':
+        logger.debug(f'Reset index {index}')
+        reset_index(index=index)
+
     start_string = args.get('start', '2013-01-01')
     end_string = args.get('end', datetime.date.today().isoformat())
     start_date = parser.parse(start_string).date()
@@ -116,19 +121,22 @@ def create_task_etl(args: dict) -> None:
     prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format)
                          for days in range(nb_days)]))
     prefixes.sort()
-    doi_in_index = []
+    doi_in_index = set()
     # Pubmed data
     for prefix in prefixes:
         logger.debug(f'Getting parsed objects for {prefix} from object storage (pubmed)')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
-        publications_not_indexed_yet = [p for p in publications if p['doi'] not in doi_in_index_set]
+        publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
         logger.debug(f'{len(publications)} publications retrieved from object storage')
-        enriched_publications = enrich(publications=publications_not_indexed_yet)
-        logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-        loaded = load_in_es(data=enriched_publications, index=index)
-        doi_in_index += [p['doi'] for p in loaded]
+        if output == 'bso-index':
+            enriched_publications = enrich(publications=publications_not_indexed_yet)
+            logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+            loaded = load_in_es(data=enriched_publications, index=index)
+        else:
+            loaded = get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part)
+            file_part += 1
+        doi_in_index.update([p['doi'] for p in loaded])
     logger.debug('Pubmed publications indexed. now indexing other french publications')
-    doi_in_index_set = set(doi_in_index)
     # Crawled data and affiliation data in crossref
     for container in ['parsed_fr', 'crossref_fr']:
         for page in range(1, 1000000):
@@ -137,24 +145,33 @@ def create_task_etl(args: dict) -> None:
             logger.debug(f'{len(publications)} publications retrieved from object storage')
             if len(publications) == 0:
                 break
-            publications_not_indexed_yet = [p for p in publications if p['doi'] not in doi_in_index_set]
+            publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
-            enriched_publications = enrich(publications=publications_not_indexed_yet)
-            logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-            loaded = load_in_es(data=enriched_publications, index=index)
-            doi_in_index += [p['doi'] for p in loaded]
+            if output == 'bso-index':
+                enriched_publications = enrich(publications=publications_not_indexed_yet)
+                logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+                loaded = load_in_es(data=enriched_publications, index=index)
+            else:
+                loaded = get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part) 
+                file_part += 1
+            doi_in_index.update([p['doi'] for p in loaded])
     # Other dois
     download_object(container='publications-related', filename='dois_fr.json', out=f'{PV_MOUNT}/dois_fr.json')
     fr_dois = json.load(open(f'{PV_MOUNT}/dois_fr.json', 'r'))
-    doi_in_index_set = set(doi_in_index)
     fr_dois_set = set(fr_dois)
-    remaining_dois = list(fr_dois_set - doi_in_index_set)
-    logger.debug(f'DOI already in index: {len(doi_in_index_set)}')
+    remaining_dois = list(fr_dois_set - doi_in_index)
+    logger.debug(f'DOI already in index: {len(doi_in_index)}')
     logger.debug(f'French DOI: {len(fr_dois_set)}')
     logger.debug(f'Remaining dois to index: {len(remaining_dois)}')
     for chunk in chunks(remaining_dois, 5000):
-        enriched_publications = enrich(publications=[{'doi': d} for d in chunk])
-        logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-        load_in_es(data=enriched_publications, index=index)
+        publications_not_indexed_yet = [{'doi': d} for d in chunk]
+        if output == 'bso-index':
+            enriched_publications = enrich(publications=publications_not_indexed_yet)
+            logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+            loaded = load_in_es(data=enriched_publications, index=index)
+        else:
+            loaded = get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part) 
+            file_part += 1
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
+

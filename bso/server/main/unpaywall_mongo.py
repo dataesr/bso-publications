@@ -1,4 +1,5 @@
 import json
+import gzip
 import os
 import pymongo
 import random
@@ -59,6 +60,28 @@ def get_not_crawled(doi) -> dict:
     not_crawled = set(doi) - set(crawled)
     return not_crawled
 
+
+@retry(delay=60, tries=5)
+def get_unpaywall_infos(publications, collection_name, file_part) -> None:
+    dois = []
+    input_infos = {}
+    for p in publications:
+        doi = p.get('doi')
+        if doi:
+            dois.append(doi)
+            input_infos[doi] = p
+    unpaywall_info = get_doi(dois, collection_name)
+    for p in unpaywall_info:
+        doi = p['doi']
+        p.update(input_infos[doi])
+    write_file = f'{PV_MOUNT}bso_extract_{collection_name}_{file_part}.jsonl.gz'
+    with gzip.open(write_file, 'wt', encoding="ascii") as zipfile:
+        for p in unpaywall_info:
+            json.dump(p, zipfile)
+            zipfile.write('\n')
+    res = upload_object('bso_dump', write_file)
+    os.remove(write_file)
+    return unpaywall_info
 
 @retry(delay=60, tries=5)
 def get_doi(doi, collection_name: str) -> dict:
