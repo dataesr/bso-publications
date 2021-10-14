@@ -22,11 +22,13 @@ logger = get_logger(__name__)
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
+
 def send_to_parser(json):
     if HTML_PARSER_SERVICE:
         r = requests.post(parser_endpoint_url, json={'doi': json['doi'], 'json': json})
         task_id = r.json()['data']['task_id']
-        print(f"new task {task_id} for parser", flush=True)
+        print(f'New task {task_id} for parser', flush=True)
+
 
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
@@ -34,9 +36,10 @@ def create_task_enrich(args: dict) -> list:
 
 
 def create_task_download_unpaywall(args: dict) -> str:
-    if args.get('type') == 'snapshot':
+    type = args.get('type')
+    if type == 'snapshot':
         snap = download_snapshot(asof=args.get('asof'))
-    elif args.get('type') == 'daily':
+    elif type == 'daily':
         today = datetime.date.today()
         snap = download_daily(date=f'{today}')
     else:
@@ -48,9 +51,7 @@ def create_task_unpaywall_to_crawler(arg):
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
-    #daily_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
     START_YEAR = 2013
-    #START_YEAR = 2021
     weekly_files = requests.get(weekly_files_url).json()['list']
     destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
@@ -64,14 +65,13 @@ def create_task_unpaywall_to_crawler(arg):
             doi = row.doi
             if doi not in element_to_crawl:
                 continue
-            # crawler
+            # Crawler
             if title and doi:
                 title = title.strip()
                 doi = doi.strip()
                 url = f'http://doi.org/{doi}'
                 requests.post(f'{crawler_url}/tasks', json={'url': url, 'title': title})
-            
-            ## récupération des affiliations de crossref
+            # Récupération des affiliations de crossref
             affiliations = []
             if not isinstance(row.z_authors, list):
                 continue
@@ -84,7 +84,7 @@ def create_task_unpaywall_to_crawler(arg):
                             affiliations.append(aff)
             if affiliations:
                 p = {'doi': row.doi, 'affiliations': affiliations, 'authors': row.z_authors}
-                send_to_parser(p) # match country and store results in crossref object storage
+                send_to_parser(p) # Match country and store results in crossref object storage
 
         update_inventory([{'doi': doi, 'crawl': True, 'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl])
 
@@ -174,4 +174,3 @@ def create_task_etl(args: dict) -> None:
             file_part += 1
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
-
