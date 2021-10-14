@@ -35,15 +35,15 @@ def run_task_forward():
     return jsonify(response_object), 202
 
 
-@main_blueprint.route("/update_weekly", methods=["GET"])
+@main_blueprint.route('/update_weekly', methods=['GET'])
 def update_weekly():
-    with Connection(redis.from_url(current_app.config["REDIS_URL"])):
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('unpaywall_to_crawler', default_timeout = default_timeout)
         task = q.enqueue(create_task_unpaywall_to_crawler, {})
     response_object = {
-        "status": "success",
-        "data": {
-            "task_id": task.get_id()
+        'status': 'success',
+        'data': {
+            'task_id': task.get_id()
         }
     }
     return jsonify(response_object)
@@ -51,8 +51,8 @@ def update_weekly():
 
 @main_blueprint.route('/enrich', methods=['POST'])
 def run_task_enrich():
-    args = request.get_json(force=True)
     logger.debug('Starting task enrich')
+    args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_enrich, args)
@@ -103,8 +103,8 @@ def get_status(task_id):
 
 @main_blueprint.route('/etl', methods=['POST'])
 def run_task_etl():
-    args = request.get_json(force=True)
     logger.debug('Starting task etl')
+    args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_etl, args)
