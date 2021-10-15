@@ -35,13 +35,15 @@ keywords:
 
 ### 2.1.2 Discipline impact
 
-### 2.1.3 Publishers strategies
+### 2.1.3 Publishers and dissemination platforms strategies
 
-#### 2.1.3.1 Business models
+#### 2.1.3.1 Identification
 
-#### 2.1.3.2 Licences
+#### 2.1.3.2 Business models
 
-#### 2.1.3.3 Article Processing Charges (APC)
+#### 2.1.3.3 Licences
+
+#### 2.1.3.3 Article Processing Charges (APC) estimation
 
 ### 2.1.4 The role of the open repositories
 

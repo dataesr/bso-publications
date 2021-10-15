@@ -1,288 +1,288 @@
-publisher_raw,publisher_clean,publisher_group,group_start_date
-^Elsevier,Elsevier,,
-^Academic Press$,Elsevier,,
-^Pergamon$,Elsevier,,
-^North-Holland$,Elsevier,,
-^Urban & Fischer$,Elsevier,,
-^W.B. Saunders$,Elsevier,,
-^JAI$,Elsevier,,
-^Churchill Livingstone$,Elsevier,,
-^Cell Press$,Elsevier,,
-John Wiley,Wiley,,
-Wiley.VCH,Wiley,,
-Wiley.Blackwell,Wiley,,
-Blackwell Pub,Wiley,,
-^Springer,Springer-Nature,,
-^Palgrave,Palgrave,Springer-Nature,
-BioMed Central,Springer-Nature,,
-Nature Publishing,Springer-Nature,,
-^Humana,Humana,Springer-Nature,
-Oxford Academic,Oxford University Press,,
-Oxford University Press,Oxford University Press,,
-^MDPI,MDPI,,
-Multidisciplinary Digital Publishing Institute,MDPI,,
-Scientific Research Publishing,Scientific Research Publishing,,
-Cambridge University Press,Cambridge University Press,,
-De Gruyter,De Gruyter,,
-Sciendo,De Gruyter,,
-Pleiades Publishing,Pleiades Publishing,,
-Allerton Press,Pleiades Publishing,,
-Hindawi,Hindawi,,
-^Frontiers Media,Frontiers,,
-Royal Society of Chemistry,Royal Society of Chemistry,,
-^RSC$,Royal Society of Chemistry,,
-SciELO,SciELO,,
-Universidade de Sao Paulo,Universidade de Sao Paulo,,
-American Society of Mechanical Engineers,American Society of Mechanical Engineers,,
-ASME International,American Society of Mechanical Engineers,,
-European Mathematical Society,European Mathematical Society,,
-American Physical Society,American Physical Society,,
-CSIRO Publishing,CSIRO Publishing,,
-Begel House,Begell House,,
-Begell(|.)House,Begell House,,
-^Informa ,Informa UK Limited,,
-Maney Publishing,Informa UK Limited,,
-^Routledge,Informa UK Limited,,
-Taylor & Francis,Informa UK Limited,,
-Medknow,Medknow,,
-Optical Society of America,Optical Society of America,,
-The Optical Society,Optical Society of America,,
-^AIP$,AIP Publising,,
-AIP Publishing,AIP Publishing,,
-American Institute of Physics,AIP Publishing,,
-^Brill,Brill,,
-American Medical Association,American Medical Association,,
-MIT Press,MIT Press,,
-^Berghahn,Berghahn,,
-^John Benjamins,John Benjamins,,
-^BMJ,British Medical Journal,,
-British Medical Journal,British Medical Journal,,
-International Union of Crystallography,International Union of Crystallograph,,
-IET Digital Library,Institution of Engineering and Technology,,
-Institution of Engineering and Technology,Institution of Engineering and Technology,,
-^MedCrave,MedCrave,,
-Ukrinformnauka,Ukrinformnauka,,
-International Society for Optics and Photonics,SPIE Society of Photo-Optical Instrumentation Engineers,,
-Intl Soc Optical Eng,SPIE Society of Photo-Optical Instrumentation Engineers,,
-^SPIE$,SPIE Society of Photo-Optical Instrumentation Engineers,,
-S. Karger AG,S. Karger AG,,
-Institute of Mathematics Polish Academy of Sciences,Institute of Mathematics Polish Academy of Sciences,,
-Instytut Matematyczny Polskiej Akademii Nauk,Institute of Mathematics Polish Academy of Sciences,,
-^Public Library of Science,Public Library of Science,,
-Museum National d'Histoire Naturelle Paris,Muséum national d'Histoire naturelle Paris,,
-National Documentation Centre,National Documentation Centre (EKT),,
-American Association for Cancer Research,American Association for Cancer Research,,
-Now Publishers,Now Publishers,,
-Akademiai Kiado,Akadémiai Kiadó,,
-Lavoisier,Lavoisier,,
-Thieme,Georg Thieme,,
-Schattauer GmbH,Georg Thieme,,
-Emerald,Emerald Group,,
-^World Scientific$,World Scientific,,
-^World Scientific Pub,World Scientific,,
-Kowsar,Kowsar,,
-^ISTE,ISTE Group,,
-American Society for Microbiology,American Society for Microbiology,,
-The Scientific and Technological Research Council of Turkey,The Scientific and Technological Research Council of Turkey,,
-Publishing House for Science and Technology Vietnam Academy of Science and Technology,"Publishing House for Science and Technology, Vietnam Academy of Science and Technology",,
-American Association for the Advancement of Science,American Association for the Advancement of Science,,
-Iris Publishers,Iris Publishers,,
-Ubiquity Press,Ubiquity Press,,
-^UN$,United Nations,,
-United Nations,United Nations,,
-Cold Spring Harbor Lab,Cold Spring Harbor Laboratory,,
-American Vacuum Society,American Vacuum Society,,
-Portland Press,Portland Press,,
-Rockefeller University Press,Rockefeller University Press,,
-Edward Elgar Publishing,Edward Elgar Publishing,,
-Kaunas University of Technology,Kaunas University of Technology,,
-Publishing House Technologija,Kaunas University of Technology,,
-European Respiratory Society,European Respiratory Society,,
-Ca' Foscari,Edizioni Ca' Foscari,,
-Ca Foscari,Edizioni Ca' Foscari,,
-Leibniz Institute for Psychology,Leibniz Institute for Psychology,,
-JMIR Publications,JMIR Publications,,
-PeerJ,PeerJ,,
-L and H Scientific Publishing,L&H Scientific Publishing,,
-L&H Scientific Publishing,L&H Scientific Publishing,,
-IM Publications Open,IM Publications Open,,
-American Society of Nephrology,American Society of Nephrology,,
-Bioscientifica,Bioscientifica,,
-EDP Sciences,EDP Sciences,,
-American Association of Physics Teachers,American Association of Physics Teachers,,
-American Society of Agronomy and Soil Science Society of America,American Society of Agronomy and Soil Science Society of America,,
-Soil Science Society of America,American Society of Agronomy and Soil Science Society of America,,
-EMH Media,EMH Media,,
-EMH Swiss Medical,EMH Media,,
-Acoustical Society of America,Acoustical Society of America,,
-American Society for Pharmacology & Experimental Therapeutics,American Society for Pharmacology & Experimental Therapeutics,,
-American Society for Pharmacology and Experimental Therapeutics,American Society for Pharmacology & Experimental Therapeutics,,
-Open Library of Humanities,Open Library of Humanities,,
-Open Library of the Humanities,Open Library of Humanities,,
-Joule Inc,CMA Joule Inc.,,
-American Geophysical Union,American Geophysical Union,,
-Science China Press,Science China Press,,
-^Science Press$,Science China Press,,
-Wolters Kluwer Health,Wolters Kluwer Health,,
-Ovid Technologies,Wolters Kluwer Health,,
-Journal of Neurosurgery Publishing Group,American Association of Neurological Surgeons,,
-Acavent,Acavent,,
-^ACM$,ACM Press,,
-ACM Press,ACM Press,,
-Association for Computing Machinery,ACM Press,,
-Acoustical Society of America,Acoustical Society of America,,
-American Association for Cancer Research,American Association for Cancer Research,,
-American Association of Physics Teachers,American Association of Physics Teachers,,
-American Chemical Society,American Chemical Society,,
-American Institute of Aeronautics and Astronautics,American Institute of Aeronautics and Astronautics,,
-^BCS Learning,BCS Learning & Development,,
-^Beyond the Horizon,Beyond the Horizon International Strategic Studies Group,,
-Biological and Chemical Oceanography Data Management Office,Biological and Chemical Oceanography Data Management Office,,
-Biomedical Research Network,Biomedical Research Network,,
-^Bioscientifica,Bioscientifica,,
-^Birkhauser,Birkhäuser,,
-^Bloomsbury,Bloomsbury Publishing,,
-Botanic Garden (and|&) Botanical Museum Berlin,Botanic Garden and Botanical Museum Berlin,,
-^Brasiliana,Brasiliana,,
-Bucharest University of Economic Studies,Bucharest University of Economic Studies,,
-C.H. Beck,C.H. Beck,,
-C.H.Beck,C.H. Beck,,
-C.N.R.S. Editions,CNRS Editions,,
-CNRS Editions,CNRS Editions,,
-CAD Solutions,CAD Solutions LLC,,
-CAL-TEK srl,CAL-TEK srl,,
-Canadian Mathematical,Canadian Mathematical Society,,
-Centers for Disease Control,Centers for Disease Control,,
-Centre d'etudes sur les conflits,Centre d'études sur les conflits,,
-China Academy of Engineering Physics,China Academy of Engineering Physics,,
-^Civil-Comp,Civil-Comp Press,,
-Cognitive-Crcs,Cognitive-Crcs,,
-^Copernicus,Copernicus,,
-CRC Press,CRC Press,,
-Croatian Medical Journal,Croatian Medical Journals,,
-Czech Technical University in Prague,Czech Technical University in Prague,,
-DEStech Publications,DEStech Publications,,
-Duke University,Duke University Press,,
-EAGE Publications,EAGE Publications,,
-Edinburgh University,Edinburgh University Press,,
-Editions de l'EHESS,Éditions de l'EHESS,,
-Editions de l'École des hautes études en sciences sociales,Éditions de l'EHESS,,
-^EHESS,Éditions de l'EHESS,,
-Editions de la Maison des sciences de l'homme,Éditions de la Maison des sciences de l'homme,,
-Editions GREUPP,Editions GREUPP,,
-Editions Matériologiques,Editions Matériologiques,,
-Editions Nota bene,Editions Nota bene,,
-Editions Perrin,Éditions Perrin,,
-Editions Quæ,Editions Quæ,,
-^Quae$,Editions Quæ,,
-Éditions Rue d'Ulm,Éditions Rue d'Ulm,,
-Editions Sciences Humaines,Editions Sciences Humaines,,
-Editions Tradulex,Editions Tradulex,,
-Editora Blucher,Editora Blucher,,
-Editorial Universitat Politecnica de Valencia,Editorial Universitat Politècnica de València,,
-Educagri editions,Educagri éditions,,
-Edward Elgar Publishing,Edward Elgar Publishing,,
-ENS Editions,ENS Editions,,
-European Centre for Disease Control and Prevention,European Centre for Disease Control and Prevention,,
-European Centre for Disease Prevention and Control,European Centre for Disease Control and Prevention,,
-European Mathematical Society,European Mathematical Society,,
-European Respiratory Society,European Respiratory Society,,
-^Exeley,Exeley Inc.,,
-F1000,F1000,Informa UK Limited,20200101
-Faculty of 1000,F1000,Informa UK Limited,20200101
-Future Medicine Ltd,Future Science Ltd,,
-Galoa,Galoa,,
-Global Science (and|&|) Technology Forum,Global Science and Technology Forum,,
-HARD Publishing,HARD Publishing,,
-Harrassowitz,Harrassowitz Verlag,,
-Harvard University,Harvard University Press,,
-I.B.Tauris,I.B.Tauris,,
-IEEE,IEEE,,
-Institute of Electrical and Electronics Engineers,IEEE,,
-IM Publications Open,IM Publications Open,,
-Institute for the History of Material Culture Russian Academy of Science,Institute for the History of Material Culture Russian Academy of Sciences,,
-Intech,IntechOpen,,
-International Water Management Institute,International Water Management Institute,,
-Iowa State University,Iowa State University,,
-^IUCN,IUCN,,
-Jyvaskyla University,Jyvaskyla University Library,,
-La Documentation française,La Documentation française,,
-Laser Institute of America,Laser Institute of America,,
-Latvia University of Life Sciences and Technologies,Latvia University of Life Sciences and Technologies,,
-Linkoping University Electronic Press,Linköping University Electronic Press,,
-Linkoing University Electronic Press,Linköping University Electronic Press,,
-Lupine Publishers,Lupine Publishers,,
-Masaryk University,Masaryk University Press,,
-^Materials Research,Materials Research Forum LLC,,
-Mathematical Society of Japan,Mathematical Society of Japan,,
-McMaster University,McMaster University Library Press,,
-MedDocs Publishers,MedDocs Publishers,,
-Michigan State University,Michigan State University Press,,
-Musee du quai Branly,Musée du quai Branly,,
-Museum d’Histoire naturelle .*Genev,Museum d’Histoire naturelle of Geneva,,
-National Institute of Standards and Technology,National Institute of Standards and Technology,,
-National Research and Development Institute for Industrial Ecology,National Research and Development Institute for Industrial Ecology,,
-Oldenbourg Wissenschaftsverlag,Oldenbourg Wissenschaftsverlag,,
-^Peter Lang,Peter Lang,,
-Presses Universitaires de Bordeaux,Presses Universitaires de Bordeaux,,
-Presses universitaires de Franche-Comte,Presses universitaires de Franche-Comté,,
-Presses universitaires de la Méditerranee,Presses universitaires de la Méditerranée,,
-Presses universitaires de Paris Ouest,Presses universitaires de Paris Nanterre,,
-Presses universitaires de Provence,Presses universitaires de Provence,,
-Presses universitaires de Rennes,Presses universitaires de Rennes,,
-Presses universitaires de Vincennes,Presses universitaires de Vincennes,,
-Presses universitaires du Midi,Presses universitaires du Midi,,
-Presses Universitaires du Mirail,Presses Universitaires du Mirail,,
-Purdue University,Purdue University Press,,
-^Research Square,Research Square,,
-Revista Cientifica Multidisciplinar Nucleo Do Conhecimento,Revista Cientifica Multidisciplinar Nucleo Do Conhecimento,,
-^River Publisher,River Publishers,,
-SAGE Publications,SAGE Publications,,
-Scuola Normale Superiore,Scuola Normale Superiore,,
-SensePublishers,SensePublishers,,
-^SEPM ,SEPM Society for Sedimentary Geology,,
-Sissa Medialab,Sissa Medialab,,
-Society of Petroleum Engineers,Society of Petroleum Engineers,,
-T.M.C. Asser Press,T.M.C. Asser Press,,
-T. M. C. Asser Press,T.M.C. Asser Press,,
-TELEMME,TELEMME,,
-Paleontological Society of Japan,The Paleontological Society of Japan,,
-Palaeontological Society of Japan,The Paleontological Society of Japan,,
-Society of Rheology,Society of Rheology,,
-University of Danang,University of Danang,,
-TSNS Interaktiv Plus,TSNS Interaktiv Plus,,
-UGA Editions,UGA Éditions,,
-Universidad Autonoma de Chile,Universidad Autonoma de Chile,,
-Universidad de La Laguna,Universidad de La Laguna,,
-Universidad del Bio(-|)Bio,Universidad del Bío-Bío,,
-Universidad Distrital Francisco Jose de Caldas,Universidad Distrital Francisco Jose de Caldas,,
-Universidad externado de Colombia,Universidad externado de Colombia,,
-Universidad Nacional Mayor de San Marcos,Universidad Nacional Mayor de San Marcos,,
-Universidad Santo Tomas,Universidad Santo Tomas,,
-Universitat de Valencia,Universitat de Valencia,,
-Universitat Politecnica de Valencia,Universitat Politecnica de Valencia,,
-University of Arizona,University of Arizona Press,,
-University of Hawai,University of Hawai'i Press,,
-University of Illinois,University of Illinois Press,,
-University of Iowa,University of Iowa,,
-University of Michigan,University of Michigan Press,,
-University of Minnesota,University of Minnesota Press,,
-University of New Brunswick,University of New Brunswick,,
-University of Ottawa,University of Ottawa Press,,
-University of Puerto Rico at Mayaguez,University of Puerto Rico at Mayaguez,,
-University of Technology Sydney,University of Technology Sydney,,
-University of Toronto,University of Toronto Press,,
-University of Warsaw,University of Warsaw Press,,
-V&R Unipress,V&R Unipress,,
-Vandenhoeck & Ruprecht,Vandenhoeck & Ruprecht,,
-Verlag der osterreichischen Akademie der Wissenschaften,Verlag der österreichischen Akademie der Wissenschaften,,
-Verlag Osterreich,Verlag Österreich,,
-Vilnius Gediminas Technical University,Vilnius Gediminas Technical University Press,,
-^Wageningen,Wageningen Academic Publishers,,
-Wayne State University,Wayne State University Press,,
-Wilhelm Ernst & Sohn,Wilhelm Ernst & Sohn,,
-WIT(| )Press,WIT Press,,
-Woodhead Publishing,Woodhead Publishing,,
-World Trade Organization,World Trade Organization,,
-^WTO$,World Trade Organization,,
-Zed Books,Zed Books,,
+publisher_raw,publisher_clean
+^Elsevier,Elsevier
+^Academic Press$,Elsevier
+^Pergamon$,Elsevier
+^North-Holland$,Elsevier
+^Urban & Fischer$,Elsevier
+^W.B. Saunders$,Elsevier
+^JAI$,Elsevier
+^Churchill Livingstone$,Elsevier
+^Cell Press$,Elsevier
+John Wiley,Wiley
+Wiley.VCH,Wiley
+Wiley.Blackwell,Wiley
+Blackwell Pub,Wiley
+^Springer,Springer-Nature
+^Palgrave,Springer-Nature
+BioMed Central,Springer-Nature
+Nature Publishing,Springer-Nature
+^Humana,Springer-Nature
+Oxford Academic,Oxford University Press
+Oxford University Press,Oxford University Press
+^MDPI,MDPI
+Multidisciplinary Digital Publishing Institute,MDPI
+Scientific Research Publishing,Scientific Research Publishing
+Cambridge University Press,Cambridge University Press
+De Gruyter,De Gruyter
+Sciendo,De Gruyter
+Pleiades Publishing,Pleiades Publishing
+Allerton Press,Pleiades Publishing
+Hindawi,Hindawi
+^Frontiers Media,Frontiers
+Royal Society of Chemistry,Royal Society of Chemistry
+^RSC$,Royal Society of Chemistry
+SciELO,SciELO
+Universidade de Sao Paulo,Universidade de Sao Paulo
+American Society of Mechanical Engineers,American Society of Mechanical Engineers
+ASME International,American Society of Mechanical Engineers
+European Mathematical Society,European Mathematical Society
+American Physical Society,American Physical Society
+CSIRO Publishing,CSIRO Publishing
+Begel House,Begell House
+Begell(|.)House,Begell House
+^Informa ,Informa UK Limited
+Maney Publishing,Informa UK Limited
+^Routledge,Informa UK Limited
+Taylor & Francis,Informa UK Limited
+Medknow,Medknow
+Optical Society of America,Optical Society of America
+The Optical Society,Optical Society of America
+^AIP$,AIP Publising
+AIP Publishing,AIP Publishing
+American Institute of Physics,AIP Publishing
+^Brill,Brill
+American Medical Association,American Medical Association
+MIT Press,MIT Press
+^Berghahn,Berghahn
+^John Benjamins,John Benjamins
+^BMJ,British Medical Journal
+British Medical Journal,British Medical Journal
+International Union of Crystallography,International Union of Crystallograph
+IET Digital Library,Institution of Engineering and Technology
+Institution of Engineering and Technology,Institution of Engineering and Technology
+^MedCrave,MedCrave
+Ukrinformnauka,Ukrinformnauka
+International Society for Optics and Photonics,SPIE Society of Photo-Optical Instrumentation Engineers
+Intl Soc Optical Eng,SPIE Society of Photo-Optical Instrumentation Engineers
+^SPIE$,SPIE Society of Photo-Optical Instrumentation Engineers
+S. Karger AG,S. Karger AG
+Institute of Mathematics Polish Academy of Sciences,Institute of Mathematics Polish Academy of Sciences
+Instytut Matematyczny Polskiej Akademii Nauk,Institute of Mathematics Polish Academy of Sciences
+^Public Library of Science,Public Library of Science
+Museum National d'Histoire Naturelle Paris,Muséum national d'Histoire naturelle Paris
+National Documentation Centre,National Documentation Centre (EKT)
+American Association for Cancer Research,American Association for Cancer Research
+Now Publishers,Now Publishers
+Akademiai Kiado,Akadémiai Kiadó
+Lavoisier,Lavoisier
+Thieme,Georg Thieme
+Schattauer GmbH,Georg Thieme
+Emerald,Emerald Group
+^World Scientific$,World Scientific
+^World Scientific Pub,World Scientific
+Kowsar,Kowsar
+^ISTE,ISTE Group
+American Society for Microbiology,American Society for Microbiology
+The Scientific and Technological Research Council of Turkey,The Scientific and Technological Research Council of Turkey
+Publishing House for Science and Technology Vietnam Academy of Science and Technology,"Publishing House for Science and Technology, Vietnam Academy of Science and Technology"
+American Association for the Advancement of Science,American Association for the Advancement of Science
+Iris Publishers,Iris Publishers
+Ubiquity Press,Ubiquity Press
+^UN$,United Nations
+United Nations,United Nations
+Cold Spring Harbor Lab,Cold Spring Harbor Laboratory
+American Vacuum Society,American Vacuum Society
+Portland Press,Portland Press
+Rockefeller University Press,Rockefeller University Press
+Edward Elgar Publishing,Edward Elgar Publishing
+Kaunas University of Technology,Kaunas University of Technology
+Publishing House Technologija,Kaunas University of Technology
+European Respiratory Society,European Respiratory Society
+Ca' Foscari,Edizioni Ca' Foscari
+Ca Foscari,Edizioni Ca' Foscari
+Leibniz Institute for Psychology,Leibniz Institute for Psychology
+JMIR Publications,JMIR Publications
+PeerJ,PeerJ
+L and H Scientific Publishing,L&H Scientific Publishing
+L&H Scientific Publishing,L&H Scientific Publishing
+IM Publications Open,IM Publications Open
+American Society of Nephrology,American Society of Nephrology
+Bioscientifica,Bioscientifica
+EDP Sciences,EDP Sciences
+American Association of Physics Teachers,American Association of Physics Teachers
+American Society of Agronomy and Soil Science Society of America,American Society of Agronomy and Soil Science Society of America
+Soil Science Society of America,American Society of Agronomy and Soil Science Society of America
+EMH Media,EMH Media
+EMH Swiss Medical,EMH Media
+Acoustical Society of America,Acoustical Society of America
+American Society for Pharmacology & Experimental Therapeutics,American Society for Pharmacology & Experimental Therapeutics
+American Society for Pharmacology and Experimental Therapeutics,American Society for Pharmacology & Experimental Therapeutics
+Open Library of Humanities,Open Library of Humanities
+Open Library of the Humanities,Open Library of Humanities
+Joule Inc,CMA Joule Inc.
+American Geophysical Union,American Geophysical Union
+Science China Press,Science China Press
+^Science Press$,Science China Press
+Wolters Kluwer Health,Wolters Kluwer Health
+Ovid Technologies,Wolters Kluwer Health
+Journal of Neurosurgery Publishing Group,American Association of Neurological Surgeons
+Acavent,Acavent
+^ACM$,ACM Press
+ACM Press,ACM Press
+Association for Computing Machinery,ACM Press
+Acoustical Society of America,Acoustical Society of America
+American Association for Cancer Research,American Association for Cancer Research
+American Association of Physics Teachers,American Association of Physics Teachers
+American Chemical Society,American Chemical Society
+American Institute of Aeronautics and Astronautics,American Institute of Aeronautics and Astronautics
+^BCS Learning,BCS Learning & Development
+^Beyond the Horizon,Beyond the Horizon International Strategic Studies Group
+Biological and Chemical Oceanography Data Management Office,Biological and Chemical Oceanography Data Management Office
+Biomedical Research Network,Biomedical Research Network
+^Bioscientifica,Bioscientifica
+^Birkhauser,Birkhäuser
+^Bloomsbury,Bloomsbury Publishing
+Botanic Garden (and|&) Botanical Museum Berlin,Botanic Garden and Botanical Museum Berlin
+^Brasiliana,Brasiliana
+Bucharest University of Economic Studies,Bucharest University of Economic Studies
+C.H. Beck,C.H. Beck
+C.H.Beck,C.H. Beck
+C.N.R.S. Editions,CNRS Editions
+CNRS Editions,CNRS Editions
+CAD Solutions,CAD Solutions LLC
+CAL-TEK srl,CAL-TEK srl
+Canadian Mathematical,Canadian Mathematical Society
+Centers for Disease Control,Centers for Disease Control
+Centre d'etudes sur les conflits,Centre d'études sur les conflits
+China Academy of Engineering Physics,China Academy of Engineering Physics
+^Civil-Comp,Civil-Comp Press
+Cognitive-Crcs,Cognitive-Crcs
+^Copernicus,Copernicus
+CRC Press,CRC Press
+Croatian Medical Journal,Croatian Medical Journals
+Czech Technical University in Prague,Czech Technical University in Prague
+DEStech Publications,DEStech Publications
+Duke University,Duke University Press
+EAGE Publications,EAGE Publications
+Edinburgh University,Edinburgh University Press
+Editions de l'EHESS,Éditions de l'EHESS
+Editions de l'École des hautes études en sciences sociales,Éditions de l'EHESS
+^EHESS,Éditions de l'EHESS
+Editions de la Maison des sciences de l'homme,Éditions de la Maison des sciences de l'homme
+Editions GREUPP,Editions GREUPP
+Editions Matériologiques,Editions Matériologiques
+Editions Nota bene,Editions Nota bene
+Editions Perrin,Éditions Perrin
+Editions Quæ,Editions Quæ
+^Quae$,Editions Quæ
+Éditions Rue d'Ulm,Éditions Rue d'Ulm
+Editions Sciences Humaines,Editions Sciences Humaines
+Editions Tradulex,Editions Tradulex
+Editora Blucher,Editora Blucher
+Editorial Universitat Politecnica de Valencia,Editorial Universitat Politècnica de València
+Educagri editions,Educagri éditions
+Edward Elgar Publishing,Edward Elgar Publishing
+ENS Editions,ENS Editions
+European Centre for Disease Control and Prevention,European Centre for Disease Control and Prevention
+European Centre for Disease Prevention and Control,European Centre for Disease Control and Prevention
+European Mathematical Society,European Mathematical Society
+European Respiratory Society,European Respiratory Society
+^Exeley,Exeley Inc.
+F1000,F1000
+Faculty of 1000,F1000
+Future Medicine Ltd,Future Science Ltd
+Galoa,Galoa
+Global Science (and|&|) Technology Forum,Global Science and Technology Forum
+HARD Publishing,HARD Publishing
+Harrassowitz,Harrassowitz Verlag
+Harvard University,Harvard University Press
+I.B.Tauris,I.B.Tauris
+IEEE,IEEE
+Institute of Electrical and Electronics Engineers,IEEE
+IM Publications Open,IM Publications Open
+Institute for the History of Material Culture Russian Academy of Science,Institute for the History of Material Culture Russian Academy of Sciences
+Intech,IntechOpen
+International Water Management Institute,International Water Management Institute
+Iowa State University,Iowa State University
+^IUCN,IUCN
+Jyvaskyla University,Jyvaskyla University Library
+La Documentation française,La Documentation française
+Laser Institute of America,Laser Institute of America
+Latvia University of Life Sciences and Technologies,Latvia University of Life Sciences and Technologies
+Linkoping University Electronic Press,Linköping University Electronic Press
+Linkoing University Electronic Press,Linköping University Electronic Press
+Lupine Publishers,Lupine Publishers
+Masaryk University,Masaryk University Press
+^Materials Research,Materials Research Forum LLC
+Mathematical Society of Japan,Mathematical Society of Japan
+McMaster University,McMaster University Library Press
+MedDocs Publishers,MedDocs Publishers
+Michigan State University,Michigan State University Press
+Musee du quai Branly,Musée du quai Branly
+Museum d’Histoire naturelle .*Genev,Museum d’Histoire naturelle of Geneva
+National Institute of Standards and Technology,National Institute of Standards and Technology
+National Research and Development Institute for Industrial Ecology,National Research and Development Institute for Industrial Ecology
+Oldenbourg Wissenschaftsverlag,Oldenbourg Wissenschaftsverlag
+^Peter Lang,Peter Lang
+Presses Universitaires de Bordeaux,Presses Universitaires de Bordeaux
+Presses universitaires de Franche-Comte,Presses universitaires de Franche-Comté
+Presses universitaires de la Méditerranee,Presses universitaires de la Méditerranée
+Presses universitaires de Paris Ouest,Presses universitaires de Paris Nanterre
+Presses universitaires de Provence,Presses universitaires de Provence
+Presses universitaires de Rennes,Presses universitaires de Rennes
+Presses universitaires de Vincennes,Presses universitaires de Vincennes
+Presses universitaires du Midi,Presses universitaires du Midi
+Presses Universitaires du Mirail,Presses Universitaires du Mirail
+Purdue University,Purdue University Press
+^Research Square,Research Square
+Revista Cientifica Multidisciplinar Nucleo Do Conhecimento,Revista Cientifica Multidisciplinar Nucleo Do Conhecimento
+^River Publisher,River Publishers
+SAGE Publications,SAGE Publications
+Scuola Normale Superiore,Scuola Normale Superiore
+SensePublishers,SensePublishers
+^SEPM ,SEPM Society for Sedimentary Geology
+Sissa Medialab,Sissa Medialab
+Society of Petroleum Engineers,Society of Petroleum Engineers
+T.M.C. Asser Press,T.M.C. Asser Press
+T. M. C. Asser Press,T.M.C. Asser Press
+TELEMME,TELEMME
+Paleontological Society of Japan,The Paleontological Society of Japan
+Palaeontological Society of Japan,The Paleontological Society of Japan
+Society of Rheology,Society of Rheology
+University of Danang,University of Danang
+TSNS Interaktiv Plus,TSNS Interaktiv Plus
+UGA Editions,UGA Éditions
+Universidad Autonoma de Chile,Universidad Autonoma de Chile
+Universidad de La Laguna,Universidad de La Laguna
+Universidad del Bio(-|)Bio,Universidad del Bío-Bío
+Universidad Distrital Francisco Jose de Caldas,Universidad Distrital Francisco Jose de Caldas
+Universidad externado de Colombia,Universidad externado de Colombia
+Universidad Nacional Mayor de San Marcos,Universidad Nacional Mayor de San Marcos
+Universidad Santo Tomas,Universidad Santo Tomas
+Universitat de Valencia,Universitat de Valencia
+Universitat Politecnica de Valencia,Universitat Politecnica de Valencia
+University of Arizona,University of Arizona Press
+University of Hawai,University of Hawai'i Press
+University of Illinois,University of Illinois Press
+University of Iowa,University of Iowa
+University of Michigan,University of Michigan Press
+University of Minnesota,University of Minnesota Press
+University of New Brunswick,University of New Brunswick
+University of Ottawa,University of Ottawa Press
+University of Puerto Rico at Mayaguez,University of Puerto Rico at Mayaguez
+University of Technology Sydney,University of Technology Sydney
+University of Toronto,University of Toronto Press
+University of Warsaw,University of Warsaw Press
+V&R Unipress,V&R Unipress
+Vandenhoeck & Ruprecht,Vandenhoeck & Ruprecht
+Verlag der osterreichischen Akademie der Wissenschaften,Verlag der österreichischen Akademie der Wissenschaften
+Verlag Osterreich,Verlag Österreich
+Vilnius Gediminas Technical University,Vilnius Gediminas Technical University Press
+^Wageningen,Wageningen Academic Publishers
+Wayne State University,Wayne State University Press
+Wilhelm Ernst & Sohn,Wilhelm Ernst & Sohn
+WIT(| )Press,WIT Press
+Woodhead Publishing,Woodhead Publishing
+World Trade Organization,World Trade Organization
+^WTO$,World Trade Organization
+Zed Books,Zed Books

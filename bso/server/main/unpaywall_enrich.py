@@ -41,6 +41,16 @@ def identify_language(text: str) -> Union[str, None]:
     text = remove_punction(text.replace('\n', ' ').replace('\xa0', ' ')).strip()
     return (models['lid'].predict(text, 1)[0][0]).replace('__label__', '')
 
+def normalize_genre(genre, publisher):
+    if publisher in ['Cold Spring Harbor Laboratory']:
+        return 'preprint'
+    if genre in ['journal-article', 'book-chapter', 'dataset']:
+        return genre
+    if 'proceedings' in genre:
+        return 'proceedings'
+    if genre in ['book', 'monograph']:
+        return 'book'
+    return 'other'
 
 def get_affiliation_types(affiliation: str) -> dict:
     normalized_affiliation = normalize(affiliation)
@@ -139,6 +149,13 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         res.update(pred_info)
         # Fields detection
         res = detect_fields(res)
+        # normalisation des editeurs
+        if isinstance(res.get('publisher'), str):
+            publisher_clean = detect_publisher(d['publisher']) 
+            res.update(publisher_clean)
+        # Genre
+        if isinstance(res.get('genre'), str):
+            res['genre'] = normalize_genre(res['genre'], res['publisher_normalized']) 
         # Affiliations
         affiliations = res.get('affiliations', [])
         affiliations = [] if affiliations is None else affiliations
@@ -199,11 +216,6 @@ def enrich(publications: list) -> list:
     for publi_chunk in chunks(lst=publications, n=5000):
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
         data = get_doi_full(dois=doi_chunk)
-        # normalisation des editeurs
-        for d in data:
-            if isinstance(d.get('publisher'), str):
-                publisher_clean = detect_publisher(d['publisher']) 
-                d.update(publisher_clean)
         # Remove data with no oa details info (not indexed in unpaywall)
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
         all_updated += [d for d in new_updated if len(d.get('oa_details', {})) > 0]
