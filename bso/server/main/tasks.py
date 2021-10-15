@@ -6,7 +6,7 @@ import requests
 
 from dateutil import parser
 
-from bso.server.main.elastic import load_in_es, reset_index, update_alias
+from bso.server.main.elastic import load_in_es, reset_index
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
@@ -16,18 +16,18 @@ from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file
 from bso.server.main.inventory import update_inventory
 
-PV_MOUNT = '/upw_data'
-logger = get_logger(__name__)
-
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
+logger = get_logger(__name__)
+START_YEAR = 2013
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
+PV_MOUNT = '/upw_data'
 
 
-def send_to_parser(json):
+def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:
-        r = requests.post(parser_endpoint_url, json={'doi': json['doi'], 'json': json})
+        r = requests.post(parser_endpoint_url, json={'doi': publication_json['doi'], 'json': publication_json})
         task_id = r.json()['data']['task_id']
-        print(f'New task {task_id} for parser', flush=True)
+        logger.debug(f'New task {task_id} for parser')
 
 
 def create_task_enrich(args: dict) -> list:
@@ -36,10 +36,10 @@ def create_task_enrich(args: dict) -> list:
 
 
 def create_task_download_unpaywall(args: dict) -> str:
-    type = args.get('type')
-    if type == 'snapshot':
+    download_type = args.get('type')
+    if download_type == 'snapshot':
         snap = download_snapshot(asof=args.get('asof'))
-    elif type == 'daily':
+    elif download_type == 'daily':
         today = datetime.date.today()
         snap = download_daily(date=f'{today}')
     else:
@@ -47,15 +47,14 @@ def create_task_download_unpaywall(args: dict) -> str:
     return snap
 
 
-def create_task_unpaywall_to_crawler(arg):
+def create_task_unpaywall_to_crawler():
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
-    START_YEAR = 2013
     weekly_files = requests.get(weekly_files_url).json()['list']
     destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
-    chunks = pd.read_json(destination, lines=True, chunksize = 5000)
+    chunks = pd.read_json(destination, lines=True, chunksize=5000)
     for c in chunks:
         sub_df = c[c.year >= START_YEAR]
         element_to_crawl = get_not_crawled(sub_df.doi.tolist())
@@ -84,9 +83,12 @@ def create_task_unpaywall_to_crawler(arg):
                             affiliations.append(aff)
             if affiliations:
                 p = {'doi': row.doi, 'affiliations': affiliations, 'authors': row.z_authors}
-                send_to_parser(p) # Match country and store results in crossref object storage
-
-        update_inventory([{'doi': doi, 'crawl': True, 'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl])
+                send_to_parser(p)  # Match country and store results in crossref object storage
+        update_inventory([{
+            'doi': doi,
+            'crawl': True,
+            'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl
+        ])
 
 
 def create_task_load_mongo(args: dict) -> None:
@@ -104,7 +106,6 @@ def create_task_load_mongo(args: dict) -> None:
 def create_task_etl(args: dict) -> None:
     output = args.get('output', 'bso-index')
     current_date = datetime.date.today().isoformat()
-    alias = 'bso-publications'
     index = args.get('index', f'bso-publications-{current_date}')
     collection_name = args.get('collection_name')
     file_part = 0
@@ -168,9 +169,9 @@ def create_task_etl(args: dict) -> None:
         if output == 'bso-index':
             enriched_publications = enrich(publications=publications_not_indexed_yet)
             logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-            loaded = load_in_es(data=enriched_publications, index=index)
+            load_in_es(data=enriched_publications, index=index)
         else:
-            loaded = get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part) 
+            get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part)
             file_part += 1
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)

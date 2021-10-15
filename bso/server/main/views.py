@@ -8,9 +8,9 @@ from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
     create_task_load_mongo, create_task_unpaywall_to_crawler
 
+default_timeout = 216000
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
-default_timeout = 216000
 
 
 @main_blueprint.route('/', methods=['GET'])
@@ -38,7 +38,7 @@ def run_task_forward():
 @main_blueprint.route('/update_weekly', methods=['GET'])
 def update_weekly():
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('unpaywall_to_crawler', default_timeout = default_timeout)
+        q = Queue('unpaywall_to_crawler', default_timeout=default_timeout)
         task = q.enqueue(create_task_unpaywall_to_crawler, {})
     response_object = {
         'status': 'success',
