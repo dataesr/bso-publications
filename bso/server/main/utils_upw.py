@@ -139,7 +139,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             if current_repo in ['mdpi.com']:
                 continue # not green !
             if isinstance(loc.get('url'), str):
-                repositories_oa_locations.append(loc.get('url'))
+                repositories_oa_locations.append({'url': loc.get('url'), 'repository': current_repo, 'license': normalize_license(loc.get('license'))})
             if current_repo:
                 repositories.append(current_repo)
             if licence:
@@ -155,7 +155,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             else:
                 status = 'hybrid'
             if isinstance(loc.get('url'), str):
-                publisher_oa_locations.append(loc.get('url'))
+                publisher_oa_locations.append({'url': loc.get('url'), 'license': normalize_license(loc.get('license'))})
             # elif license not in ['elsevier-specific', 'no license']:
             #    status = 'hybrid'
             # else:
