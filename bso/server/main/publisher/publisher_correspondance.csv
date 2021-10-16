@@ -12,11 +12,11 @@ John Wiley,Wiley
 Wiley.VCH,Wiley
 Wiley.Blackwell,Wiley
 Blackwell Pub,Wiley
-^Springer,Springer-Nature
-^Palgrave,Springer-Nature
-BioMed Central,Springer-Nature
-Nature Publishing,Springer-Nature
-^Humana,Springer-Nature
+^Springer,Springer
+^Palgrave,Palgrave Macmillan
+BioMed Central,Springer
+Nature Publishing,Nature Publishing Group
+^Humana,Springer
 Oxford Academic,Oxford University Press
 Oxford University Press,Oxford University Press
 ^MDPI,MDPI
@@ -40,10 +40,10 @@ American Physical Society,American Physical Society
 CSIRO Publishing,CSIRO Publishing
 Begel House,Begell House
 Begell(|.)House,Begell House
-^Informa ,Informa UK Limited
-Maney Publishing,Informa UK Limited
-^Routledge,Informa UK Limited
-Taylor & Francis,Informa UK Limited
+^Informa ,Informa
+Maney Publishing,Maney Publishing
+^Routledge,Informa
+Taylor & Francis,Informa
 Medknow,Medknow
 Optical Society of America,Optical Society of America
 The Optical Society,Optical Society of America
@@ -76,7 +76,7 @@ Now Publishers,Now Publishers
 Akademiai Kiado,Akadémiai Kiadó
 Lavoisier,Lavoisier
 Thieme,Georg Thieme
-Schattauer GmbH,Georg Thieme
+Schattauer GmbH,Schattauer
 Emerald,Emerald Group
 ^World Scientific$,World Scientific
 ^World Scientific Pub,World Scientific
