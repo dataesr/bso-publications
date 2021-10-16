@@ -100,14 +100,15 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     host_types = []
     oa_colors = []
     repositories = []
-    repositories_pmh, repositories_url, repositories_institution, repositories_oa_locations = [], [], [], []
+    repositories_pmh, repositories_url, repositories_institution = [], [], []
     licence_repositories = []
     licence_publisher = []
-    publisher_oa_locations = []
+    oa_locations = []
     for loc in oa_loc:
         if loc is None:
             continue
         licence = normalize_license(loc.get('license'))
+        loc['license_normalized'] = licence 
         host_type = loc.get('host_type')
         host_types.append(host_type)
         if host_type == 'repository':
@@ -138,8 +139,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                     current_repo = get_repository(current_repo_instit)
             if current_repo in ['mdpi.com']:
                 continue # not green !
-            if isinstance(loc.get('url'), str):
-                repositories_oa_locations.append({'url': loc.get('url'), 'repository': current_repo, 'license': normalize_license(loc.get('license'))})
+            loc['repository_normalized'] = current_repo
             if current_repo:
                 repositories.append(current_repo)
             if licence:
@@ -162,6 +162,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
             #    status = 'bronze'
         else:
             status = 'unknown'
+        oa_locations.append(loc)
         oa_colors.append(status)
     if licence_publisher:
         res['licence_publisher'] = dedup_sort(reduce_license(licence_publisher))
@@ -175,10 +176,8 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         res['repositories_pmh'] = dedup_sort(repositories_pmh)
     if repositories_institution:
         res['repositories_institution'] = dedup_sort(repositories_institution)
-    if repositories_oa_locations:
-        res['repositories_oa_locations'] = dedup_sort(repositories_oa_locations)
-    if publisher_oa_locations:
-        res['publisher_oa_locations'] = dedup_sort(publisher_oa_locations)
+    if oa_locations:
+        res['oa_locations'] = oa_locations
     res['oa_colors'] = reduce_status(oa_colors)
     res['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(res['oa_colors'])
     res['oa_host_type'] = ";".join(dedup_sort(host_types))
