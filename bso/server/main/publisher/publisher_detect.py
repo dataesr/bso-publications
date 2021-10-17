@@ -3,8 +3,8 @@ import re
 import unidecode
 import dateutil.parser
 
-df_publisher_lexical = pd.read_csv('bso/server/main/publisher/publisher_correspondance.csv')
-df_publisher_group = pd.read_csv('bso/server/main/publisher/publisher_group.csv')
+df_publisher_lexical = pd.read_csv('bso/server/main/publisher/publisher_correspondance.csv', skiprows=2)
+df_publisher_group = pd.read_csv('bso/server/main/publisher/publisher_group.csv', skiprows=2)
 df_publisher = pd.merge(df_publisher_lexical, df_publisher_group, on='publisher_clean', how='left')
 
 
