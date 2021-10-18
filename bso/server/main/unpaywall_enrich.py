@@ -151,7 +151,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         res = detect_fields(res)
         # normalisation des editeurs
         if isinstance(res.get('publisher'), str):
-            publisher_clean = detect_publisher(res['publisher']) 
+            published_year = None
+            if isinstance(res.get('published_date'), str):
+                published_year = res.get('published_date')[0:4]
+            publisher_clean = detect_publisher(res['publisher'], published_year) 
             res.update(publisher_clean)
         # Genre
         if isinstance(res.get('genre'), str):
