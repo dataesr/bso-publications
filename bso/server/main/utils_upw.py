@@ -154,12 +154,6 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                 status = 'gold'
             else:
                 status = 'hybrid'
-            if isinstance(loc.get('url'), str):
-                publisher_oa_locations.append({'url': loc.get('url'), 'license': normalize_license(loc.get('license'))})
-            # elif license not in ['elsevier-specific', 'no license']:
-            #    status = 'hybrid'
-            # else:
-            #    status = 'bronze'
         else:
             status = 'unknown'
         oa_locations.append(loc)
