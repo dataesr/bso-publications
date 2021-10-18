@@ -138,7 +138,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                 repositories_institution.append(current_repo_instit)
                 if current_repo is None:
                     current_repo = get_repository(current_repo_instit)
-            if current_repo in ['mdpi.com']:
+            if current_repo in ['mdpi.com', 'edpsciences.org']:
                 continue # not green !
             loc['repository_normalized'] = current_repo
             if current_repo:
