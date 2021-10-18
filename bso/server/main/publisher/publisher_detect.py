@@ -28,6 +28,8 @@ def detect_publisher(raw_input, published_date):
     unaccented_string = unaccented_string.replace("’", "'")
     without_parenthesis = re.sub(r'\([^)]*\)', '', unaccented_string)
     tested_string = without_parenthesis.strip()
+    if pd.isnull(published_date):
+        published_date = '2010'
     if '/' in tested_string:
         return {'publisher_normalized': raw_input, 'publisher_group': raw_input}
     for r in rgx_list:

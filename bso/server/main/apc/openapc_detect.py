@@ -5,13 +5,14 @@ import pandas as pd
 import requests
 
 from bso.server.main.logger import get_logger
+from bso.server.main.publisher.publisher_detect import detect_publisher
 
 logger = get_logger(__name__)
 
 logger.debug('loading open apc data')
 # téléchargement des dernières données openAPC
 s_apc = requests.get('https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/apc_de.csv').content
-s_ta = requests.get('https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/transformative_agreements/transformative_agreements.csv').content
+# s_ta = requests.get('https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/transformative_agreements/transformative_agreements.csv').content
 s_bpc = requests.get('https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/bpc.csv').content
 
 apc = {}
@@ -19,12 +20,12 @@ cols_apc = ['doi', 'euro', 'issn', 'issn_l', 'issn_print', 'issn_electronic', 'p
 cols_bpc = ['doi', 'euro', 'isbn', 'isbn_print', 'isbn_electronic', 'period', 'publisher']
 df_apc = pd.read_csv(io.StringIO(s_apc.decode('utf-8')))[cols_apc]
 df_bpc = pd.read_csv(io.StringIO(s_bpc.decode('utf-8')))[cols_bpc]
-df_ta = pd.read_csv(io.StringIO(s_ta.decode('utf-8')))[cols_apc]
-df_ta['transformative_agreement'] = True
+# df_ta = pd.read_csv(io.StringIO(s_ta.decode('utf-8')))[cols_apc]
+# df_ta['transformative_agreement'] = True
 df_apc['transformative_agreement'] = False
 df_bpc['transformative_agreement'] = False
 
-df_openapc = pd.concat([df_apc, df_bpc, df_ta])
+df_openapc = pd.concat([df_apc, df_bpc])
 
 openapc_doi = {}
 for i, row in df_openapc.iterrows():
@@ -46,7 +47,7 @@ for i, row in df_openapc.iterrows():
     if row.get('period') and len(str(row['period'])) >= 4:
         year_ok = str(row['period'])[0:4]
     if not pd.isnull(row.get('publisher')):
-        publisher_ok = row['publisher'].strip().lower()
+        publisher_ok = detect_publisher(row['publisher'].strip(), year_ok)['publisher_group']
         
     if year_ok and publisher_ok:
         key_publisher_year = f'PUBLISHER{publisher_ok};YEAR{year_ok}'
@@ -103,7 +104,7 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
     for issn in issns:
         keys_to_try.append({'method': 'issn', 'key': f'ISSN{issn.strip()}'})
     if publisher:
-        publisher_ok = publisher.strip().lower()
+        publisher_ok = detect_publisher(publisher.strip(), year_ok)['publisher_group']
         if year_ok:
             keys_to_try.append({'method': 'publisher_year', 'key': f'PUBLISHER{publisher_ok};YEAR{year_ok}'})
         keys_to_try.append({'method': 'publisher', 'key': f'PUBLISHER{publisher_ok}'})
