@@ -7,6 +7,7 @@ from rq import Connection, Queue
 from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
     create_task_load_mongo, create_task_unpaywall_to_crawler
+from bso.server.main.utils import dump_to_object_storage
 
 default_timeout = 432000
 logger = get_logger(__name__)
@@ -109,4 +110,12 @@ def run_task_etl():
         q = Queue('bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_etl, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202
+
+
+@main_blueprint.route('/dump', methods=['GET'])
+def run_task_dump():
+    logger.debug('Starting task dump')
+    uploaded_files = dump_to_object_storage()
+    response_object = {'status': 'success', 'data': uploaded_files}
     return jsonify(response_object), 202
