@@ -98,7 +98,7 @@ def get_doi(doi, collection_name: str) -> dict:
 
 
 @retry(delay=60, tries=5)
-def get_doi_full(dois: list) -> dict:
+def get_doi_full(dois: list, observations: list) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
     db = get_database()
     res = {}
@@ -108,6 +108,9 @@ def get_doi_full(dois: list) -> dict:
     for collection in collections:
         if collection in ['pubmed', 'inventory']:
             continue
+        if observations and (collection not in observations):
+            continue
+        logger.debug(f'Collection: {collection}')
         current_list = get_doi(dois, collection)
         for e in current_list:
             d = e['doi']
@@ -116,6 +119,7 @@ def get_doi_full(dois: list) -> dict:
             if asof != 'global':
                 del e['doi']
             res[d].update({asof: e})
+    logger.debug(f'Getting doi infos DONE')
     return res
 
 

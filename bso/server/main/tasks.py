@@ -32,7 +32,8 @@ def send_to_parser(publication_json):
 
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
-    return enrich(publications=publications)
+    observations = args.get('observations', [])
+    return enrich(publications=publications, observations=observations)
 
 
 def create_task_download_unpaywall(args: dict) -> str:
