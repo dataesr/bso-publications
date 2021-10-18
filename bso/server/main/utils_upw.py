@@ -51,8 +51,9 @@ def get_repository(a_repo: str) -> str:
     for r in ['bioRxiv', 'medRxiv', 'arXiv', 'Research Square', 'Zenodo', 'Archimer', 'RePEc', 'CiteSeerX']:
         if r.lower().replace(' ', '') in a_repo.lower():
             return r
-    if 'ncbi.nlm.nih.gov/pmc' in a_repo or 'europepmc' in a_repo:
-        return 'PubMed Central'
+    for f in ['pubmedcentral', 'ncbi.nlm.nih.gov/pmc', 'europepmc']:
+        if f in a_repo:
+            return 'PubMed Central'
     return a_repo
 
 
