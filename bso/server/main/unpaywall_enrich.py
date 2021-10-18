@@ -196,11 +196,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         for field in ['has_coi', 'has_grant', 'is_paratext']:
             if res.get(field, 0.0) == 0.0:
                 res[field] = False
-        # not exposing authors in index
-        if 'authors' in res:
-            del res['authors']
-        if 'references' in res:
-            del res['references']
+        # not exposing some fields in index
+        for f in ['authors', 'references', 'abstract', 'incipit']:
+            if f in res:
+                del res[f]
         final.append(res)
     return final
 
