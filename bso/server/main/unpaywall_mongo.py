@@ -108,7 +108,7 @@ def get_doi_full(dois: list, observations: list) -> dict:
     for collection in collections:
         if collection in ['pubmed', 'inventory']:
             continue
-        if observations and (collection not in observations):
+        if observations and (collection not in observations) and (collection != 'global'):
             continue
         logger.debug(f'Collection: {collection}')
         current_list = get_doi(dois, collection)
