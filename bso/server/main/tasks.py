@@ -105,6 +105,7 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
+    observations = args.get('observations', [])
     output = args.get('output', 'bso-index')
     current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
@@ -131,7 +132,7 @@ def create_task_etl(args: dict) -> None:
         publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         if output == 'bso-index':
-            enriched_publications = enrich(publications=publications_not_indexed_yet)
+            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations)
             logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
             loaded = load_in_es(data=enriched_publications, index=index)
         else:
@@ -150,7 +151,7 @@ def create_task_etl(args: dict) -> None:
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
             if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet)
+                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations)
                 logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                 loaded = load_in_es(data=enriched_publications, index=index)
             else:
@@ -168,7 +169,7 @@ def create_task_etl(args: dict) -> None:
     for chunk in chunks(remaining_dois, 5000):
         publications_not_indexed_yet = [{'doi': d} for d in chunk]
         if output == 'bso-index':
-            enriched_publications = enrich(publications=publications_not_indexed_yet)
+            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations)
             logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
             load_in_es(data=enriched_publications, index=index)
         else:

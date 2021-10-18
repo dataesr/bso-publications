@@ -8,7 +8,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
     create_task_load_mongo, create_task_unpaywall_to_crawler
 
-default_timeout = 216000
+default_timeout = 432000
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
 
