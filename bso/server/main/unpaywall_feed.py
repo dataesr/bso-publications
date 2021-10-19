@@ -2,10 +2,13 @@ import datetime
 import os
 import pymongo
 import requests
+from urllib import parse
 
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
 from bso.server.main.utils import download_file
+from bso.server.main.elastic import reset_index
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK
 
 logger = get_logger(__name__)
 UPW_API_KEY = os.getenv('UPW_API_KEY')
@@ -38,22 +41,40 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     end = datetime.datetime.now()
     delta = end - start
     logger.debug(f'jq done in {delta}')
-    drop_collection(collection_name)
+
+    ## mongo start
     start = datetime.datetime.now()
+    drop_collection(collection_name)
     mongoimport = f"mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/unpaywall --file {output_json}" \
                   f" --collection {collection_name}"
     logger.debug(f'Mongoimport {f} start at {start}')
     logger.debug(f'{mongoimport}')
     os.system(mongoimport)
-    end = datetime.datetime.now()
-    delta = end - start
-    logger.debug(f'Mongoimport done in {delta}')
     logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     mycol.create_index('doi')
     mycol.create_index('year')
     mycol.create_index('is_oa')
     mycol.create_index('publisher')
+    end = datetime.datetime.now()
+    delta = end - start
+    logger.debug(f'Mongoimport done in {delta}')
+    ## mongo done
+
+    ## elastic start
+    if collection_name == 'global':
+        start = datetime.datetime.now()
+        es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@cluster.elasticsearch.dataesr.ovh/'
+        es_index = 'all_publications'
+        reset_index(index=es_index)
+        elasticimport = f"elasticdump --input={output_json} --output={es_host}{es_index} --type=data"
+        logger.debug(f'{elasticimport}')
+        logger.debuf('starting import in elastic')
+        os.system(elasticimport)
+        delta = end - start
+        logger.debug(f'Elasticimport done in {delta}')
+    ## elastic done
+
     logger.debug(f'deleting {output_json}')
     os.remove(output_json)
     if delete_input:
