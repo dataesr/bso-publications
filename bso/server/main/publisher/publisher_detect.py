@@ -36,7 +36,10 @@ def detect_publisher(raw_input, published_date):
         if re.search(r['pattern'], tested_string):
             publisher_normalized = r['publisher_normalized']
             publisher_group = r['publisher_normalized']
-            current_date = dateutil.parser.parse(published_date).isoformat()
+            try:
+                current_date = dateutil.parser.parse(published_date).isoformat()
+            except:
+                current_date = dateutil.parser.parse('20100101').isoformat()
             group_year = str(r.get('group_start_date')).replace('.0', '')
             group_date = dateutil.parser.parse(f'{group_year}0101').isoformat()
             if current_date >= group_date:
