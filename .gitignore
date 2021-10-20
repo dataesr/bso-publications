@@ -20,3 +20,7 @@ dist
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+
+# Documentation outputs
+doc/out.*
+doc/bso.tex

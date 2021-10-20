@@ -5,6 +5,7 @@ __pycache__
 venv
 .cache
 notebooks/*
+tests/*
 
 # IDE
 .idea
@@ -19,3 +20,6 @@ dist
 # Git
 .git/
 .github
+
+# Documentation
+doc
