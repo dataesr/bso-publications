@@ -64,30 +64,15 @@ def dump_to_object_storage() -> list:
     cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data'
     os.system(cmd_elasticdump)
     # 2. Convert JSON file into CSV by selecting fields
-    f = open(output_json_file, 'r')
-    content = f.read()
+    file = open(output_json_file, 'r')
+    content = file.read()
     lines = content.splitlines()
-    f.close()
-    rows = [['all_sources', 'status_simplified', 'has_results_or_publications', 'NCTId', 'eudraCT', 'lead_sponsor',
-             'lead_sponsor_type', 'study_type', 'study_start_year', 'ipd_sharing', 'has_results',
-             'has_publications_result', 'publications_result']]
+    file.close()
+    headers = list(lines[0].keys())
+    rows = [headers]
     for line in lines:
         source = json.loads(line).get('_source', {})
-        row = [
-            ','.join(source.get('all_sources')),
-            source.get('status_simplified'),
-            source.get('has_results_or_publications'),
-            source.get('NCTId'),
-            source.get('eudraCT'),
-            source.get('lead_sponsor'),
-            source.get('lead_sponsor_type'),
-            source.get('study_type'),
-            source.get('study_start_year'),
-            source.get('ipd_sharing'),
-            source.get('has_results'),
-            source.get('has_publications_result'),
-            source.get('publications_result')
-        ]
+        row = list(source.values())
         rows.append(row)
     data_file = open(output_csv_file, 'w')
     csv_writer = csv.writer(data_file)
