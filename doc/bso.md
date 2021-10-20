@@ -17,9 +17,11 @@ keywords:
   - open access
   - unpaywall
   - clinical trials
+  - observational studies
+  - health
 ---
 
-**Keywords**: open science, open access, unpaywall, clinical trials
+**Keywords**: open science, open access, unpaywall, clinical trials, observational studies, health
 
 # Abstract
 
@@ -35,7 +37,7 @@ keywords:
 
 <br />
 
-The French Open Science Monitor is a tool that aims at steering the Open Science policy in France. As such, it produces statistics that are analyzed over time and it has to focus on "French" productions. Also, as stated in [@coso_feedback_2018], we want to use only public or open datasources. Two constraints of perimeters thus appear naturally : 
+The French Open Science Monitor is a tool that aims at steering the Open Science policy in France. As such, it produces statistics that are analyzed over time and it has to focus on "French" productions. Also, as stated in [@coso_feedback_2018], we want to use only public or open datasources. Two constraints of perimeter thus appear naturally : 
 
  - **only publications with at least an author who has a French affiliation** are considered. The nationality of the authors does not come into play. Still, this raises the issue of access to affiliation information. Affiliation metadata are present in specific sources, like PubMed, but very rarely in the whole Crossref data. To fill in the gaps, we propose to crawl the affiliation information displayed publicly from the publications webpages. On top of that, identifying a country from an affiliation text is not that straightforward. If you are not convinced, think about an affiliation stating "Hôtel Dieu de France, Beirut, Lebanon": this does not refer to a French affiliation even though the word "France" is present. We use an automatic detection algorithm, based on Elasticsearch, described in [@lhote_using_2021], to infer the countries from the affiliations texts.
 
@@ -55,25 +57,25 @@ The French Open Science Monitor also introduces a focus on the Health domain. De
 
 From the first edition of the French Open Science Monitor, it was clear that the estimate of the open access rate should not be static but should try to capture the dynamics of the opening [@jeangirard_monitoring_2019]. Indeed, the 0-day open access exists but we cannot assume it represents the totality of the open access. Therefore, for a given set of publications, say the publications published during the year Y, it makes sense to measure the open access rate at different point in time, for example at some moment in year Y+1, Y+2 ...
 
-To do so, it becomes necessary to historicize the database containing the open access information. So, instead of maintaining a database that keeps track of the opening of each publication, like Unpaywall is doing, we have to make regular snapshots of the whole Unpaywall database. Each snapshot is used as an observation date to measure the open access rate. It is important to note that this method natively embeds the potentials open access discovery errors from the underlying Unpaywall database, that can be false negative (a publication is actually open at this point in time but it not detected) or false postive (wronly seen as open whereas it is closed). 
+To do so, it becomes necessary to historicize the database containing the open access information. So, instead of maintaining a database that keeps track of the opening of each publication, like Unpaywall is doing, we have to make regular snapshots of the whole Unpaywall database. Each snapshot is used as an observation date to measure the open access rate. It is important to note that this method natively embeds the potentials open access discovery errors from the underlying Unpaywall database, that can be false negative (a publication is actually open at this point in time but it not detected) or false postive (wrongly seen as open whereas it is closed). 
 
 This method of analysis therefore reveals two temporal dimensions: publication dates and observation dates. Obviously, the observation date must be after the publication date. To avoid that the proliferation of possible analyses blurs the message, we propose to look mainly at two elements :
 
  - A main statistics that is the **1Y Open Access rate**: it represents the open access rate of the publications published during year Y and measured (observed from the snapshot of the OA discovery database) at point during year Y+1 (generally in December if the data is available).
 
- - Also the **shape of open access curve** (open access rate function of the publication year). From an observation date to another, the evolution of the shape gives an insight of the speed of opening. An inverted U curve means the open access rate is lower for recent publications. Flat curves means the open access rate is the barely the same, whatever the age of the publication. Increasing curve instead would mean  recent papers are more and more open. 
+ - Also, the **shape of open access curve** (open access rate function of the publication year). From an observation date to another, the evolution of the shape gives an insight of the speed of opening. An inverted U curve means the open access rate is lower for recent publications. Flat curves means the open access rate is the barely the same, whatever the age of the publication. Increasing curve instead would mean  recent papers are more and more open. 
 
 ### 2.1.3 Discipline and language impact
 
-All discplines and publication languages are covered. Again, however, no metadata exists for describing the discipline or the publication language. To enrich the metadata, we then rely on machine learning approches, that try to infer discipline and language from the available metadata. 
+All disciplines and publication languages are covered. Again, however, no metadata exists for describing the discipline or the publication language. To enrich the metadata, we then rely on machine learning approches, that try to infer discipline and language from the available metadata. 
 
-For the language detection, only the title, and the abstract if available are used, with the lid.176.bin fasttext word embedding machine learning algorithm [@joulin_bag_2016].
+For the language detection, only the title, and the abstract are used if available, with the lid.176.bin fasttext word embedding machine learning algorithm [@joulin_bag_2016].
 
 Discipline detection also uses journal and keywords metadata if available. A general classifier is implemented for all domains, it classifies the publications into 10 macro disciplines: Mathematics, Chemistry, Physics & astronomy, Fondamental biology, Medical research, Computer sciences, Earth science ecology energy & applied biology, Humanities, Social sciences, Engineering. It is trained on data from the Pascal & Francis database and uses a Fasttext classifier. More details are discussed in the previous paper [@jeangirard_monitoring_2019]. 
 
 A domain-specific classifier is implemented for the Health domain. It classifies the publications into 17 disciplines, built from the Fields of Research taxonomy. The full methodology is detailed in [@jeangirard_content-based_2021].
 
-The main purpose of these metadata enrichments is to be able to analyse the open access rate in function of languages and disciplines. We expect to observe differences not only in the global OA rate (which discipline is the most open ?), but also in the dynamics trends (which discipline show the strongest increase over time ?) or in the opening uses (relying on publihser hosted open access versus open repositories).
+The main purpose of these metadata enrichments is to be able to analyse the open access rate in function of languages and disciplines. We expect to observe differences not only in the global OA rate (which discipline is the most open ?), but also in the dynamics trends (which discipline show the strongest increase over time ?) or in the opening uses (relying on publisher hosted open access versus open repositories).
 
 ### 2.1.4 Publishers and dissemination platforms strategies
 
