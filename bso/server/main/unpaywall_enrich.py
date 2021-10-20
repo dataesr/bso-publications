@@ -150,15 +150,14 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # Fields detection
         res = detect_fields(res)
         # normalisation des editeurs
-        if isinstance(res.get('publisher'), str):
-            published_year = None
-            if isinstance(res.get('published_date'), str):
-                published_year = res.get('published_date')[0:4]
-            publisher_clean = detect_publisher(res['publisher'], published_year) 
-            res.update(publisher_clean)
+        published_year = None
+        if isinstance(res.get('published_date'), str):
+            published_year = res.get('published_date')[0:4]
+        publisher_clean = detect_publisher(res.get('publisher'), published_year) 
+        res.update(publisher_clean)
         # Genre
         if isinstance(res.get('genre'), str):
-            res['genre'] = normalize_genre(res['genre'], res['publisher_normalized']) 
+            res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized')) 
         # Affiliations
         affiliations = res.get('affiliations', [])
         affiliations = [] if affiliations is None else affiliations

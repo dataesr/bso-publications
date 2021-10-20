@@ -24,6 +24,8 @@ for i, row in df_publisher.iterrows():
                      })
 
 def detect_publisher(raw_input, published_date):
+    if not isinstance(raw_input, str):
+        return {'publisher_normalized': raw_input, 'publisher_group': raw_input}
     unaccented_string = unidecode.unidecode(raw_input).replace(',', ' ').replace('  ', ' ')
     unaccented_string = unaccented_string.replace("’", "'")
     without_parenthesis = re.sub(r'\([^)]*\)', '', unaccented_string)
