@@ -7,14 +7,13 @@ import random
 from retry import retry
 from typing import Union
 
-from bso.server.main.config import MONGO_URL
+from bso.server.main.config import MONGO_URL, PV_MOUNT
 from bso.server.main.decorator import exception_handler
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
 client = None
 logger = get_logger(__name__)
-PV_MOUNT = '/upw_data/'
 
 
 @exception_handler

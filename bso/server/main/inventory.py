@@ -5,12 +5,13 @@ import requests
 import json
 import pandas as pd
 
+from bso.server.main.config import PV_MOUNT
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
 from bso.server.main.utils import download_file
 
 logger = get_logger(__name__)
-PV_MOUNT = '/upw_data/'
+
 
 def update_inventory(elts: list) -> None:
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')

@@ -10,13 +10,12 @@ import shutil
 from typing import Union
 from urllib import parse
 
-from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, PV_MOUNT
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
-PV_MOUNT = '/upw_data/'
 
 
 def get_filename_from_cd(cd: str) -> Union[str, None]:

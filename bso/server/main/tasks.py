@@ -6,7 +6,9 @@ import requests
 
 from dateutil import parser
 
+from bso.server.main.config import PV_MOUNT
 from bso.server.main.elastic import load_in_es, reset_index
+from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
@@ -14,13 +16,11 @@ from bso.server.main.unpaywall_feed import download_daily, download_snapshot, sn
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file
-from bso.server.main.inventory import update_inventory
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
 START_YEAR = 2013
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
-PV_MOUNT = '/upw_data'
 
 
 def send_to_parser(publication_json):
