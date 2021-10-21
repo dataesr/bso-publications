@@ -126,6 +126,15 @@ Obviously this does not impact the overall Open Access rate, but this division r
 
 ![Open Access hosting types](oa_types.png){ width=450 }
 
+Another graphical way to represent this balance is to use a bubble chart. Each bubble represents a cluster of publications (think about having a bubble for each discipline, for each dissemination platform ...), its size depends on the number of publications in the cluster. The x-axis represents the share of OA publications hosted by the publisher: it is then the sum of the share of publication hosted only by the publisher and the share hosted on an open repository and by the publisher. Conversely, the y-axis represents the share of OA publications hosted on a repository: it is then the sum of the share of publication hosted only on a repository and the share hosted on an open repository and by the publisher.
+
+![Share of publications in open access hosted on an open repository vs. by the publisher](bubbles.png){ width=450 }
+
+The data used to compute these OA types still comes from Unpaywall, but instead of the 'oa_status' field, with use the 'oa_locations' field. For a publication which is open access, it lists all the existing free copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the free copy, and some metadata of the location is associated, in particular the 'host_type', that can take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are considered repositories.
+
+\newpage
+
+
 ### 2.1.4 Discipline and language impact
 
 All disciplines and publication languages are covered. Again, however, no metadata exists for describing the discipline
