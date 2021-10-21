@@ -106,7 +106,7 @@ def create_task_load_mongo(args: dict) -> None:
 
 def create_task_etl(args: dict) -> None:
     observations = args.get('observations', [])
-    datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr' ])
+    datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr'])
     output = args.get('output', 'bso-index')
     current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
@@ -115,9 +115,7 @@ def create_task_etl(args: dict) -> None:
     if output == 'bso-index':
         logger.debug(f'Reset index {index}')
         reset_index(index=index)
-
     doi_in_index = set()
-    
     # Pubmed data
     if 'pubmed_fr' in datasources:
         start_string = args.get('start', '2013-01-01')
@@ -127,7 +125,7 @@ def create_task_etl(args: dict) -> None:
         nb_days = (end_date - start_date).days
         prefix_format = args.get('prefix_format', '%Y/%m')
         prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format)
-                         for days in range(nb_days)]))
+                             for days in range(nb_days)]))
         prefixes.sort()
         for prefix in prefixes:
             logger.debug(f'Getting parsed objects for {prefix} from object storage (pubmed)')

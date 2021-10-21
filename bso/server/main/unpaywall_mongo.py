@@ -51,6 +51,7 @@ def clean(res: dict, coll: str) -> dict:
         res['asof'] = coll
     return res
 
+
 @retry(delay=60, tries=5)
 def get_not_crawled(doi) -> dict:
     collection_name = 'inventory'
@@ -78,9 +79,10 @@ def get_unpaywall_infos(publications, collection_name, file_part) -> None:
         for p in unpaywall_info:
             json.dump(p, zipfile)
             zipfile.write('\n')
-    res = upload_object('bso_dump', write_file)
+    upload_object('bso_dump', write_file)
     os.remove(write_file)
     return unpaywall_info
+
 
 @retry(delay=60, tries=5)
 def get_doi(doi, collection_name: str) -> dict:
