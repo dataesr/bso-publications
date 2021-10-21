@@ -72,7 +72,23 @@ From an observation date to another, the OA curve shape may change. This evoluti
 ![Open Access curve dynamics](curve_dynamic.png){ width=450 }
 
 
-### 2.1.3 Discipline and language impact
+### 2.1.3 Open access types
+
+As Unpaywall is the Open Access discovery tool we used, we initially based our results on the OA classifications described in [@piwowar_state_2018]. It breaks down the OA types in 5 categories: 'Gold', 'Hybrid', 'Bronze', 'Green', 'Closed'. These categories are also present in the Unpaywall database (and oaDOI API) in the field 'oa_status'.  We first simply grouped the categories 'Gold', 'Hybrid' and 'Bronze' under a 'Publisher hosted' label. However, we now propose another classification that we think more appropriate for the French OA policy steering.
+
+[@piwowar_state_2018] defines 'Green' as 'Toll-access on the publisher page, but there is a free copy in an OA repository'. That implies that a publication that would be free to read on the publisher webpage and that would, at the same time, have a free copy on a repository would not be counted as 'Green'. When we observe the OA rate function of the hosting type, the contribution of the repositories is mechanically reduced in favour of the publishers. This therefore blurs the picture of the real activity of the repositories. That is why we propose to have a first level of analysis, with 3 categories (excluding 'Closed'): 
+
+ - **hosted only on an open repository**: Toll-access on the publisher page, but there is a free copy in an OA repository, corresponging exaclty to the 'Green' definition of [@piwowar_state_2018], that we could rather label 'Green only' 
+
+ - **hosted only by the publisher**: Free to read on the publisher webpage, but no free copy in an OA repository.
+
+ - **hosted on an open repository and by the publisher**: Free to read on the publisher webpage and there is a free copy in an OA repository.
+
+Obviously this does not impact the overall Open Access rate, but this division rebalances the role of the different types of OA hosting. The next figure shows the kind of impact choosing one or the other OA type break down. 
+
+![Open Access hosting types](oa_types.png){ width=450 }
+
+### 2.1.4 Discipline and language impact
 
 All disciplines and publication languages are covered. Again, however, no metadata exists for describing the discipline or the publication language. To enrich the metadata, we then rely on machine learning approches, that try to infer discipline and language from the available metadata. 
 
@@ -84,34 +100,34 @@ A domain-specific classifier is implemented for the Health domain. It classifies
 
 The main purpose of these metadata enrichments is to be able to analyse the open access rate in function of languages and disciplines. We expect to observe differences not only in the global OA rate (which discipline is the most open ?), but also in the dynamics trends (which discipline show the strongest increase over time ?) or in the opening uses (relying on publisher hosted open access versus open repositories).
 
-### 2.1.4 Publishers and dissemination platforms strategies
+### 2.1.5 Publishers and dissemination platforms strategies
 
-#### 2.1.4.1 Identification of the dissemination platforms
+#### 2.1.5.1 Identification of the dissemination platforms
 
-#### 2.1.4.2 Business models
+#### 2.1.5.2 Business models
 
 Diamond DOAJ, Gold, Hybrid
 
-#### 2.1.4.3 Licences
+#### 2.1.5.3 Licences
 
 licence info from unpaywall
 normalized into cc-by ...
 
-#### 2.1.4.3 Article Processing Charges (APC) estimation
+#### 2.1.5.3 Article Processing Charges (APC) estimation
 
 estimation from openAPC and DOAJ for hybrid and gold (by definition 0 for diamond).
 
-### 2.1.5 The role of the open repositories
+### 2.1.6 The role of the open repositories
 
 normalization of the oa_locations data from unpaywall. Beware, mixes with preprint servers.
 
-### 2.1.6 Other impacts on open access
+### 2.1.7 Other impacts on open access
 
-#### 2.1.6.1 Funding
+#### 2.1.7.1 Funding
 
 PubMed gives info on grant declaration. When this info is available, can we observe an impact on measured OA ? 
 
-#### 2.1.6.2 Main authors affiliation country
+#### 2.1.7.2 Main authors affiliation country
 
 Info from PubMed (only health domain).
 Main authors : first and last
