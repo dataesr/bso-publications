@@ -8,11 +8,10 @@ from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
 from bso.server.main.utils import download_file
 from bso.server.main.elastic import reset_index
-from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
 
 logger = get_logger(__name__)
 UPW_API_KEY = os.getenv('UPW_API_KEY')
-PV_MOUNT = '/upw_data/'
 small_url = f'http://api.unpaywall.org/daily-feed/changefile/changed_dois_with_versions_2021-01-08T080001' \
             f'.jsonl.gz?api_key={UPW_API_KEY}'
 medium_url = f'http://api.unpaywall.org/feed/changefile/changed_dois_with_versions_2020-12-15T080001_to_2020-12' \
@@ -25,7 +24,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['unpaywall']
     output_json = f'{f}_mongo.jsonl'
-    collection_name = f.replace(PV_MOUNT, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
+    collection_name = f.replace(MOUNTED_VOLUME, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
     if global_metadata:
         collection_name = 'global'
     start = datetime.datetime.now()

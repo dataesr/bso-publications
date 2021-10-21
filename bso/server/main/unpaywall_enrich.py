@@ -2,14 +2,15 @@ import fasttext
 import os
 import pandas as pd
 
+from dateutil import parser
 from typing import Union
-import dateutil.parser
 
 from bso.server.main.apc.apc_detect import detect_apc
-from bso.server.main.publisher.publisher_detect import detect_publisher
+from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
+from bso.server.main.publisher.publisher_detect import detect_publisher
 from bso.server.main.strings import dedup_sort, normalize, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
@@ -18,14 +19,13 @@ from bso.server.main.utils_upw import chunks, format_upw_millesime
 logger = get_logger(__name__)
 models = {}
 project_id = os.getenv('OS_TENANT_ID')
-PV_MOUNT = '/src/models/'
 
-os.makedirs(PV_MOUNT, exist_ok=True)
+os.makedirs(MOUNTED_VOLUME, exist_ok=True)
 
 
 def init_model_lang() -> None:
     logger.debug('Init model lang')
-    lid_model_name = f'{PV_MOUNT}lid.176.bin'
+    lid_model_name = f'{MOUNTED_VOLUME}lid.176.bin'
     if not os.path.exists(lid_model_name):
         download_file(f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/models/lid.176.bin',
                       upload_to_object_storage=False, destination=lid_model_name)
@@ -41,7 +41,8 @@ def identify_language(text: str) -> Union[str, None]:
     text = remove_punction(text.replace('\n', ' ').replace('\xa0', ' ')).strip()
     return (models['lid'].predict(text, 1)[0][0]).replace('__label__', '')
 
-def normalize_genre(genre, publisher):
+
+def normalize_genre(genre, publisher) -> str:
     if publisher in ['Cold Spring Harbor Laboratory']:
         return 'preprint'
     if genre in ['journal-article', 'book-chapter', 'dataset']:
@@ -51,6 +52,7 @@ def normalize_genre(genre, publisher):
     if genre in ['book', 'monograph']:
         return 'book'
     return 'other'
+
 
 def get_affiliation_types(affiliation: str) -> dict:
     normalized_affiliation = normalize(affiliation)
@@ -121,7 +123,8 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 res['authors'] = res['z_authors']
             del res['z_authors']
         # APC
-        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'), res.get('published_date', '2100-01-01'), dois_infos[doi])
+        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
+                              res.get('published_date', '2100-01-01'), dois_infos[doi])
         res.update(info_apc)
         # Language
         lang_mapping = {
@@ -226,7 +229,7 @@ def enrich(publications: list, observations: list) -> list:
         for field in p:
             if isinstance(p.get(field), str) and field.endswith('_date'):
                 try:
-                    p[field] = dateutil.parser.parse(p[field]).isoformat()
+                    p[field] = parser.parse(p[field]).isoformat()
                 except:
                     logger.debug(f"error for field {field} : {p[field]} of type {type(p[field])}, deleting field")
                     field_to_del.append(field)
