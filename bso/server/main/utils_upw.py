@@ -30,7 +30,7 @@ def reduce_license(all_licenses: list) -> list:
         return [e for e in ccbys if len(e) == min_ccy_length]
     for k in ['publisher-specific', 'implied-oa', 'elsevier-oa']:
         if k in all_licenses:
-            return [k]
+            return ['other']
     return ['no license']
 
 
