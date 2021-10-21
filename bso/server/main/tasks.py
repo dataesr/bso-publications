@@ -6,7 +6,7 @@ import requests
 
 from dateutil import parser
 
-from bso.server.main.config import PV_MOUNT
+from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.elastic import load_in_es, reset_index
 from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
@@ -53,7 +53,7 @@ def create_task_unpaywall_to_crawler():
     crawler_url = os.getenv('CRAWLER_SERVICE')
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
     weekly_files = requests.get(weekly_files_url).json()['list']
-    destination = f'{PV_MOUNT}/weekly_upw.jsonl.gz'
+    destination = f'{MOUNTED_VOLUME}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
     chunks = pd.read_json(destination, lines=True, chunksize=5000)
     for c in chunks:
@@ -96,7 +96,7 @@ def create_task_load_mongo(args: dict) -> None:
     asof = args.get('asof', 'nodate')  # if nodate, today's snapshot will be used
     filename = download_snapshot(asof).split('/')[-1]
     logger.debug(f'Filename after download is {filename}')
-    path = f'{PV_MOUNT}/{filename}'
+    path = f'{MOUNTED_VOLUME}/{filename}'
     if os.path.exists(path=path):
         snapshot_to_mongo(f=path, global_metadata=True, delete_input=False)
         snapshot_to_mongo(f=path, global_metadata=False, delete_input=False)
@@ -163,8 +163,8 @@ def create_task_etl(args: dict) -> None:
             doi_in_index.update([p['doi'] for p in loaded])
     # Other dois
     if 'dois_fr' in datasources:
-        download_object(container='publications-related', filename='dois_fr.json', out=f'{PV_MOUNT}/dois_fr.json')
-        fr_dois = json.load(open(f'{PV_MOUNT}/dois_fr.json', 'r'))
+        download_object(container='publications-related', filename='dois_fr.json', out=f'{MOUNTED_VOLUME}/dois_fr.json')
+        fr_dois = json.load(open(f'{MOUNTED_VOLUME}/dois_fr.json', 'r'))
         fr_dois_set = set(fr_dois)
         remaining_dois = list(fr_dois_set - doi_in_index)
         logger.debug(f'DOI already in index: {len(doi_in_index)}')

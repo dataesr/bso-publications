@@ -7,7 +7,7 @@ import random
 from retry import retry
 from typing import Union
 
-from bso.server.main.config import MONGO_URL, PV_MOUNT
+from bso.server.main.config import MONGO_URL, MOUNTED_VOLUME
 from bso.server.main.decorator import exception_handler
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
@@ -74,7 +74,7 @@ def get_unpaywall_infos(publications, collection_name, file_part) -> None:
     for p in unpaywall_info:
         doi = p['doi']
         p.update(input_infos[doi])
-    write_file = f'{PV_MOUNT}bso_extract_{collection_name}_{file_part}.jsonl.gz'
+    write_file = f'{MOUNTED_VOLUME}bso_extract_{collection_name}_{file_part}.jsonl.gz'
     with gzip.open(write_file, 'wt', encoding="ascii") as zipfile:
         for p in unpaywall_info:
             json.dump(p, zipfile)
@@ -138,7 +138,7 @@ def aggregate(coll: str, pipeline: str, output: str) -> str:
     pipeline.append({"$out": results_col})
     logger.debug(pipeline)
     db[coll].aggregate(pipeline, allowDiskUse=True)
-    output_json = f'{PV_MOUNT}{results_col}'
+    output_json = f'{MOUNTED_VOLUME}{results_col}'
     export_cmd = f"mongoexport --forceTableScan --uri mongodb://mongo:27017/unpaywall -c {results_col}  " \
                  f"--out={output_json}"
     os.system(export_cmd)

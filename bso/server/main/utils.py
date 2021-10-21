@@ -10,7 +10,7 @@ import shutil
 from typing import Union
 from urllib import parse
 
-from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, PV_MOUNT
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
@@ -29,7 +29,7 @@ def get_filename_from_cd(cd: str) -> Union[str, None]:
 
 
 def download_file(url: str, upload_to_object_storage: bool = True, destination: str = None) -> str:
-    os.makedirs(PV_MOUNT, exist_ok=True)
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     start = datetime.datetime.now()
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -38,7 +38,7 @@ def download_file(url: str, upload_to_object_storage: bool = True, destination: 
         except:
             local_filename = url.split('/')[-1]
         logger.debug(f'Start downloading {local_filename} at {start}')
-        local_filename = f'{PV_MOUNT}{local_filename}'
+        local_filename = f'{MOUNTED_VOLUME}{local_filename}'
         if destination:
             local_filename = destination
         with open(local_filename, 'wb') as f:
@@ -58,8 +58,8 @@ def dump_to_object_storage() -> list:
     container = 'bso_dump'
     today = datetime.date.today()
     today_date = f'{today.year}{today.month}{today.day}'
-    output_json_file = f'{PV_MOUNT}{es_index}_{today_date}.jsonl'
-    output_csv_file = f'{PV_MOUNT}{es_index}_{today_date}.csv'
+    output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.jsonl'
+    output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.csv'
     cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data'
     os.system(cmd_elasticdump)
     # 2. Convert JSON file into CSV by selecting fields
