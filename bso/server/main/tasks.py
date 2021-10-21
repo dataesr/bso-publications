@@ -53,6 +53,7 @@ def create_task_unpaywall_to_crawler():
     crawler_url = os.getenv('CRAWLER_SERVICE')
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
     weekly_files = requests.get(weekly_files_url).json()['list']
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     destination = f'{MOUNTED_VOLUME}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
     chunks = pd.read_json(destination, lines=True, chunksize=5000)
@@ -96,6 +97,7 @@ def create_task_load_mongo(args: dict) -> None:
     asof = args.get('asof', 'nodate')  # if nodate, today's snapshot will be used
     filename = download_snapshot(asof).split('/')[-1]
     logger.debug(f'Filename after download is {filename}')
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     path = f'{MOUNTED_VOLUME}/{filename}'
     if os.path.exists(path=path):
         snapshot_to_mongo(f=path, global_metadata=True, delete_input=False)
@@ -105,6 +107,7 @@ def create_task_load_mongo(args: dict) -> None:
 
 
 def create_task_etl(args: dict) -> None:
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     observations = args.get('observations', [])
     datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr'])
     output = args.get('output', 'bso-index')

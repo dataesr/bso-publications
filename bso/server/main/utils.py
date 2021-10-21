@@ -58,6 +58,7 @@ def dump_to_object_storage() -> list:
     container = 'bso_dump'
     today = datetime.date.today()
     today_date = f'{today.year}{today.month}{today.day}'
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.jsonl'
     output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.csv'
     cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data'

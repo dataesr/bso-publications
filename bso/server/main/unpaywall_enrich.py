@@ -20,11 +20,10 @@ logger = get_logger(__name__)
 models = {}
 project_id = os.getenv('OS_TENANT_ID')
 
-os.makedirs(MOUNTED_VOLUME, exist_ok=True)
-
 
 def init_model_lang() -> None:
     logger.debug('Init model lang')
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     lid_model_name = f'{MOUNTED_VOLUME}lid.176.bin'
     if not os.path.exists(lid_model_name):
         download_file(f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/models/lid.176.bin',

@@ -12,6 +12,7 @@ logger = get_logger(__name__)
 def update_inventory(elts: list) -> None:
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['unpaywall']
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_json = f'{MOUNTED_VOLUME}current_list_inventory_mongo.jsonl'
     pd.DataFrame(elts).to_json(output_json, lines=True, orient='records')
     collection_name = 'inventory'
