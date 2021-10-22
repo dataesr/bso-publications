@@ -162,14 +162,29 @@ but also in the dynamics trends (which discipline show the strongest increase ov
 
 #### 2.1.5.1 Identification of the dissemination platforms
 
-#### 2.1.5.2 Business models
+#### 2.1.5.2 Business models and open licenses
 
-Diamond DOAJ, Gold, Hybrid
+As explained above, the 'oa_status' in Unpaywall data hides part of the role of the open repositories. It also hides Diamond open access, that is to say it mixes in the same 'Gold' category all publications published in an open-access journal that is indexed by the DOAJ, whether there are Article Process Charges (APC) or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories : 
 
-#### 2.1.5.3 Licences
+ - **Diamond DOAJ**: journal-article published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data).
 
-licence info from unpaywall
-normalized into cc-by ...
+ - **(Full APC) Gold**: publications published in an open-access journal (using the field 'journal_is_oa' from Unpaywall) and that are not Diamond DOAJ (either with APC or without information about APC)
+
+ - **Hybrid**: all other open access publication with a copy available on the publisher webpage.
+
+On one hand, the 'Gold' category from [@piwowar_state_2018] is broken down into 2 categories to make Diamond appear explictly. On the other hand, the 'Hybrid' and 'Bronze' categories from [@piwowar_state_2018] are merged into 'Hybrid', without considering the license information. Indeed, the objective of this level of analysis is to separate different business models (APC vs no fee vs Hybrid), not to analyse the open licenses associated to the OA copies.
+
+For that matter, a third analysis level is used that distingues, for open access publications:
+
+ - **Creative commons** licenses (cc0, cc-by, cc-by-nc etc ...)
+
+ - **Other licenses** (publisher sepcific ...)
+
+ - **No license** 
+
+To be clear, the no license category does not mean the publications are closed, on the contrary they are open but no open license was detected.
+
+Again, the informations from the field 'oa_locations' in the Unpaywall data that is used, and therefore, the results are dependent on the Unpaywall database data quality.
 
 #### 2.1.5.3 Article Processing Charges (APC) estimation
 
@@ -177,7 +192,7 @@ estimation from openAPC and DOAJ for hybrid and gold (by definition 0 for diamon
 
 ### 2.1.6 The role of the open repositories
 
-normalization of the oa_locations data from unpaywall. Beware, mixes with preprint servers.
+à garder ??
 
 ### 2.1.7 Other impacts on open access
 
