@@ -4,6 +4,7 @@ author:
   - Anne L'Hôte:
       institute: mesri
       orcid: 0000-0003-1353-5584
+      idref: 258076186
   - Eric Jeangirard:
       institute: mesri
       orcid: 0000-0002-3767-7125
@@ -189,8 +190,23 @@ Again, the informations from the field 'oa_locations' in the Unpaywall data that
 
 #### 2.1.5.3 Article Processing Charges (APC) estimation
 
-estimation from openAPC and DOAJ for hybrid and gold (by definition 0 for diamond).
+Estimating APC for each journal article remains difficult as few open sources exist. We leverage on the openAPC database (at the publication level) and on the DOAJ data (at the ISSN level). We use the following heuristics to estimate the APC of a publication.
 
+ - If the DOI is not open access with a free copy on the publisher webpage, there is no APC estimation to make.
+
+ - Else, if the DOAJ specifies there are no APC for the ISSN, then it is a Diamond DOAJ OA, with no APC.
+
+ - Else, if the DOI is explicitly in the openAPC database, we simply use the APC from openAPC.
+
+ - Else, if the DOI is not in the openAPC database, but its ISSN or publisher is, with a sufficient number of observations, we use the mean of the APC observed for the same ISSN or the same publisher, during the same year if enough data is available, or over the whole openAPC database otherwise.
+
+ - Else, if the DOAJ specifies there are APC for the ISSN, we simply use the APC from DOAJ, after a conversion to Euros if needed (based on the exchange rate at the publication date).
+
+ - Otherwise, no estimation is made.
+
+We are aware this estimation is far from perfect but still brings some insights. On top of that, even if we focus on French publications (publications with at an author with a French affiliation), the sum of the APC estimated is higher than the real amount of money spent by France into APC, as a large fraction of the publications are co-authored with scholars affiliated to foreign institutions. Informations on corresponding author could be a proxy to focus on APC spent by France but for now, we do not have an open, reliable and massive source for this information. 
+
+ 
 ### 2.1.6 The role of the open repositories
 
 à garder ??
