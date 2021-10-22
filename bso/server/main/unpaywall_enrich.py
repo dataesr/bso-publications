@@ -121,6 +121,8 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             if 'authors' not in res:
                 res['authors'] = res['z_authors']
             del res['z_authors']
+        # Fields detection
+        res = detect_fields(res)
         # APC
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
                               res.get('published_date', '2100-01-01'), dois_infos[doi])
@@ -149,8 +151,6 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # Predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
-        # Fields detection
-        res = detect_fields(res)
         # normalisation des editeurs
         published_year = None
         if isinstance(res.get('published_date'), str):
