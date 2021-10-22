@@ -20,11 +20,10 @@ keywords:
   - unpaywall
   - clinical trials
   - observational studies
-  - health
   - scientometrics
 ---
 
-**Keywords**: open science, open access, unpaywall, clinical trials, observational studies, health, scientometrics
+**Keywords**: open science, open access, unpaywall, clinical trials, observational studies, scientometrics
 
 # Abstract
 
@@ -252,15 +251,18 @@ In the European Union, the reporting obligation only concerns clinical drug tria
 The issue of opening up or sharing data arises for clinical research in the same way as for other areas of scientific research. However, it has a particularly complex dimension, since it involves personal data, some of which directly concern the health of individuals. Nevertheless, it is possible to define the modalities for sharing this data.
 Two dimensions will be developed: 
  
- - the declaration of clinical and observational studies: the objective is to evaluate the evolution of the number of declared studies and the quality of the associated metadata.
-
  - the openness of the results and publications when the study is completed.
+ 
+- the declaration of clinical and observational studies: the objective is to evaluate the evolution of the number of declared studies and the quality of the associated metadata.
+
 
 ### 2.2.1 Perimeter
 
-clinicaltrials.org and EUCTR 
-reconciliation based on id
-one of the location in France
+Two datasources are used for now to collect metadata about clinical trials and observational studies: clinicaltrials.org and EUCTR. clinicaltrials.org proposes an API while EUCTR does not so the information is crawled from the website. Only the trials and studies that involves at least **one location in France** are analysed. 
+
+Some trials or studies appear in both registries, the matching between the two databases being done based on the PIDs NCTId (from clinicaltrials.org) and eudraCT (from EUCTR), both registries keeping track of external PIDs. Nevertheless, duplicates can still remain if no link can be established with the PIDs present in both registries.
+
+To distinguish between clinical trials on one side and observational studies on the other, we use the study type field, that can be either 'Interventional' (for clinical studies) or 'Observational' (for observational studies).
 
 ### 2.2.1 Main opening indicators
 
@@ -328,6 +330,17 @@ publications. Let's call that "big". And the time to collect all these data coul
 
 
 ## 4.2 Limitations and future research
+
+### 4.2.1 Limitations
+
+DOI only
+mixes preprint servers / open repo
+richer metadata
+
+based only on metadata from registries
+
+### 4.2.2 Future work
+research data, software code
 
 
 # Software and code availability
