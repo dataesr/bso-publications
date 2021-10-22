@@ -77,7 +77,13 @@ for i, row in df_openapc.iterrows():
             
 apc_avg = {}
 for k in apc:
-    apc_avg[k] = {'mean': np.mean(apc[k]), 'count': len(apc[k])}
+    estimation = np.mean(apc[k])
+    count = len(apc[k])
+    if count < 10 and 'ISSN' in k:
+        continue
+    if count < 50 and 'PUBLISHER' in k:
+        estimation = 0.0
+    apc_avg[k] = {'count': count, 'estimation': estimation}
 logger.debug(f'open apc data loaded, {len(apc_avg)} keys stored for estimations')
 
 def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict:
@@ -117,11 +123,13 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
         current_key = k['key']
         current_method= k['method']
         if current_key in apc_avg:
+            estimation = apc_avg[current_key]['estimation']
+            count = apc_avg[current_key]['count']
             return {
-                    'has_apc': True,
-                    'amount_apc_EUR': apc_avg[current_key]['mean'],
+                    'has_apc': (estimation > 0),
+                    'amount_apc_EUR': estimation,
                     'apc_source': 'openAPC_estimation_'+current_method,
-                    'amount_apc_openapc_EUR': apc_avg[current_key]['mean'],
-                    'count_apc_openapc_key': apc_avg[current_key]['count']
+                    'amount_apc_openapc_EUR': estimation,
+                    'count_apc_openapc_key': count
                 }
     return {'has_apc': None}
