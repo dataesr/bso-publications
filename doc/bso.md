@@ -3,6 +3,7 @@ title: 'A new framework for the French Open Science Monitor'
 author:
   - Anne L'Hôte:
       institute: mesri
+      orcid: 0000-0003-1353-5584
   - Eric Jeangirard:
       institute: mesri
       orcid: 0000-0002-3767-7125
@@ -229,24 +230,50 @@ Time to register the results
 In this section, we will try to present the global workflow to collect, enrich and consolidate the data as described
 before with the technical and the storage challenges.
 
-### 2.3.1 Collect
+### 2.3.1 Data manipulation
+
+Collect, Select, Enrich and Save
+As describe before, we collect data from multiple sources (PubMed via Medline, Crossref, our own list of DOIS), we then 
+try to guess the country according to the affiliations. And from the DOIs, we collect more details about that 
+publication via Unpaywall. By details, we mean open access, 
+Each step is really time and CPU consuming. Assuming any step can fail at any time, we choose to develop each step as
+independent and idempotent.
+
 
 From Pubmed, collect all the database via Medline and store it as JSONL files on Object Storage on OVH Cloud in a
 dedicated container.
-
-### 2.3.2. Select
-
 At that point, we have all the notices of medical publications. We there find the affiliations of each publication.
-With the affiliation we tried to detect the countries of the institutions mentionned in the affiliations, in order to
+With the affiliation we tried to detect the countries of the institutions mentioned in the affiliations, in order to
 filter on French publications. The selected publications are stored as JSONL files in another dedicated container on 
 Object Storage on OVH Cloud.
-
-### 2.3.3. Enrich
-
 Now focusing on the French publications, we use the extracted notices to match them against a MongoDatabase that we
-built on a dump of Unpaywall. We use th DOI to consolidate the data and then add many detizal
+built on a dump of Unpaywall. We use th DOI to consolidate the data and then add many detail
 
-### 2.3.4. Index
+### 2.3.2 Data storage
+
+To do so, we needed to precisely define the input and the output of each step, and how to store the intermediate
+results. As JSON is the most common format to manipulate data, we choose to store the results into JSONL files and to
+save them into a dedicated container on the ObjectStorage of OVH Cloud. ObjectStorage is a data storage architecture
+that is easily queryable.
+MongoDB
+Elastisearch
+
+
+### 2.3.2. Microservices
+
+synchronous / asynchronous, Docker
+All the tasks before are developed in Python and running as microservices in a Docker images. We used Flask as a Web
+Framework. It enables us to launch the steps by calling the endpoint urls with the specified arguments. This way we
+were still the bandmaster of the wall workflow and where still able to follow the progress of all these asynchronous
+tasks.
+
+### 2.3.3. Cloud
+
+OVH Cloud, remote, scalability, kubernetes
+As a limitation, we chose to collect all the publications from 2013 to today. Only from Crossref, it's about 45 million
+publications. Let's call that "big". And the time to collect all these data could be quite long. So we had to 
+
+
 
 # 3. Results
 
