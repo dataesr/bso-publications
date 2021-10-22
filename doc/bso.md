@@ -30,6 +30,29 @@ keywords:
 
 # 1. Introduction
 
+The French Open Science Moniror was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its methodology was detailed in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications whose one author has a French affiliations. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data) or disciplinary.
+
+To support the continuation of Open Science public poly with the second National Plan for Open Science [@mesri_2nd_2021], a new framework for the French Open Science Monitor. It introduces a monitor specific to the Health domain and also develops the features for the Open Access analysis.
+
+Produce a dynamic vision of the evolution of the level of openness
+Analyse in detail how publications are opened, developing indicators specific to open repositories on one hand and indicators specific to the dissemination platforms on the other hand.
+
+The objective of the French Open Science Monitor in Health is to report on some aspects of Open Science specific to medical research and health, in relation to the needs for sharing scientific knowledge that have become urgent during the COVID-19 pandemic. The aim is to have indicators that will make it possible to take stock of the situation and monitor the public policies that will be implemented. 
+
+In addition to the open access to the publications, which is critical for all domains, the registration of clinical trials and observational studies, the publication of their results and the sharing of their data are specific dimensions in the Health domain, and more particularly of clinical research. 
+
+Clinical trials are research conducted on human subjects involving an intervention other than their usual care (delivery of a drug, treatment device, surgical procedure, etc.) for the purpose of developing biological or medical knowledge.
+Observational studies are "non-interventional" studies, also involving humans, but not involving any intervention other than the usual management of patients. They may focus on compliance with treatment, tolerance to a drug after it has been put on the market, etc. This is the case, for example, with cohort studies, which consist of statistical monitoring of a panel of individuals over the long term in order to identify the occurrence of health events of interest and the related risk or protective factors. 
+
+This clinical research is subject to various biases, including publication bias, which is well identified by public health researchers: it covers the tendency to publish only trials and studies whose results are conclusive and in line with the expectations of the researchers who carried them out (these are known as "positive" results). The consequence of this bias is that the syntheses or meta-analyses carried out on the basis of scientific publications with a view to guiding public health policies are in fact based on an erroneous view of scientific knowledge. 
+Several solutions exist to correct this bias:
+ 
+ - systematic declaration of studies, before they are carried out, in dedicated registers;
+
+ - systematic publication of study results, even when they are "negative". 
+
+Regulations have been implemented to improve transparency: in the United States, the declaration of clinical trials and their results is compulsory, and in Europe, the declaration of clinical drug trials will be compulsory as of 2022. In contrast, observational studies are not subject to any regulations regarding their reporting or publication. 
+
 # 2. Method
 
 ## 2.1 Publications
@@ -209,23 +232,29 @@ We are aware this estimation is far from perfect but still brings some insights.
  
 ### 2.1.6 The role of the open repositories
 
-à garder ??
 
-### 2.1.7 Other impacts on open access
+### 2.1.7 Other analysis axis
 
-#### 2.1.7.1 Funding
+In the case of the Health domain, we use metadata coming from PubMed. These metadata are quite rich and enable extra analysis. In particular, some **funding metadata** are present in PubMed, as well as the **affiliations for each author** (not always the case when using other sources and scraped metadata). 
 
-PubMed gives info on grant declaration. When this info is available, can we observe an impact on measured OA ? 
+PubMed gives info on grant declaration. To be clear, the absence of this metadata does not mean that there was no funding. So the only thing we can do is to check if there is a correlation, or no, between the open access rate and the presence of the grant metadata in PubMed. 
 
-#### 2.1.7.2 Main authors affiliation country
-
-Info from PubMed (only health domain).
-Main authors : first and last
-Correlation between OA rate and affiliation country of main authors ?
--> link to funding and OA mandates
-
+As the affiliations informations are given for each author, we can use [@lhote_using_2021] to infere the country of affiliations of each author. We would like to analyse if the country of affiliations of the corresponding author correlates to the open access rate. Unfortunately the corresponding author metadata is not available, so we chose an approximation looking at the affiliation country of the **first and the last authors**. That will give an insight to know whether, for French publications, the OA rate is in general higher when one of the first or last authors has a French affiliation, or, conversely, if the OA rate is higher when the first and last author are affiliated abroad.
 
 ## 2.2 Clinical trials and observational studies
+
+The French Open Science Monitor focuses, for now, only on publications. Current work is being conducted on monitoring also Research Data and Software Code. The French Open Science Monitor in Health, however, laready introduces new research objects specific to the Health domains: the clinical trials and the observational studies.
+
+In the US, reporting and publication of results is mandatory for all clinical trials, the reporting registry used is https://clinicaltrials.gov/. This site is also used by many international actors. It also offers the possibility to report observational studies (but this reporting is not mandatory).
+ 
+In the European Union, the reporting obligation only concerns clinical drug trials and will take effect in 2022. The European registry https://www.clinicaltrialsregister.eu/ (EUCTR) therefore mainly includes clinical trials involving medicines, and less frequently observational studies, clinical trials involving surgical protocols, medical devices or psychotherapeutic protocols.
+
+The issue of opening up or sharing data arises for clinical research in the same way as for other areas of scientific research. However, it has a particularly complex dimension, since it involves personal data, some of which directly concern the health of individuals. Nevertheless, it is possible to define the modalities for sharing this data.
+Two dimensions will be developed: 
+ 
+ - the declaration of clinical and observational studies: the objective is to evaluate the evolution of the number of declared studies and the quality of the associated metadata.
+
+ - the openness of the results and publications when the study is completed.
 
 ### 2.2.1 Perimeter
 
@@ -302,7 +331,9 @@ publications. Let's call that "big". And the time to collect all these data coul
 
 
 # Software and code availability
+
 https://github.com/dataesr/bso-publications
+
 https://github.com/dataesr/bso-clinical-trials
 
 # Data availability
