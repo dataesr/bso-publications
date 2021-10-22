@@ -114,10 +114,10 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
         if year_ok:
             keys_to_try.append({'method': 'publisher_year', 'key': f'PUBLISHER{publisher_ok};YEAR{year_ok}'})
         keys_to_try.append({'method': 'publisher', 'key': f'PUBLISHER{publisher_ok}'})
-    if year_ok:
-        keys_to_try.append({'method': 'year', 'key': f'YEAR{year_ok}'})
-    else:
-        keys_to_try.append({'method': 'year', 'key': f'YEAR2020'})
+    #if year_ok:
+    #    keys_to_try.append({'method': 'year', 'key': f'YEAR{year_ok}'})
+    #else:
+    #    keys_to_try.append({'method': 'year', 'key': f'YEAR2020'})
                 
     for k in keys_to_try:
         current_key = k['key']

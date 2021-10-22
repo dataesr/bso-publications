@@ -31,7 +31,7 @@ def detect_apc(doi: str, journal_issns: str, publisher: str, published_date: str
 
     res = {'has_apc': None}
     if not is_oa_publisher:
-        return res
+        return {'has_apc': False}
     is_openapc_estimation_accurate = False
     # on commence par tenter d'estimer d'éventuels APC avec openAPC
     if res_openapc.get('has_apc'):
