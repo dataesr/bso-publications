@@ -45,7 +45,7 @@ def reset_index(index: str) -> None:
         "dynamic_templates": [
             {
                 "objects": {
-                    "match": "oa_details.*",
+                    "match": "*oa_locations",
                     "match_mapping_type" : "object",
                     "mapping": {
                         "type": "nested"
