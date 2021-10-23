@@ -157,8 +157,8 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             published_year = res.get('published_date')[0:4]
         publisher_clean = detect_publisher(res.get('publisher'), published_year) 
         res.update(publisher_clean)
-        if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
-            res['domains'] = ['health']
+        #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
+        #    res['domains'] = ['health']
         # Genre
         if isinstance(res.get('genre'), str):
             res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized')) 
