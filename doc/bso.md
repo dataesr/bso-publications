@@ -345,7 +345,9 @@ publications. Let's call that "big". And the time to collect all these data coul
 ### 4.2.1 Limitations
 
 DOI only
+
 mixes preprint servers / open repo
+
 richer metadata
 
 based only on metadata from registries
@@ -366,7 +368,7 @@ portail MESRI
 # Acknowledgements
 
 WeDoData
-Florian Naudet (https://orcid.org/0000-0003-3760-3801) University of Rennes 1, Rennes, France
 
+Florian Naudet (https://orcid.org/0000-0003-3760-3801) University of Rennes 1, Rennes, France
 
 # References
