@@ -52,6 +52,8 @@ Several solutions exist to correct this bias:
 
 Regulations have been implemented to improve transparency: in the United States, the declaration of clinical trials and their results is compulsory, and in Europe, the declaration of clinical drug trials will be compulsory as of 2022. In contrast, observational studies are not subject to any regulations regarding their reporting or publication. 
 
+\newpage
+
 # 2. Method
 
 ## 2.1 Publications
@@ -156,7 +158,6 @@ Another graphical way to represent this balance is to use a bubble chart. Each b
 
 The data used to compute these OA types still comes from Unpaywall, but instead of the 'oa_status' field, with use the 'oa_locations' field. For a publication which is open access, it lists all the existing free copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the free copy, and some metadata of the location is associated, in particular the 'host_type', that can take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are considered repositories.
 
-\newpage
 
 
 ### 2.1.4 Discipline and language impact
@@ -269,7 +270,7 @@ To distinguish between clinical trials on one side and observational studies on 
 Mainly two types of indicators are analysed: 
 
  - the declaration of results and / or scholarly publications after a trial or study is completed. [@goldacre_compliance_2018] showed that a large fraction of trials do not report their results. On top of the results declaration rate itself, we look into the time to register the results, meaning how much time is spent between the end of the trial and the actual date when the results are reported.
-We propose both indicators mixing or separating results and scholarly publications. For the publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (whith PubMed for example). 
+We propose both indicators mixing or separating results and scholarly publications. For the publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (whith PubMed for example). The open access status of these publications is also retrieved with the Unpaywall data. 
  
 
  - the time to register the study: is the trial or study publicly registered before it actually starts, or is it done after ? And what is, in month, the actual time to register ? Does it evolve over time ?
@@ -302,7 +303,9 @@ Object Storage on OVH Cloud.
 Now focusing on the French publications, we use the extracted notices to match them against a MongoDatabase that we
 built on a dump of Unpaywall. We use th DOI to consolidate the data and then add many detail
 
-![Global overview of the publications data flows](flow_chart.png){ width=450 }
+![Global overview of the publications data flows](flow_chart_publications.png){ width=450 }
+
+![Global overview of the trials and studies data flows](flow_chart_registries.png){ width=450 }
 
 ### 2.3.2 Data storage
 
