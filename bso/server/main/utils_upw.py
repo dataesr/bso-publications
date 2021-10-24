@@ -108,6 +108,8 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
     for loc in oa_loc:
         if loc is None:
             continue
+        if isinstance(loc.get('url'), str):
+            loc['url'] = loc['url'].lower().strip()
         licence = normalize_license(loc.get('license'))
         loc['license_normalized'] = licence 
         host_type = loc.get('host_type')
