@@ -40,7 +40,7 @@ def run_task_forward():
 def update_weekly():
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue('unpaywall_to_crawler', default_timeout=default_timeout)
-        task = q.enqueue(create_task_unpaywall_to_crawler, {})
+        task = q.enqueue(create_task_unpaywall_to_crawler)
     response_object = {
         'status': 'success',
         'data': {
