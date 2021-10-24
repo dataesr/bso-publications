@@ -253,7 +253,7 @@ Two dimensions will be developed:
  
  - the openness of the results and publications when the study is completed.
  
-- the declaration of clinical and observational studies: the objective is to evaluate the evolution of the number of declared studies and the quality of the associated metadata.
+ - the declaration of clinical and observational studies in these public registries.
 
 
 ### 2.2.1 Perimeter
@@ -266,11 +266,17 @@ To distinguish between clinical trials on one side and observational studies on 
 
 ### 2.2.1 Main opening indicators
 
-Results and publication declaration
-Time to register the study
-Time to register the results
+Mainly two types of indicators are analysed: 
+
+ - the declaration of results and / or scholarly publications after a trial or study is completed. [@goldacre_compliance_2018] showed that a large fraction of trials do not report their results. On top of the results declaration rate itself, we look into the time to register the results, meaning how much time is spent between the end of the trial and the actual date when the results are reported.
+We propose both indicators mixing or separating results and scholarly publications. For the publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (whith PubMed for example). 
+ 
+
+ - the time to register the study: is the trial or study publicly registered before it actually starts, or is it done after ? And what is, in month, the actual time to register ? Does it evolve over time ?
 
 ### 2.2.2 Lead sponsor impact 
+
+[@goldacre_compliance_2018] gives evidence that the rate of results declaration is very impacted by the type of lead sponsor, commercial sponsors having a much higher declaration rate. We therefore propose to break down most of the analysis axis with the type of lead sponsor, being either academic or industrial. This categorization has been done manually based the lead sponsor name.  
 
 ## 2.3 Data collection system and architecture
 
@@ -287,7 +293,7 @@ Each step is really time and CPU consuming. Assuming any step can fail at any ti
 independent and idempotent.
 
 
-From Pubmed, collect all the database via Medline and store it as JSONL files on Object Storage on OVH Cloud in a
+From PubMed, collect all the database via Medline and store it as JSONL files on Object Storage on OVH Cloud in a
 dedicated container.
 At that point, we have all the notices of medical publications. We there find the affiliations of each publication.
 With the affiliation we tried to detect the countries of the institutions mentioned in the affiliations, in order to
@@ -295,6 +301,8 @@ filter on French publications. The selected publications are stored as JSONL fil
 Object Storage on OVH Cloud.
 Now focusing on the French publications, we use the extracted notices to match them against a MongoDatabase that we
 built on a dump of Unpaywall. We use th DOI to consolidate the data and then add many detail
+
+![Global overview of the publications data flows](flow_chart.png){ width=450 }
 
 ### 2.3.2 Data storage
 
