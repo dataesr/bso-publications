@@ -113,7 +113,6 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         licence = normalize_license(loc.get('license'))
         loc['license_normalized'] = licence 
         host_type = loc.get('host_type')
-        host_types.append(host_type)
         if host_type == 'repository':
             current_repo_instit = loc.get('repository_institution')
             current_repo_url = loc['url'].split('/')[2]
@@ -159,6 +158,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                 status = 'hybrid'
         else:
             status = 'unknown'
+        host_types.append(host_type)
         oa_locations.append(loc)
         oa_colors.append(status)
     if licence_publisher:
