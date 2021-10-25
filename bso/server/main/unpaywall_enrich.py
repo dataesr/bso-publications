@@ -44,7 +44,7 @@ def identify_language(text: str) -> Union[str, None]:
 def normalize_genre(genre, publisher) -> str:
     if publisher in ['Cold Spring Harbor Laboratory']:
         return 'preprint'
-    if genre in ['journal-article', 'book-chapter', 'dataset']:
+    if genre in ['journal-article', 'book-chapter']:
         return genre
     if 'proceedings' in genre:
         return 'proceedings'
