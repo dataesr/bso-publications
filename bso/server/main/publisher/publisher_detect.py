@@ -6,7 +6,7 @@ import dateutil.parser
 df_publisher_lexical = pd.read_csv('bso/server/main/publisher/publisher_correspondance.csv', skiprows=2)
 df_publisher_group = pd.read_csv('bso/server/main/publisher/publisher_group.csv', skiprows=2)
 df_publisher = pd.merge(df_publisher_lexical, df_publisher_group, on='publisher_clean', how='left')
-
+df_doi = pd.read_csv('bso/server/main/publisher/publisher_doi.csv', dtype=str)
 
 rgx_list = []
 for i, row in df_publisher.iterrows():
@@ -23,7 +23,15 @@ for i, row in df_publisher.iterrows():
                      'group_start_date': group_start_date,
                      })
 
-def detect_publisher(raw_input, published_date):
+doi_map = {}
+for i, row in df_doi.iterrows():
+    doi_map[row.doi_prefix.strip()]=row.publisher.strip()
+
+def detect_publisher(raw_input, published_date, doi):
+    if isinstance(doi, str):
+        doi_prefix = doi.lower().strip().split('/')[0]
+        if doi_prefix in doi_map:
+            return {'publisher_normalized': doi_map[doi_prefix], 'publisher_group': doi_map[doi_prefix]}
     if not isinstance(raw_input, str):
         return {'publisher_normalized': raw_input, 'publisher_group': raw_input}
     unaccented_string = unidecode.unidecode(raw_input).replace(',', ' ').replace('  ', ' ')

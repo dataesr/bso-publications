@@ -32,7 +32,7 @@ for i, row in df_openapc.iterrows():
     # if not amount is given, continue
     if pd.isnull(row.get('euro')):
         continue
-        
+    doi = None 
     if not pd.isnull(row['doi']):
         doi = row['doi'].lower().strip()
         if doi.startswith('10.'):
@@ -47,7 +47,7 @@ for i, row in df_openapc.iterrows():
     if row.get('period') and len(str(row['period'])) >= 4:
         year_ok = str(row['period'])[0:4]
     if not pd.isnull(row.get('publisher')):
-        publisher_ok = detect_publisher(row['publisher'].strip(), year_ok)['publisher_group']
+        publisher_ok = detect_publisher(row['publisher'].strip(), year_ok, doi)['publisher_group']
         
     if year_ok and publisher_ok:
         key_publisher_year = f'PUBLISHER{publisher_ok};YEAR{year_ok}'
@@ -110,7 +110,7 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
     for issn in issns:
         keys_to_try.append({'method': 'issn', 'key': f'ISSN{issn.strip()}'})
     if publisher:
-        publisher_ok = detect_publisher(publisher.strip(), year_ok)['publisher_group']
+        publisher_ok = detect_publisher(publisher.strip(), year_ok, doi)['publisher_group']
         if year_ok:
             keys_to_try.append({'method': 'publisher_year', 'key': f'PUBLISHER{publisher_ok};YEAR{year_ok}'})
         keys_to_try.append({'method': 'publisher', 'key': f'PUBLISHER{publisher_ok}'})
