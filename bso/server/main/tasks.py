@@ -33,7 +33,8 @@ def send_to_parser(publication_json):
 def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
     observations = args.get('observations', [])
-    return enrich(publications=publications, observations=observations, datasource='user')
+    affiliation_matching = args.get('affiliation_matching', False)
+    return enrich(publications=publications, observations=observations, datasource='user', affiliation_matching=affiliation_matching)
 
 
 def create_task_download_unpaywall(args: dict) -> str:
@@ -110,6 +111,7 @@ def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     observations = args.get('observations', [])
     datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr'])
+    affiliation_matching = args.get('affiliation_matching', False)
     output = args.get('output', 'bso-index')
     current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
@@ -136,7 +138,7 @@ def create_task_etl(args: dict) -> None:
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications)} publications retrieved from object storage')
             if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='pubmed_fr')
+                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='pubmed_fr', affiliation_matching=affiliation_matching)
                 logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                 loaded = load_in_es(data=enriched_publications, index=index)
             else:
@@ -157,7 +159,7 @@ def create_task_etl(args: dict) -> None:
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
             if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=container)
+                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=container, affiliation_matching=affiliation_matching)
                 logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                 loaded = load_in_es(data=enriched_publications, index=index)
             else:
@@ -176,7 +178,7 @@ def create_task_etl(args: dict) -> None:
         for chunk in chunks(remaining_dois, 5000):
             publications_not_indexed_yet = [{'doi': d} for d in chunk]
             if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='dois_fr')
+                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='dois_fr', affiliation_matching=False)
                 logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                 load_in_es(data=enriched_publications, index=index)
             else:

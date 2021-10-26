@@ -7,6 +7,7 @@ from typing import Union
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.config import MOUNTED_VOLUME
+from bso.server.main.affiliation_matcher import get_matcher_results
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
@@ -210,7 +211,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
     return final
 
 
-def enrich(publications: list, observations: list, datasource: str) -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool) -> list:
     publis_dict = {}
     for p in publications:
         if datasource:
@@ -222,6 +223,11 @@ def enrich(publications: list, observations: list, datasource: str) -> list:
     logger.debug(f'Enriching {len(publications)} publications')
     for publi_chunk in chunks(lst=publications, n=5000):
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
+        
+        # affiliation matcher
+        if affiliation_matching:
+            doi_chunk = get_matcher_results(doi_chunk)
+
         data = get_doi_full(dois=doi_chunk, observations=observations)
         # Remove data with no oa details info (not indexed in unpaywall)
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
