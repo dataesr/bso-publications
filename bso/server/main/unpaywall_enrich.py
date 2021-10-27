@@ -45,6 +45,8 @@ def identify_language(text: str) -> Union[str, None]:
 def normalize_genre(genre, publisher) -> str:
     if publisher in ['Cold Spring Harbor Laboratory']:
         return 'preprint'
+    if genre in ['posted-content']:
+        return 'preprint'
     if genre in ['journal-article', 'book-chapter']:
         return genre
     if 'proceedings' in genre:
@@ -234,7 +236,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         for d in new_updated:
             if len(d.get('oa_details', {})) == 0:
                 continue
+            # some post-filtering
             if d.get('publisher_group') == 'United Nations':
+                continue
+            if d.get('genre') == 'other':
                 continue
             all_updated.append(d)
         logger.debug(f'{len(publi_chunk)} / {len(publications)} enriched')
