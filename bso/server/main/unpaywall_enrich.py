@@ -7,7 +7,7 @@ from typing import Union
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.config import MOUNTED_VOLUME
-from bso.server.main.affiliation_matcher import get_matcher_results
+from bso.server.main.affiliation_matcher import get_matcher_parallel
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
@@ -43,7 +43,7 @@ def identify_language(text: str) -> Union[str, None]:
 
 
 def normalize_genre(genre, publisher) -> str:
-    if publisher in ['Cold Spring Harbor Laboratory']:
+    if publisher in ['Cold Spring Harbor Laboratory', 'Research Square']:
         return 'preprint'
     if genre in ['posted-content']:
         return 'preprint'
@@ -215,6 +215,20 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
 
 def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool) -> list:
     publis_dict = {}
+
+    
+    # affiliation matcher
+    publicationsWithAffiliations = []
+    if affiliation_matching:
+        NB_PARALLEL_JOBS = 20
+        PUBLI_GROUP_SIZE = 100
+        logger.debug(f'affiliation matching for {len(publications)} publications')
+        publis_chunks = list(chunks(lst=publications, n=PUBLI_GROUP_SIZE))
+        groups = list(chunks(lst=publis_chunks, n=NB_PARALLEL_JOBS))
+        for chunk in groups:
+            publicationsWithAffiliations += get_matcher_parallel(chunk)
+        publications = publicationsWithAffiliations
+    
     for p in publications:
         if datasource:
             p['datasource'] = datasource
@@ -226,9 +240,6 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
     for publi_chunk in chunks(lst=publications, n=5000):
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
         
-        # affiliation matcher
-        if affiliation_matching:
-            doi_chunk = get_matcher_results(doi_chunk)
 
         data = get_doi_full(dois=doi_chunk, observations=observations)
         # Remove data with no oa details info (not indexed in unpaywall)
@@ -237,7 +248,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             if len(d.get('oa_details', {})) == 0:
                 continue
             # some post-filtering
-            if d.get('publisher_group') == 'United Nations':
+            if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
                 continue
             if d.get('genre') == 'other':
                 continue

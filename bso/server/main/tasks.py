@@ -112,12 +112,13 @@ def create_task_etl(args: dict) -> None:
     observations = args.get('observations', [])
     datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr'])
     affiliation_matching = args.get('affiliation_matching', False)
+    erase_index = args.get('erase_index', True)
+    index = args.get('index', f'bso-publications-{current_date}')
     output = args.get('output', 'bso-index')
     current_date = datetime.date.today().isoformat()
-    index = args.get('index', f'bso-publications-{current_date}')
     collection_name = args.get('collection_name')
     file_part = 0
-    if output == 'bso-index':
+    if output == 'bso-index' and erase_index:
         logger.debug(f'Reset index {index}')
         reset_index(index=index)
     doi_in_index = set()
@@ -167,22 +168,25 @@ def create_task_etl(args: dict) -> None:
                 file_part += 1
             doi_in_index.update([p['doi'] for p in loaded])
     # Other dois
-    if 'dois_fr' in datasources:
-        download_object(container='publications-related', filename='dois_fr.json', out=f'{MOUNTED_VOLUME}/dois_fr.json')
-        fr_dois = json.load(open(f'{MOUNTED_VOLUME}/dois_fr.json', 'r'))
-        fr_dois_set = set(fr_dois)
-        remaining_dois = list(fr_dois_set - doi_in_index)
-        logger.debug(f'DOI already in index: {len(doi_in_index)}')
-        logger.debug(f'French DOI: {len(fr_dois_set)}')
-        logger.debug(f'Remaining dois to index: {len(remaining_dois)}')
-        for chunk in chunks(remaining_dois, 5000):
-            publications_not_indexed_yet = [{'doi': d} for d in chunk]
-            if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='dois_fr', affiliation_matching=False)
-                logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-                load_in_es(data=enriched_publications, index=index)
-            else:
-                get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part)
-                file_part += 1
+    # tmp_dois_fr a n'utiliser que pour ajouter des DOIs sur un index déjà existant
+    # pour ne pas avoir à re-builder l'intégralité de l'index
+    for extra_file in ['dois_fr', 'tmp_dois_fr']:
+        if extra_file in datasources:
+            download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
+            fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
+            fr_dois_set = set(fr_dois)
+            remaining_dois = list(fr_dois_set - doi_in_index)
+            logger.debug(f'DOI already in index: {len(doi_in_index)}')
+            logger.debug(f'French DOI: {len(fr_dois_set)}')
+            logger.debug(f'Remaining dois to index: {len(remaining_dois)}')
+            for chunk in chunks(remaining_dois, 5000):
+                publications_not_indexed_yet = [{'doi': d} for d in chunk]
+                if output == 'bso-index':
+                    enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'{extra_file}', affiliation_matching=False)
+                    logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+                    load_in_es(data=enriched_publications, index=index)
+                else:
+                    get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part)
+                    file_part += 1
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
