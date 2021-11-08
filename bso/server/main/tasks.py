@@ -113,9 +113,9 @@ def create_task_etl(args: dict) -> None:
     datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr'])
     affiliation_matching = args.get('affiliation_matching', False)
     erase_index = args.get('erase_index', True)
+    current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
     output = args.get('output', 'bso-index')
-    current_date = datetime.date.today().isoformat()
     collection_name = args.get('collection_name')
     file_part = 0
     if output == 'bso-index' and erase_index:
