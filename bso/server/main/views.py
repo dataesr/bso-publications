@@ -9,7 +9,7 @@ from bso.server.main.tasks import create_task_download_unpaywall, create_task_en
     create_task_load_mongo, create_task_unpaywall_to_crawler
 from bso.server.main.utils import dump_to_object_storage
 
-default_timeout = 432000
+default_timeout = 43200000
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
 

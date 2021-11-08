@@ -48,6 +48,7 @@ def get_matcher_results(publications: list, proc_num = 0, return_dict = {}) -> l
             return_dict[proc_num] = []
             return return_dict[proc_num]
 
+@exception_handler
 def get_matcher_parallel(publi_chunks):
     logger.debug(f'start parallel with {len(publi_chunks)} sublists')
     
