@@ -7,7 +7,7 @@ import requests
 from dateutil import parser
 
 from bso.server.main.config import MOUNTED_VOLUME
-from bso.server.main.elastic import load_in_es, reset_index
+from bso.server.main.elastic import load_in_es, reset_index, get_doi_not_in_index, update_local_affiliations
 from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
@@ -22,24 +22,7 @@ logger = get_logger(__name__)
 START_YEAR = 2020
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
-def get_body_update(current_dois, local_affiliations):
-    body = {
-        "script": {
-        "lang": "painless",
-        "inline":  "if (ctx._source.bso_local_affiliations == null) {ctx._source.bso_local_affiliations = new ArrayList();}  ctx._source.bso_local_affiliations.addAll(params.local_affiliations)",
-        "params": {"local_affiliations": local_affiliations}
-        },
-        "query": {
-            "bool": {
-              "filter" : [{
-                "terms": {
-                  "doi.keyword": current_dois
-                }
-              }]
-            }
-        }
-    }
-    return body
+
 
 def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:
@@ -202,18 +185,15 @@ def create_task_etl(args: dict) -> None:
                 local_affiliations = filename.split('.')[0].split('_')
                 current_dois = get_dois_from_input(container='bso-local', filename=filename)
                 current_dois_set = set(current_dois)
-                remaining_dois = list(current_dois_set - doi_in_index)
-                for chunk in chunks(remaining_dois, 5000):
-                    publications_not_indexed_yet = [{'doi': d} for d in chunk]
+                for chunk in chunks(current_dois, 500):
+                    publications_not_indexed_yet = [{'doi': d} for d in get_doi_not_in_index(index=index, dois=chunk)]
                     enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'bso-local', affiliation_matching=False)
                     logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                     loaded = load_in_es(data=enriched_publications, index=index)
                     doi_in_index.update([p['doi'] for p in loaded])
-                # now all dois are in index
-                # just tag them with the local_affiliations
-                for chunk in chunks(current_dois, 500):
-                    body_update = get_body_update(current_dois=current_dois, local_affiliations=local_affiliations)
-                    es.update_by_query(index=index, body=body_update)
+                    # now all dois are in index
+                    # just tag them with the local_affiliations
+                    update_local_affiliations(index=index,current_dois=current_dois, local_affiliations=local_affiliations)
 
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)

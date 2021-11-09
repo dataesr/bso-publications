@@ -15,6 +15,39 @@ def get_client():
         client = Elasticsearch(ES_URL, http_auth=(ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK))
     return client
 
+@exception_handler
+def get_doi_not_in_index(index, dois):
+    es = get_client()
+    results = es.search(index=index,
+                   body={"query": {"bool":{ "filter": [ {'terms': {'doi.keyword': dois}}]}},
+                         "fields": ['doi'],
+                         "_source": False},
+         request_timeout=60*5)
+    existing_dois = set([e['fields']['doi'][0] for e in results['hits']['hits']])
+    not_indexed_dois = set(dois) - existing_dois
+    return list(not_indexed_dois)
+
+@exception_handler
+def update_local_affiliations(index,current_dois, local_affiliations):
+    es = get_client()
+    logger.debug(f'updating with local affiliations {local_affiliations} for {len(current_dois)} dois')
+    body = {
+        "script": {
+        "lang": "painless",
+        "inline":  "if (ctx._source.bso_local_affiliations == null) {ctx._source.bso_local_affiliations = new ArrayList();}  ctx._source.bso_local_affiliations.addAll(params.local_affiliations)",
+        "params": {"local_affiliations": local_affiliations}
+        },
+        "query": {
+            "bool": {
+              "filter" : [{
+                "terms": {
+                  "doi.keyword": current_dois
+                }
+              }]
+            }
+        }
+    }
+    es.update_by_query(index=index, body=body, request_timeout=60*5)
 
 @exception_handler
 def delete_index(index: str) -> None:
