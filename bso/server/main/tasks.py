@@ -15,13 +15,31 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
-from bso.server.main.utils import download_file
+from bso.server.main.utils import download_file, get_dois_from_input
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
-START_YEAR = 2013
+START_YEAR = 2020
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
+def get_body_update(current_dois, local_affiliations):
+    body = {
+        "script": {
+        "lang": "painless",
+        "inline":  "if (ctx._source.bso_local_affiliations == null) {ctx._source.bso_local_affiliations = new ArrayList();}  ctx._source.bso_local_affiliations.addAll(params.local_affiliations)",
+        "params": {"local_affiliations": local_affiliations}
+        },
+        "query": {
+            "bool": {
+              "filter" : [{
+                "terms": {
+                  "doi.keyword": current_dois
+                }
+              }]
+            }
+        }
+    }
+    return body
 
 def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:
@@ -115,10 +133,9 @@ def create_task_etl(args: dict) -> None:
     erase_index = args.get('erase_index', True)
     current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
-    output = args.get('output', 'bso-index')
     collection_name = args.get('collection_name')
     file_part = 0
-    if output == 'bso-index' and erase_index:
+    if erase_index:
         logger.debug(f'Reset index {index}')
         reset_index(index=index)
     doi_in_index = set()
@@ -138,13 +155,9 @@ def create_task_etl(args: dict) -> None:
             publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications)} publications retrieved from object storage')
-            if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='pubmed_fr', affiliation_matching=affiliation_matching)
-                logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-                loaded = load_in_es(data=enriched_publications, index=index)
-            else:
-                loaded = get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part)
-                file_part += 1
+            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='pubmed_fr', affiliation_matching=affiliation_matching)
+            logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+            loaded = load_in_es(data=enriched_publications, index=index)
             doi_in_index.update([p['doi'] for p in loaded])
         logger.debug('Pubmed publications indexed. now indexing other french publications')
     # Crawled data and affiliation data in crossref
@@ -153,19 +166,15 @@ def create_task_etl(args: dict) -> None:
             continue
         for page in range(1, 1000000):
             logger.debug(f'Getting parsed objects for page {page} from object storage ({container})')
-            publications = get_objects_by_page(container=container, page=page)
+            publications = get_objects_by_page(container=container, page=page, full_objects=True)
             logger.debug(f'{len(publications)} publications retrieved from object storage')
             if len(publications) == 0:
                 break
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
-            if output == 'bso-index':
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=container, affiliation_matching=affiliation_matching)
-                logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-                loaded = load_in_es(data=enriched_publications, index=index)
-            else:
-                loaded = get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part) 
-                file_part += 1
+            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=container, affiliation_matching=affiliation_matching)
+            logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+            loaded = load_in_es(data=enriched_publications, index=index)
             doi_in_index.update([p['doi'] for p in loaded])
     # Other dois
     # tmp_dois_fr a n'utiliser que pour ajouter des DOIs sur un index déjà existant
@@ -181,12 +190,30 @@ def create_task_etl(args: dict) -> None:
             logger.debug(f'Remaining dois to index: {len(remaining_dois)}')
             for chunk in chunks(remaining_dois, 5000):
                 publications_not_indexed_yet = [{'doi': d} for d in chunk]
-                if output == 'bso-index':
-                    enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'{extra_file}', affiliation_matching=False)
+                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'{extra_file}', affiliation_matching=False)
+                logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
+                loaded = load_in_es(data=enriched_publications, index=index)
+                doi_in_index.update([p['doi'] for p in loaded])
+    if 'bso-local' in datasources:
+        for page in range(1, 1000000):
+            filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False)
+            for filename in filenames:
+                logger.debug(f'processing bso-local {filename}')
+                local_affiliations = filename.split('.')[0].split('_')
+                current_dois = get_dois_from_input(container='bso-local', filename=filename)
+                current_dois_set = set(current_dois)
+                remaining_dois = list(current_dois_set - doi_in_index)
+                for chunk in chunks(remaining_dois, 5000):
+                    publications_not_indexed_yet = [{'doi': d} for d in chunk]
+                    enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'bso-local', affiliation_matching=False)
                     logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-                    load_in_es(data=enriched_publications, index=index)
-                else:
-                    get_unpaywall_infos(publications_not_indexed_yet, collection_name, file_part)
-                    file_part += 1
+                    loaded = load_in_es(data=enriched_publications, index=index)
+                    doi_in_index.update([p['doi'] for p in loaded])
+                # now all dois are in index
+                # just tag them with the local_affiliations
+                for chunk in chunks(current_dois, 500):
+                    body_update = get_body_update(current_dois=current_dois, local_affiliations=local_affiliations)
+                    es.update_by_query(index=index, body=body_update)
+
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)

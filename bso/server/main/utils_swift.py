@@ -103,7 +103,7 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
 
 
 @retry(delay=2, tries=50)
-def get_objects_by_page(container: str, page: int) -> list:
+def get_objects_by_page(container: str, page: int, full_objects: bool) -> list:
     logger.debug(f'Retrieving object from container {container} and page {page}')
     marker = None
     keep_going = True
@@ -118,9 +118,13 @@ def get_objects_by_page(container: str, page: int) -> list:
         keep_going = (page > current_page)
         if len(content) > 0:
             marker = content[-1]['name']
-    objects = [get_objects(container=container, path=filename) for filename in filenames]
-    flat_list = [item for sublist in objects for item in sublist]
-    return flat_list
+    
+    if full_objects:
+        objects = [get_objects(container=container, path=filename) for filename in filenames]
+        flat_list = [item for sublist in objects for item in sublist]
+        return flat_list
+
+    return filenames
 
 
 @retry(delay=2, tries=50)
