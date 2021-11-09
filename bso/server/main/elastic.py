@@ -25,6 +25,7 @@ def get_doi_not_in_index(index, dois):
          request_timeout=60*5)
     existing_dois = set([e['fields']['doi'][0] for e in results['hits']['hits']])
     not_indexed_dois = set(dois) - existing_dois
+    logger.debug(f'{len(not_indexed_dois)} dois not in index detected')
     return list(not_indexed_dois)
 
 @exception_handler
