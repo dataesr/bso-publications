@@ -23,7 +23,7 @@ def get_dois_from_input(container, filename):
     target = f'{MOUNTED_VOLUME}/{filename}'
     download_object(container=container, filename=filename, out=target) 
     if 'xls' in filename.lower():
-        df = pd.read_excel(target)
+        df = pd.read_excel(target, engine='openpyxl')
     else:
         df = pd.read_csv(target)
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]

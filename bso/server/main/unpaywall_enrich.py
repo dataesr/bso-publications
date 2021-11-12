@@ -45,8 +45,6 @@ def identify_language(text: str) -> Union[str, None]:
 def normalize_genre(genre, publisher) -> str:
     if publisher in ['Cold Spring Harbor Laboratory', 'Research Square']:
         return 'preprint'
-    if genre in ['posted-content']:
-        return 'preprint'
     if genre in ['journal-article', 'book-chapter']:
         return genre
     if 'proceedings' in genre:
@@ -164,7 +162,8 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         #    res['domains'] = ['health']
         # Genre
         if isinstance(res.get('genre'), str):
-            res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized')) 
+            res['genre_raw'] = res['genre']
+            res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized'))
         # Affiliations
         affiliations = res.get('affiliations', [])
         affiliations = [] if affiliations is None else affiliations
