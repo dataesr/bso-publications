@@ -185,7 +185,7 @@ def create_task_etl(args: dict) -> None:
                 local_affiliations = filename.split('.')[0].split('_')
                 current_dois = get_dois_from_input(container='bso-local', filename=filename)
                 current_dois_set = set(current_dois)
-                for chunk in chunks(current_dois, 500):
+                for chunk in chunks(current_dois, 2500):
                     publications_not_indexed_yet = [{'doi': d} for d in get_doi_not_in_index(index=index, dois=chunk)]
                     enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'bso-local', affiliation_matching=False)
                     logger.debug(f'Now indexing {len(enriched_publications)} in {index}')

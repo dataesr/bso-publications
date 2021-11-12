@@ -14,6 +14,7 @@ lxml==4.6.3
 multiprocess==0.70.12.2
 numpy~=1.19.5
 pandas==0.25.3
+xlrd==2.0.1
 pymongo==3.8.0
 python-dateutil~=2.8.1
 python-keystoneclient==4.0.0
