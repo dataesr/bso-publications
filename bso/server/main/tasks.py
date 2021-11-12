@@ -180,6 +180,8 @@ def create_task_etl(args: dict) -> None:
     if 'bso-local' in datasources:
         for page in range(1, 1000000):
             filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False)
+            if len(filenames) == 0:
+                break
             for filename in filenames:
                 logger.debug(f'processing bso-local {filename}')
                 local_affiliations = filename.split('.')[0].split('_')
