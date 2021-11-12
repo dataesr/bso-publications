@@ -29,9 +29,10 @@ def get_dois_from_input(container, filename):
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]
     if len(doi_columns) > 0:
         doi_column = doi_columns[0]
+        logger.debug(f'doi column: {doi_column}')
     else:
         return []
-    dois = list(set([d.lower().strip() for d in df[doi_column].tolist()]))
+    dois = list(set([d.lower().strip() for d in df[doi_column].dropna().tolist()]))
     return dois
 
 def get_filename_from_cd(cd: str) -> Union[str, None]:
