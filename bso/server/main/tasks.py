@@ -193,7 +193,7 @@ def create_task_etl(args: dict) -> None:
                     doi_in_index.update([p['doi'] for p in loaded])
                     # now all dois are in index
                     # just tag them with the local_affiliations
-                    update_local_affiliations(index=index,current_dois=current_dois, local_affiliations=local_affiliations)
+                    update_local_affiliations(index=index,current_dois=chunk, local_affiliations=local_affiliations)
 
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)

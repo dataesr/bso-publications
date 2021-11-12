@@ -27,7 +27,7 @@ def get_dois_from_input(container, filename):
     else:
         df = pd.read_csv(target)
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]
-    if doi_columns > 0:
+    if len(doi_columns) > 0:
         doi_column = doi_columns[0]
     else:
         return []

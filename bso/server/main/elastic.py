@@ -21,6 +21,7 @@ def get_doi_not_in_index(index, dois):
     results = es.search(index=index,
                    body={"query": {"bool":{ "filter": [ {'terms': {'doi.keyword': dois}}]}},
                          "fields": ['doi'],
+                         "size": len(dois),
                          "_source": False},
          request_timeout=60*5)
     existing_dois = set([e['fields']['doi'][0] for e in results['hits']['hits']])
@@ -35,7 +36,8 @@ def update_local_affiliations(index,current_dois, local_affiliations):
     body = {
         "script": {
         "lang": "painless",
-        "inline":  "if (ctx._source.bso_local_affiliations == null) {ctx._source.bso_local_affiliations = new ArrayList();}  ctx._source.bso_local_affiliations.addAll(params.local_affiliations)",
+        "conflicts": "proceed",
+        "inline":  "if (ctx._source.bso_local_affiliations == null) {ctx._source.bso_local_affiliations = new ArrayList();} ctx._source.bso_local_affiliations.addAll(params.local_affiliations);ctx._source.bso_local_affiliations = ctx._source.bso_local_affiliations.stream().distinct().sorted().collect(Collectors.toList())",
         "params": {"local_affiliations": local_affiliations}
         },
         "query": {
