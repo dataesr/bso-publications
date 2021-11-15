@@ -50,6 +50,7 @@ def update_local_affiliations(index,current_dois, local_affiliations):
     body = {
         "script": {
         "lang": "painless",
+        "refresh": True,
         "conflicts": "proceed",
         "inline":  "if (ctx._source.bso_local_affiliations == null) {ctx._source.bso_local_affiliations = new ArrayList();} ctx._source.bso_local_affiliations.addAll(params.local_affiliations);ctx._source.bso_local_affiliations = ctx._source.bso_local_affiliations.stream().distinct().sorted().collect(Collectors.toList())",
         "params": {"local_affiliations": local_affiliations}
