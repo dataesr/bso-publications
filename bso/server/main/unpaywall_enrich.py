@@ -156,7 +156,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         published_year = None
         if isinstance(res.get('published_date'), str):
             published_year = res.get('published_date')[0:4]
-        publisher_clean = detect_publisher(res.get('publisher'), published_year, doi) 
+        publisher_raw = res.get('publisher')
+        if not publisher_raw:
+            publisher_raw = 'unknown'
+        publisher_clean = detect_publisher(publisher_raw, published_year, doi) 
         res.update(publisher_clean)
         #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
         #    res['domains'] = ['health']
