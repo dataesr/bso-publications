@@ -116,6 +116,8 @@ def run_task_etl():
 @main_blueprint.route('/dump', methods=['GET'])
 def run_task_dump():
     logger.debug('Starting task dump')
-    uploaded_files = dump_to_object_storage()
-    response_object = {'status': 'success', 'data': uploaded_files}
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue('bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(dump_to_object_storage)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202

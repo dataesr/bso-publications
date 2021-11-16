@@ -13,7 +13,7 @@ from urllib import parse
 
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
-from bso.server.main.utils_swift import upload_object, download_object
+from bso.server.main.utils_swift import download_object, upload_object
 
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
@@ -74,15 +74,12 @@ def dump_to_object_storage() -> list:
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@cluster.elasticsearch.dataesr.ovh/'
     es_index = 'bso-publications'
     container = 'bso_dump'
-    today = datetime.date.today()
-    today_date = f'{today.year}{today.month}{today.day}'
+    today = datetime.date.today().isoformat().replace('-', '')
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
-    output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.jsonl'
-    output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.csv'
+    output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today}.jsonl'
+    output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today}.csv'
     cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data'
-    logger.debug(cmd_elasticdump)
     os.system(cmd_elasticdump)
-    logger.debug('Elasticdump is over')
     # 2. Convert JSON file into CSV by selecting fields
     file = open(output_json_file, 'r')
     content = file.read()
