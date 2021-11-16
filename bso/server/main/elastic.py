@@ -22,7 +22,8 @@ def get_doi_not_in_index(index, dois):
                    body={"query": {"bool":{ "filter": [ {'terms': {'doi.keyword': dois}}]}},
                          "fields": ['doi'],
                          "size": len(dois),
-                         "_source": False})
+                         "_source": False},
+                   , request_timeout=60*5)
     existing_dois = set([e['fields']['doi'][0] for e in results['hits']['hits']])
     not_indexed_dois = set(dois) - existing_dois
     res = []
@@ -38,7 +39,8 @@ def get_doi_not_in_index_one(index, doi):
                         request_cache=False,
                    body={"query": {"bool":{ "filter": [ {'term': {'doi.keyword': doi}}]}},
                          "fields": ['doi'],
-                         "_source": True})
+                         "_source": True},
+                   , request_timeout=60*5)
     existing_dois = set([e['fields']['doi'][0] for e in results['hits']['hits']])
     not_indexed_dois = set([doi]) - existing_dois
     return list(not_indexed_dois)
