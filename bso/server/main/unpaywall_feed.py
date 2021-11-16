@@ -4,11 +4,11 @@ import pymongo
 import requests
 from urllib import parse
 
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
+from bso.server.main.elastic import reset_index
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
 from bso.server.main.utils import download_file
-from bso.server.main.elastic import reset_index
-from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
 
 logger = get_logger(__name__)
 UPW_API_KEY = os.getenv('UPW_API_KEY')
@@ -68,8 +68,9 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
         reset_index(index=es_index)
         elasticimport = f"elasticdump --input={output_json} --output={es_host}{es_index} --type=data"
         logger.debug(f'{elasticimport}')
-        logger.debuf('starting import in elastic')
+        logger.debug('starting import in elastic')
         os.system(elasticimport)
+        end = datetime.datetime.now()
         delta = end - start
         logger.debug(f'Elasticimport done in {delta}')
     ## elastic done

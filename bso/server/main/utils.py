@@ -14,12 +14,12 @@ from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object, download_object
-from bso.server.main.config import MOUNTED_VOLUME
 
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
 
-def get_dois_from_input(container, filename):
+
+def get_dois_from_input(container: str, filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/{filename}'
     download_object(container=container, filename=filename, out=target) 
     if 'xls' in filename.lower():
@@ -34,6 +34,7 @@ def get_dois_from_input(container, filename):
         return []
     dois = list(set([d.lower().strip() for d in df[doi_column].dropna().tolist()]))
     return dois
+
 
 def get_filename_from_cd(cd: str) -> Union[str, None]:
     """ Get filename from content-disposition """
@@ -79,7 +80,9 @@ def dump_to_object_storage() -> list:
     output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.jsonl'
     output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.csv'
     cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data'
+    logger.debug(cmd_elasticdump)
     os.system(cmd_elasticdump)
+    logger.debug('Elasticdump is over')
     # 2. Convert JSON file into CSV by selecting fields
     file = open(output_json_file, 'r')
     content = file.read()
