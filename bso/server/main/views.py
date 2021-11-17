@@ -113,9 +113,11 @@ def run_task_etl():
     return jsonify(response_object), 202
 
 
-@main_blueprint.route('/dump', methods=['GET'])
+@main_blueprint.route('/dump', methods=['POST'])
 def run_task_dump():
     logger.debug('Starting task dump')
-    uploaded_files = dump_to_object_storage()
+    args = request.get_json(force=True)
+    index_name = args.get('index_name', 'bso-publications')
+    uploaded_files = dump_to_object_storage(index_name)
     response_object = {'status': 'success', 'data': uploaded_files}
     return jsonify(response_object), 202

@@ -69,47 +69,29 @@ def download_file(url: str, upload_to_object_storage: bool = True, destination: 
     return local_filename
 
 
-def dump_to_object_storage() -> list:
+def dump_to_object_storage(es_index: str) -> list:
     # 1. Dump ES bso-publications index data into temp file
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@cluster.elasticsearch.dataesr.ovh/'
-    es_index = 'bso-publications'
     container = 'bso_dump'
     today = datetime.date.today()
     today_date = f'{today.year}{today.month}{today.day}'
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
-    output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.jsonl'
-    output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.csv'
-    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data'
+    output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.jsonl.gz'
+    output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today_date}.csv.gz'
+    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data --sourceOnly=true --fsCompress=gzip'
     logger.debug(cmd_elasticdump)
     os.system(cmd_elasticdump)
-    logger.debug('Elasticdump is over')
+    logger.debug('Elasticdump is done')
     # 2. Convert JSON file into CSV by selecting fields
-    file = open(output_json_file, 'r')
-    content = file.read()
-    lines = content.splitlines()
-    file.close()
-    headers = list(lines[0].keys())
-    rows = [headers]
-    for line in lines:
-        source = json.loads(line).get('_source', {})
-        row = list(source.values())
-        rows.append(row)
-    data_file = open(output_csv_file, 'w')
-    csv_writer = csv.writer(data_file)
-    csv_writer.writerows(rows)
-    data_file.close()
+    last_oa_details='2021Q3'
+    cmd_jq = f"zcat {output_json_file} | jq -r -c '[.doi,.title,.oa_details[].observation_date] | @csv' | gzip > {output_csv_file}"
+    logger.debug(cmd_jq)
+    os.system(cmd_jq)
+    logger.debug('csv file is created')
     # 3. Upload these files into OS
-    with open(output_json_file, 'rb') as f_in:
-        with gzip.open(f'{output_json_file}.gz', 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
-    uploaded_file_json = upload_object(container=container, filename=f'{output_json_file}.gz')
-    with open(output_csv_file, 'rb') as f_in:
-        with gzip.open(f'{output_csv_file}.gz', 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
-    uploaded_file_csv = upload_object(container=container, filename=f'{output_csv_file}.gz')
+    uploaded_file_json = upload_object(container=container, filename=f'{output_json_file}')
+    uploaded_file_csv = upload_object(container=container, filename=f'{output_csv_file}')
     # 4. Clean temporary files
-    os.system(f'rm {output_json_file}')
-    os.system(f'rm {output_json_file}.gz')
-    os.system(f'rm {output_csv_file}')
-    os.system(f'rm {output_csv_file}.gz')
+    os.system(f'rm -rf {output_json_file}')
+    os.system(f'rm -rf {output_csv_file}')
     return [uploaded_file_json, uploaded_file_csv]
