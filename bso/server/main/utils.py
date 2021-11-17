@@ -83,11 +83,10 @@ def dump_to_object_storage(args: dict) -> list:
     os.system(cmd_elasticdump)
     logger.debug('Elasticdump is done')
     # 2. Convert JSON file into CSV by selecting fields
-    last_oa_details='2021Q3'
     cmd_jq = f"zcat {output_json_file} | jq -r -c '[.doi,.title,.oa_details[].observation_date] | @csv' | gzip > {output_csv_file}"
     logger.debug(cmd_jq)
     os.system(cmd_jq)
-    logger.debug('csv file is created')
+    logger.debug('CSV file is created')
     # 3. Upload these files into OS
     uploaded_file_json = upload_object(container=container, filename=f'{output_json_file}')
     uploaded_file_csv = upload_object(container=container, filename=f'{output_csv_file}')
