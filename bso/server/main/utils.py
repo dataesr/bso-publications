@@ -92,7 +92,7 @@ def dump_to_object_storage(args: dict) -> list:
     logger.debug(cmd_jq)
     os.system(cmd_jq)
     os.system(f'gzip {output_csv_file}')
-    logger.debug('csv file is created')
+    logger.debug('CSV file is created')
     # 3. Upload these files into OS
     uploaded_file_json = upload_object(container=container, filename=f'{output_json_file}')
     uploaded_file_csv = upload_object(container=container, filename=f'{output_csv_file}.gz')

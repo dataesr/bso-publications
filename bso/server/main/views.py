@@ -39,7 +39,7 @@ def run_task_forward():
 @main_blueprint.route('/update_weekly', methods=['GET'])
 def update_weekly():
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('unpaywall_to_crawler', default_timeout=default_timeout)
+        q = Queue(name='unpaywall_to_crawler', default_timeout=default_timeout)
         task = q.enqueue(create_task_unpaywall_to_crawler)
     response_object = {
         'status': 'success',
@@ -55,7 +55,7 @@ def run_task_enrich():
     logger.debug('Starting task enrich')
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=default_timeout)
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_enrich, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -66,7 +66,7 @@ def run_task_download_unpaywall():
     args = request.get_json(force=True)
     logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=default_timeout)
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_download_unpaywall, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -77,7 +77,7 @@ def run_task_load_mongo():
     args = request.get_json(force=True)
     logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=default_timeout)
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_load_mongo, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -86,7 +86,7 @@ def run_task_load_mongo():
 @main_blueprint.route('/tasks/<task_id>', methods=['GET'])
 def get_status(task_id):
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications')
+        q = Queue(name='bso-publications')
         task = q.fetch_job(task_id)
     if task:
         response_object = {
@@ -107,7 +107,7 @@ def run_task_etl():
     logger.debug('Starting task etl')
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=default_timeout)
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_etl, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -118,7 +118,7 @@ def run_task_dump():
     logger.debug('Starting task dump')
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue('bso-publications', default_timeout=default_timeout)
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(dump_to_object_storage, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
