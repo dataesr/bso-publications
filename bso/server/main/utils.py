@@ -70,7 +70,7 @@ def download_file(url: str, upload_to_object_storage: bool = True, destination: 
 
 
 def dump_to_object_storage(args: dict) -> list:
-    index_name = args.get('index_name', 'bso-publications')
+    es_index = args.get('index_name', 'bso-publications')
     # 1. Dump ES bso-publications index data into temp file
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@cluster.elasticsearch.dataesr.ovh/'
     container = 'bso_dump'
