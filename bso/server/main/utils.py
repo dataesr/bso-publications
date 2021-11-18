@@ -79,19 +79,24 @@ def dump_to_object_storage(args: dict) -> list:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today}.jsonl.gz'
     output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today}.csv'
-    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data --sourceOnly=true --fsCompress=gzip --size {size}'
+    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data --sourceOnly=true --fsCompress=gzip'
     logger.debug(cmd_elasticdump)
     os.system(cmd_elasticdump)
     logger.debug('Elasticdump is done')
     # 2. Convert JSON file into CSV by selecting fields
     last_oa_details=args.get('last_oa_details',"2021Q3")
+    
     cmd_header = f"echo 'doi,year,title,journal_issns,publisher_dissemination,bso_classification,lang,detected_countries,is_oa,observation_date,oa_host_type' > {output_csv_file}"
-    os.system(cmd_header)
     logger.debug(cmd_header)
+    os.system(cmd_header)
+    
     cmd_jq = f"zcat {output_json_file} |  jq -rc '[.doi,.year,.title,.journal_issns,.publisher_dissemination,.bso_classification,.lang,(.detected_countries|join(\";\")),[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.observation_date,([.oa_host_type]|flatten)[0]]]|flatten|@csv' >> {output_csv_file}"
     logger.debug(cmd_jq)
     os.system(cmd_jq)
-    os.system(f'gzip {output_csv_file}')
+    
+    cmd_gzip = f'gzip {output_csv_file}'
+    logger.debug(cmd_gzip)
+    os.system(cmd_gzip)
     logger.debug('CSV file is created')
     # 3. Upload these files into OS
     uploaded_file_json = upload_object(container=container, filename=f'{output_json_file}')
