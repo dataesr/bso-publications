@@ -90,7 +90,7 @@ def dump_to_object_storage(args: dict) -> list:
     logger.debug(cmd_header)
     os.system(cmd_header)
     
-    cmd_jq = f"zcat {output_json_file} |  jq -rc '[.doi,.year,.title,.journal_issns,.publisher_dissemination,.bso_classification,.lang,(.detected_countries|join(\";\")),[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.observation_date,([.oa_host_type]|flatten)[0]]]|flatten|@csv' >> {output_csv_file}"
+    cmd_jq = f"zcat {output_json_file} |  jq -rc '[.doi,.year,.title,.journal_issns,.publisher_dissemination,.bso_classification,.lang,((.detected_countries)?|join(\";\")),[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.observation_date,([.oa_host_type]|flatten)[0]]]|flatten|@csv' >> {output_csv_file}"
     logger.debug(cmd_jq)
     os.system(cmd_jq)
     
