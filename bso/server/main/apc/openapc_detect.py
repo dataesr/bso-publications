@@ -126,7 +126,7 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
             estimation = apc_avg[current_key]['estimation']
             count = apc_avg[current_key]['count']
             return {
-                    'has_apc': (estimation > 0),
+                    'has_apc': bool(estimation > 0),
                     'amount_apc_EUR': estimation,
                     'apc_source': 'openAPC_estimation_'+current_method,
                     'amount_apc_openapc_EUR': estimation,
