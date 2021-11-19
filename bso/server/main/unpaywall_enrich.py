@@ -215,7 +215,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
     return final
 
 
-def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool) -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool) -> list:
     publis_dict = {}
 
     
@@ -243,7 +243,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
         
 
-        data = get_doi_full(dois=doi_chunk, observations=observations)
+        data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # Remove data with no oa details info (not indexed in unpaywall)
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
         for d in new_updated:

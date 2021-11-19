@@ -99,17 +99,21 @@ def get_doi(doi, collection_name: str) -> dict:
 
 
 @retry(delay=60, tries=5)
-def get_doi_full(dois: list, observations: list) -> dict:
+def get_doi_full(dois: list, observations: list, last_observation_date_only:bool) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
     db = get_database()
     res = {}
     for d in dois:
         res[d] = {}
     collections = db.list_collection_names()
+    collections_dates = [col for col in collections if col[0:2]=='20']
+
     for collection in collections:
         if collection in ['pubmed', 'inventory']:
             continue
         if observations and (collection not in observations) and (collection != 'global'):
+            continue
+        if last_observation_date_only and (collection in collections_dates) and (collection != max(collections_dates)):
             continue
         logger.debug(f'Collection: {collection}')
         current_list = get_doi(dois, collection)

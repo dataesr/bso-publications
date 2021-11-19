@@ -35,7 +35,9 @@ def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
     observations = args.get('observations', [])
     affiliation_matching = args.get('affiliation_matching', False)
-    return enrich(publications=publications, observations=observations, datasource='user', affiliation_matching=affiliation_matching)
+    last_observation_date_only = args.get('last_observation_date_only', False)
+    return enrich(publications=publications, observations=observations, datasource='user', affiliation_matching=affiliation_matching, 
+            last_observation_date_only=last_observation_date_only)
 
 
 def create_task_download_unpaywall(args: dict) -> str:
