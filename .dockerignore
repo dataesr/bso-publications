@@ -4,11 +4,14 @@ __pycache__
 *.pyi
 venv
 .cache
-notebooks/*
 tests/*
+
+# Jupyter Notebooks
+notebooks/*
 
 # IDE
 .idea
+.vscode
 
 # Logs
 *.log
@@ -18,7 +21,7 @@ dist
 *.egg-info
 
 # Git
-.git/
+.git
 .github
 
 # Documentation

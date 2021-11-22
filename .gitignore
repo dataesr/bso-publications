@@ -7,6 +7,9 @@ venv
 # Unit tests
 .pytest_cache/
 
+# Jupyter Notebooks
+.ipynb_checkpoints
+
 # IDE
 .idea
 .vscode
@@ -17,9 +20,6 @@ venv
 # Build
 dist
 *.egg-info
-
-# Jupyter Notebooks
-.ipynb_checkpoints
 
 # Documentation outputs
 doc/out.*
