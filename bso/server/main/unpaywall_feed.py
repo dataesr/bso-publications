@@ -25,6 +25,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     mydb = myclient['unpaywall']
     output_json = f'{f}_mongo.jsonl'
     collection_name = f.replace(MOUNTED_VOLUME, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
+    snapshot_date = collection_name
     if global_metadata:
         collection_name = 'global'
     start = datetime.datetime.now()
@@ -64,7 +65,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     if collection_name == 'global':
         start = datetime.datetime.now()
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@cluster.elasticsearch.dataesr.ovh/'
-        es_index = 'all_publications'
+        es_index = f'publications-{snapshot_date}'
         reset_index(index=es_index)
         elasticimport = f"elasticdump --input={output_json} --output={es_host}{es_index} --type=data"
         logger.debug(f'{elasticimport}')
