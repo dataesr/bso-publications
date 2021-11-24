@@ -4,7 +4,7 @@ import pymongo
 import requests
 from urllib import parse
 
-from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, MOUNTED_VOLUME
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.elastic import reset_index
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
@@ -25,7 +25,9 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     mydb = myclient['unpaywall']
     output_json = f'{f}_mongo.jsonl'
     collection_name = f.replace(MOUNTED_VOLUME, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
-    snapshot_date = collection_name
+    snapshot_date = f.replace(MOUNTED_VOLUME, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
+    logger.debug(f'collection_name: {collection_name}')
+    logger.debug(f'output_json: {output_json}')
     if global_metadata:
         collection_name = 'global'
     start = datetime.datetime.now()
@@ -64,10 +66,11 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     ## elastic start
     if collection_name == 'global':
         start = datetime.datetime.now()
-        es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@cluster.elasticsearch.dataesr.ovh/'
+        es_url_without_http = ES_URL.replace('https://','').replace('http://','')
+        es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
         es_index = f'publications-{snapshot_date}'
         reset_index(index=es_index)
-        elasticimport = f"elasticdump --input={output_json} --output={es_host}{es_index} --type=data"
+        elasticimport = f"elasticdump --input={output_json} --output={es_host}{es_index} --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
         logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
