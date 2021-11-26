@@ -129,11 +129,11 @@ message, we propose to look mainly at two elements :
 
  - Also, the **shape of open access curve** (open access rate function of the publication year). For a given observation date, the open access rate can be estimated broken down by publication year. This then produces a curve of the open access rate, function of the publication year (at a given point in time which is the observation date). Of course this curve can have any shape, and in particular it is not always expected to be monotonic increasing. Indeed, a monotonic increasing curve means that more recent publications are more and more open. That can (hopefully!) happen, but moving barriers and embargoes would genereally brings another type of shape, that would be an inverted-V shape. The next figure illustrates different shapes of Open Access curves. 
 
-![Different shapes of Open Access curves](types_curve.png){ width=450 }
+![Different shapes of Open Access curves](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/types_curve.png){ width=450 }
 
 From an observation date to another, the OA curve shape may change. This evolution of the shape gives an insight of the speed of opening. Indeed, moving from an inverted-V shape, where the most recent papers are not the most open, to an increasing shape would be a proof of the acceleration of the opening. The next figures illustrates the evolution from an inverted-V shape, to flat and then to an increasing OA curve shape. 
 
-![Open Access curve dynamics](curve_dynamic.png){ width=450 }
+![Open Access curve dynamics](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/curve_dynamic.png){ width=450 }
 
 
 ### 2.1.3 Open access types
@@ -150,11 +150,11 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
 Obviously this does not impact the overall Open Access rate, but this division rebalances the role of the different types of OA hosting. The next figure shows the kind of impact choosing one or the other OA type break down. 
 
-![Open Access hosting types](oa_types.png){ width=450 }
+![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
 
 Another graphical way to represent this balance is to use a bubble chart. Each bubble represents a cluster of publications (think about having a bubble for each discipline, for each dissemination platform ...), its size depends on the number of publications in the cluster. The x-axis represents the share of OA publications hosted by the publisher: it is then the sum of the share of publication hosted only by the publisher and the share hosted on an open repository and by the publisher. Conversely, the y-axis represents the share of OA publications hosted on a repository: it is then the sum of the share of publication hosted only on a repository and the share hosted on an open repository and by the publisher.
 
-![Share of publications in open access hosted on an open repository vs. by the publisher](bubbles.png){ width=450 }
+![Share of publications in open access hosted on an open repository vs. by the publisher](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/bubbles.png){ width=450 }
 
 The data used to compute these OA types still comes from Unpaywall, but instead of the 'oa_status' field, with use the 'oa_locations' field. For a publication which is open access, it lists all the existing free copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the free copy, and some metadata of the location is associated, in particular the 'host_type', that can take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are considered repositories.
 
@@ -203,7 +203,7 @@ For that matter, a third analysis level is used that distingues, for open access
 
  - **Creative commons** licenses (cc0, cc-by, cc-by-nc etc ...)
 
- - **Other licenses** (publisher sepcific ...)
+ - **Other licenses** (publisher specific ...)
 
  - **No license** 
 
@@ -239,7 +239,7 @@ In the case of the Health domain, we use metadata coming from PubMed. These meta
 
 PubMed gives info on grant declaration. To be clear, the absence of this metadata does not mean that there was no funding. So the only thing we can do is to check if there is a correlation, or no, between the open access rate and the presence of the grant metadata in PubMed. 
 
-As the affiliations informations are given for each author, we can use [@lhote_using_2021] to infere the country of affiliations of each author. We would like to analyse if the country of affiliations of the corresponding author correlates to the open access rate. Unfortunately the corresponding author metadata is not available, so we chose an approximation looking at the affiliation country of the **first and the last authors**. That will give an insight to know whether, for French publications, the OA rate is in general higher when one of the first or last authors has a French affiliation, or, conversely, if the OA rate is higher when the first and last author are affiliated abroad.
+As the affiliations information is given for each author, we can use [@lhote_using_2021] to infer the country of affiliations of each author. We would like to analyse if the country of affiliations of the corresponding author correlates to the open access rate. Unfortunately the corresponding author metadata is not available, so we chose an approximation looking at the affiliation country of the **first and the last authors**. That will give an insight to know whether, for French publications, the OA rate is in general higher when one of the first or last authors has a French affiliation, or, conversely, if the OA rate is higher when the first and last author are affiliated abroad.
 
 ## 2.2 Clinical trials and observational studies
 
@@ -303,9 +303,9 @@ Object Storage on OVH Cloud.
 Now focusing on the French publications, we use the extracted notices to match them against a MongoDatabase that we
 built on a dump of Unpaywall. We use th DOI to consolidate the data and then add many detail
 
-![Global overview of the publications data flows](flow_chart_publications.png){ width=450 }
+![Global overview of the publications data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_publications.png){ width=450 }
 
-![Global overview of the trials and studies data flows](flow_chart_registries.png){ width=450 }
+![Global overview of the trials and studies data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_registries.png){ width=450 }
 
 ### 2.3.2 Data storage
 
@@ -331,9 +331,11 @@ OVH Cloud, remote, scalability, kubernetes
 As a limitation, we chose to collect all the publications from 2013 to today. Only from Crossref, it's about 45 million
 publications. Let's call that "big". And the time to collect all these data could be quite long. So we had to 
 
-
+\newpage
 
 # 3. Results
+
+\newpage
 
 # 4. Discussion and conclusion
 
