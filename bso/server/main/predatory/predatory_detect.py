@@ -37,6 +37,8 @@ def update_list_journals() -> dict:
             if 'target' in a.attrs:
                 url = a.attrs['href']
                 domain = get_domain(url)
+                if normalize(domain) in ['mdpi', 'frontiersin']:
+                    continue
                 name = a.get_text(' ')
                 journals.append({'url': url, 'journal': name, 'domain': domain})
     df_journals = pd.DataFrame(journals)
