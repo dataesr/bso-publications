@@ -24,8 +24,8 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['unpaywall']
     output_json = f'{f}_mongo.jsonl'
-    collection_name = f.replace(MOUNTED_VOLUME, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
-    snapshot_date = f.replace(MOUNTED_VOLUME, '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
+    collection_name = f.replace(MOUNTED_VOLUME, '').replace('/', '').replace('unpaywall_snapshot_', '')[0:10].replace('-', '')
+    snapshot_date = collection_name
     logger.debug(f'collection_name: {collection_name}')
     logger.debug(f'output_json: {output_json}')
     if global_metadata:

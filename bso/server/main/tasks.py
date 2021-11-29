@@ -99,7 +99,10 @@ def create_task_unpaywall_to_crawler():
 
 def create_task_load_mongo(args: dict) -> None:
     asof = args.get('asof', 'nodate')  # if nodate, today's snapshot will be used
-    filename = download_snapshot(asof).split('/')[-1]
+    if args.get('filename') is None:
+        filename = download_snapshot(asof).split('/')[-1]
+    else:
+        filename = args.get('filename')
     logger.debug(f'Filename after download is {filename}')
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     path = f'{MOUNTED_VOLUME}/{filename}'
