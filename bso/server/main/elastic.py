@@ -101,19 +101,26 @@ def update_alias(alias: str, old_index: str, new_index: str) -> None:
 def reset_index(index: str) -> None:
     es = get_client()
     delete_index(index)
-    mappings = {
-        "dynamic_templates": [
-            {
-                "objects": {
-                    "match": "*oa_locations",
-                    "match_mapping_type": "object",
-                    "mapping": {
-                        "type": "nested"
+    dynamic_match = None
+    if 'bso-publications' in index:
+        dynamic_match = "*oa_locations"
+    elif 'publications-' in index:
+        dynamic_match = "*authors"
+    mappings = {}
+    if dynamic_match:
+        mappings = {
+            "dynamic_templates": [
+                {
+                    "objects": {
+                        "match": dynamic_match,
+                        "match_mapping_type": "object",
+                        "mapping": {
+                            "type": "nested"
+                        }
                     }
                 }
-            }
-        ]
-    }
+            ]
+        }
     response = es.indices.create(
         index=index,
         body={'settings': {}, 'mappings': mappings},

@@ -68,7 +68,7 @@ def get_affiliation_types(affiliation: str) -> dict:
         if word in normalized_affiliation:
             is_hospital = True
     is_inserm = False
-    for word in ['inserm', 'institut national de la santé']:
+    for word in ['inserm', 'institut national de la sante']:
         if word in normalized_affiliation:
             is_inserm = True
     is_cnrs = False
@@ -118,6 +118,17 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         if doi in extra_data:
             res.update(extra_data[doi])
         if 'z_authors' in res:
+            for a in res['z_authors']:
+                full_name = ''
+                last_name = a.get('family')
+                first_name = a.get('given')
+                if first_name:
+                    full_name = f'{first_name} '
+                if last_name:
+                    full_name += last_name
+                full_name = full_name.strip()
+                if full_name:
+                    a['full_name'] = full_name
             # todo implement a merge if 'authors' is in res
             if 'authors' not in res:
                 res['authors'] = res['z_authors']
@@ -193,6 +204,7 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         # OA Details
         res['observation_dates'] = []
         res['oa_details'] = {}
+        last_millesime = None
         for asof in dois_infos[doi]:
             if asof == 'global':
                 continue
@@ -200,6 +212,46 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
                 res['oa_details'].update(tmp)
                 res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
+                if last_millesime:
+                    last_millesime = max(last_millesime, asof)
+                else:
+                    last_millesime = asof
+
+        # get hal_id if present in one of the last oa locations
+        logger.debug(f'last millesime : {last_millesime}')
+        if last_millesime:
+            last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
+            if isinstance(last_oa_loc, list):
+                for loc in last_oa_loc:
+                    if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):
+                        hal_id = None
+                        if isinstance(loc.get('pmh_id'), str):
+                            hal_id = loc['pmh_id'].split(':')[2].strip().lower()
+                            if hal_id[-2] == 'v': # remove version
+                                hal_id = hal_id[:-2]
+                        if hal_id is None and isinstance(loc.get('url_for_pdf'), str) and '/document' in loc['url_for_pdf'].lower():
+                            try:
+                                url_split = loc['url_for_pdf'].lower().split('/')[-2]
+                                if '-' in url_split:
+                                    hal_id = url_split
+                            except:
+                                pass
+                        if hal_id:
+                            external_ids = []
+                            external_ids.append({'id_type': 'hal_id', 'id_value': hal_id})
+                            res['external_ids'] = external_ids
+                            res['hal_id'] = hal_id
+
+        ## title - first author
+        title_first_author = ""
+        if res.get('title'):
+            title_first_author += normalize(res.get('title'), 1).strip()
+        if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
+            if res['authors'][0].get('full_name'):
+                title_first_author += ';'+normalize(res['authors'][0].get('full_name'), 1)
+        if title_first_author:
+            res['title_first_author'] = title_first_author
+
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
             if pd.isna(res.get(field)):
