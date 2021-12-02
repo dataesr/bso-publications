@@ -13,11 +13,17 @@ author:
       institute: cnrs
       orcid: 0000-0001-6661-9680
       idref: 048743216
+  - Laetitia Bracco:
+      institute: université de lorraine
+      orcid: 0000-0002-2939-9110
+      idref: 19945468X
 institute:
   - mesri:
       name: 'French Ministry of Higher Education, Research and Innovation, Paris, France'
   - cnrs:
       name: 'CNRS, France'
+  - université de lorraine:
+      name: 'University of Lorraine, France'
 bibliography: bso.bib
 date: November 2021
 keywords:
