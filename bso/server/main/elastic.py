@@ -96,20 +96,54 @@ def update_alias(alias: str, old_index: str, new_index: str) -> None:
     })
     logger.debug(response)
 
+def get_analyzers() -> dict:
+    return {
+        'light': {
+            'tokenizer': 'icu_tokenizer',
+            'filter': [
+                'lowercase',
+                'french_elision',
+                'icu_folding'
+            ]
+        }
+    }
+
+def get_filters() -> dict:
+    return {
+        'french_elision': {
+            'type': 'elision',
+            'articles_case': True,
+            'articles': ['l', 'm', 't', 'qu', 'n', 's', 'j', 'd', 'c', 'jusqu', 'quoiqu', 'lorsqu', 'puisqu']
+        }
+    }
 
 @exception_handler
 def reset_index(index: str) -> None:
     es = get_client()
     delete_index(index)
+    
+    settings = {
+        'analysis': {
+            'filter': get_filters(),
+            'analyzer': get_analyzers()
+        }
+    }
+    
     dynamic_match = None
     if 'bso-publications' in index:
         dynamic_match = "*oa_locations"
     elif 'publications-' in index:
         dynamic_match = "*authors"
-    mappings = {}
+
+    mappings = { 'properties': {} }
+    for f in ['z_authors.family', 'z_authors.given', 'title', 'journal_name']:
+        mappings['properties'][f] = { 
+                'type': 'text',
+                'analyzer': 'light' 
+            }
+
     if dynamic_match:
-        mappings = {
-            "dynamic_templates": [
+        mappings["dynamic_templates"] = [
                 {
                     "objects": {
                         "match": dynamic_match,
@@ -123,7 +157,7 @@ def reset_index(index: str) -> None:
         }
     response = es.indices.create(
         index=index,
-        body={'settings': {}, 'mappings': mappings},
+        body={'settings': settings, 'mappings': mappings},
         ignore=400  # ignore 400 already exists code
     )
     if 'acknowledged' in response and response['acknowledged']:
