@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from bso.server.main.strings import normalize
+from bso.server.main.publisher.publisher_detect import detect_publisher
 
 
 def get_domain(url: str) -> str:
@@ -22,7 +23,8 @@ def update_list_publishers() -> dict:
                 url = a.attrs['href']
                 domain = get_domain(url)
                 name = a.get_text(' ')
-                publishers.append({'url': url, 'publisher': name, 'domain': domain})
+                publisher_clean = detect_publisher(name, '2020', None)['publisher_normalized'] 
+                publishers.append({'url': url, 'publisher': publisher_clean, 'domain': domain})
     df_publishers = pd.DataFrame(publishers)
     return df_publishers.to_dict(orient='records')
 
@@ -37,7 +39,7 @@ def update_list_journals() -> dict:
             if 'target' in a.attrs:
                 url = a.attrs['href']
                 domain = get_domain(url)
-                if normalize(domain) in ['mdpi', 'frontiersin']:
+                if normalize(domain) in ['mdpi']:
                     continue
                 name = a.get_text(' ')
                 journals.append({'url': url, 'journal': name, 'domain': domain})
@@ -56,14 +58,19 @@ pred_p_domain = [normalize(e['domain']) for e in pred_publishers]
 def detect_predatory(publisher: str, journal: str) -> dict:
     predatory_publisher = False
     predatory_journal = False
-    if isinstance(publisher, str) and normalize(publisher) in pred_p:
+    publisher_clean = detect_publisher(publisher, '2020', None)['publisher_normalized']
+    if isinstance(journal, str) and normalize(journal) == normalize('Journal of Natural Products') and publisher_clean == 'American Chemical Society':
+        # two journals have the same name : the one from ACS is not on bealls
+        predatory_publisher = False
+        predatory_journal = False
+    elif isinstance(publisher_clean, str) and normalize(publisher_clean) in pred_p:
         predatory_publisher = True
         predatory_journal = True
-    elif isinstance(publisher, str) and normalize(publisher) in pred_p_domain:
+    elif isinstance(publisher_clean, str) and normalize(publisher_clean) in pred_p_domain:
         predatory_publisher = True
         predatory_journal = True
     elif isinstance(journal, str) and normalize(journal) in pred_j:
         predatory_journal = True
     elif isinstance(journal, str) and normalize(journal) in pred_j_domain:
         predatory_journal = True
-    return {'predatory_publisher': predatory_publisher, 'predatory_journal': predatory_journal}
+    return {'publisher_in_bealls_list': predatory_publisher, 'journal_or_publisher_in_bealls_list': predatory_journal}
