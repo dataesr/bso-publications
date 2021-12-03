@@ -117,20 +117,20 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
             res = dois_infos[doi]['global']
         if doi in extra_data:
             res.update(extra_data[doi])
-        if 'z_authors' in res:
+        if 'z_authors' in res and isinstance(res['z_authors'], list):
             for a in res['z_authors']:
                 full_name = ''
                 last_name = a.get('family')
                 first_name = a.get('given')
-                if first_name:
+                if isinstance(first_name, str):
                     full_name = f'{first_name} '
-                if last_name:
+                if isinstance(last_name, str):
                     full_name += last_name
                 full_name = full_name.strip()
                 if full_name:
                     a['full_name'] = full_name
             # todo implement a merge if 'authors' is in res
-            if 'authors' not in res:
+            if (not isinstance(res.get('authors'), list)) and isinstance(res['z_authors'], list):
                 res['authors'] = res['z_authors']
             del res['z_authors']
         # Fields detection
@@ -218,7 +218,6 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                     last_millesime = asof
 
         # get hal_id if present in one of the last oa locations
-        logger.debug(f'last millesime : {last_millesime}')
         if last_millesime:
             last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
             if isinstance(last_oa_loc, list):

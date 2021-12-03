@@ -143,7 +143,7 @@ def create_task_etl(args: dict) -> None:
             publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications)} publications retrieved from object storage')
-            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='pubmed_fr', affiliation_matching=affiliation_matching)
+            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource='pubmed_fr', affiliation_matching=affiliation_matching, last_observation_date_only=False)
             logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
             loaded = load_in_es(data=enriched_publications, index=index)
             doi_in_index.update([p['doi'] for p in loaded])
@@ -160,7 +160,7 @@ def create_task_etl(args: dict) -> None:
                 break
             publications_not_indexed_yet = [p for p in publications if (p.get('doi') and p['doi'] not in doi_in_index)]
             logger.debug(f'{len(publications_not_indexed_yet)} publications not indexed yet')
-            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=container, affiliation_matching=affiliation_matching)
+            enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=container, affiliation_matching=affiliation_matching, last_observation_date_only=False)
             logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
             loaded = load_in_es(data=enriched_publications, index=index)
             doi_in_index.update([p['doi'] for p in loaded])
@@ -178,7 +178,7 @@ def create_task_etl(args: dict) -> None:
             logger.debug(f'Remaining dois to index: {len(remaining_dois)}')
             for chunk in chunks(remaining_dois, 5000):
                 publications_not_indexed_yet = [{'doi': d} for d in chunk]
-                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'{extra_file}', affiliation_matching=False)
+                enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'{extra_file}', affiliation_matching=False, last_observation_date_only=False)
                 logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                 loaded = load_in_es(data=enriched_publications, index=index)
                 doi_in_index.update([p['doi'] for p in loaded])
@@ -194,7 +194,7 @@ def create_task_etl(args: dict) -> None:
                 current_dois_set = set(current_dois)
                 for chunk in chunks(current_dois, 2500):
                     publications_not_indexed_yet = [{'doi': d} for d in get_doi_not_in_index(index=index, dois=chunk)]
-                    enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'bso-local', affiliation_matching=False)
+                    enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, datasource=f'bso-local', affiliation_matching=False, last_observation_date_only=False)
                     logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
                     loaded = load_in_es(data=enriched_publications, index=index)
                     doi_in_index.update([p['doi'] for p in loaded])
