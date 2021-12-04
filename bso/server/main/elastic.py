@@ -136,8 +136,8 @@ def reset_index(index: str) -> None:
         dynamic_match = "*authors"
 
     mappings = { 'properties': {} }
-    for f in ['z_authors.family', 'z_authors.given', 'title', 'journal_name', 
-      'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name']:
+    for f in ['z_authors.family', 'z_authors.given', 'title', 'journal_name', 'keywords.keyword', 'publisher_dissemination', 
+      'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name', 'title_first_author']:
         mappings['properties'][f] = { 
                 'type': 'text',
                 'analyzer': 'light' 
