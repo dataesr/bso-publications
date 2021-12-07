@@ -16,6 +16,7 @@ from bso.server.main.strings import dedup_sort, normalize, remove_punction, get_
 from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
 from bso.server.main.utils_upw import chunks, format_upw_millesime
+from bso.server.main.entity_fishing import get_entity_fishing
 
 logger = get_logger(__name__)
 models = {}
@@ -108,7 +109,7 @@ def has_fr(countries: list) -> bool:
     return False
 
 
-def format_upw(dois_infos: dict, extra_data: dict) -> list:
+def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list:
     final = []
     for doi in dois_infos:
         if 'global' not in dois_infos[doi]:
@@ -160,6 +161,10 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
                 publi_title_abstract += words_abstract
             if len(publi_title_abstract) > 5:
                 res['lang'] = identify_language(publi_title_abstract.strip())
+        # Entity fishing
+        if entity_fishing:
+            ef_info = get_entity_fishing(res)
+            res.update(ef_info)
         # Predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
@@ -262,11 +267,14 @@ def format_upw(dois_infos: dict, extra_data: dict) -> list:
         for f in ['authors', 'references', 'abstract', 'incipit']:
             if f in res:
                 del res[f]
+        for aff in res['affiliations']:
+            if 'name' in aff:
+                del aff['name']
         final.append(res)
     return final
 
 
-def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool) -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool) -> list:
     publis_dict = {}
 
     
@@ -296,7 +304,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
 
         data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # Remove data with no oa details info (not indexed in unpaywall)
-        new_updated = format_upw(dois_infos=data, extra_data=publis_dict)
+        new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
         for d in new_updated:
             if len(d.get('oa_details', {})) == 0:
                 continue
