@@ -155,7 +155,6 @@ def reset_index(index: str) -> None:
                     }
                 }
             ]
-        }
     response = es.indices.create(
         index=index,
         body={'settings': settings, 'mappings': mappings},
