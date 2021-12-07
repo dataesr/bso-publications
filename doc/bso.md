@@ -297,12 +297,17 @@ We propose both indicators mixing or separating results and scholarly publicatio
 
 [@goldacre_compliance_2018] gives evidence that the rate of results declaration is very impacted by the type of lead sponsor, commercial sponsors having a much higher declaration rate. We therefore propose to break down most of the analysis axis with the type of lead sponsor, being either academic or industrial. This categorization has been done manually based the lead sponsor name.  
 
-## 2.3 Data collection system and architecture
+## 2.3 'Local' Open Science Monitors
+
+[@bracco:hal-03450104v1]
+
+
+## 2.4 Data collection system and architecture
 
 In this section, we will try to present the global workflow to collect, enrich and consolidate the data as described
 before with the technical and the storage challenges.
 
-### 2.3.1 Data manipulation
+### 2.4.1 Data manipulation
 
 Collect, Select, Enrich and Save
 As describe before, we collect data from multiple sources (PubMed via Medline, Crossref, our own list of DOIS), we then 
@@ -325,7 +330,7 @@ built on a dump of Unpaywall. We use th DOI to consolidate the data and then add
 
 ![Global overview of the trials and studies data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_registries.png){ width=450 }
 
-### 2.3.2 Data storage
+### 2.4.2 Data storage
 
 To do so, we needed to precisely define the input and the output of each step, and how to store the intermediate
 results. As JSON is the most common format to manipulate data, we choose to store the results into JSONL files and to
@@ -335,7 +340,7 @@ MongoDB
 Elastisearch
 
 
-### 2.3.2. Microservices
+### 2.4.2. Microservices
 
 synchronous / asynchronous, Docker
 All the tasks before are developed in Python and running as microservices in a Docker images. We used Flask as a Web
@@ -343,7 +348,7 @@ Framework. It enables us to launch the steps by calling the endpoint urls with t
 were still the bandmaster of the wall workflow and where still able to follow the progress of all these asynchronous
 tasks.
 
-### 2.3.3. Cloud
+### 2.4.3. Cloud
 
 OVH Cloud, remote, scalability, kubernetes
 As a limitation, we chose to collect all the publications from 2013 to today. Only from Crossref, it's about 45 million
