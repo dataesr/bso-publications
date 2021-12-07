@@ -106,3 +106,25 @@ def dump_to_object_storage(args: dict) -> list:
     os.system(f'rm -rf {output_json_file}')
     os.system(f'rm -rf {output_csv_file}.gz')
     return [uploaded_file_json, uploaded_file_csv]
+
+
+def store_local_publications(publications, container, filename):
+    for p in publications:
+        elt = {}
+        for f in ['doi', 'year', 'title', 'bso_classification', 'genre', 'journal_issns',
+              'journal_issn_l', 'journal_name',
+              'lang', 'publisher_dissemination', 'amount_apc_EUR', 'hal_id']:
+            if f in p:
+                elt[f] = p[f]
+        if 'oa_details' in p:
+            last_oa_date = max(list(p['oa_details'].keys()))
+            oa_details = p['oa_details'][last_oa_date]
+            for f in ['is_oa', 'journal_is_in_doaj', 'journal_is_oa', 'oa_host_type',
+                  'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
+                if f in oa_details:
+                    elt[f] = oa_details[f]
+
+        data.append(elt)
+    pd.DataFrame(data).to_csv(filename, index=False)
+    upload_object(container=container, filename=filename)
+    os.system(f'rm -rf {filename}') 
