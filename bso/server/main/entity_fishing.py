@@ -38,12 +38,12 @@ def get_entity_fishing(publication: dict) -> dict:
     text = f"{title} {keywords} {abstract}".strip()
 
     if text:
-        json = {
+        params = {
         "text": text,
         "language": {"lang": lang},
         "mentions": [ "wikipedia"] 
         }
-        r = requests.post(f"{ENTITY_FISHING_SERVICE}/service/disambiguate", params = json)
+        r = requests.post(f"{ENTITY_FISHING_SERVICE}/service/disambiguate", json = params)
         res = r.json()
 
         classifications = publication.get('classifications', [])
