@@ -13,7 +13,7 @@ from urllib import parse
 
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
-from bso.server.main.utils_swift import download_object, upload_object
+from bso.server.main.utils_swift import download_object, upload_object, get_objects_by_page
 
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
@@ -85,20 +85,44 @@ def dump_to_object_storage(args: dict) -> list:
     os.system(cmd_elasticdump)
     logger.debug('Elasticdump is done')
     # 2. Convert JSON file into CSV by selecting fields
-    last_oa_details=args.get('last_oa_details',"2021Q3")
-    
-    cmd_header = f"echo 'doi,year,title,journal_issns,publisher_dissemination,bso_classification,lang,detected_countries,is_oa,observation_date,oa_host_type' > {output_csv_file}"
+    last_oa_details=args.get('last_oa_details',"2021Q4")
+
+    cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination,hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR,detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date,oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories' > {output_csv_file}"
     logger.debug(cmd_header)
     os.system(cmd_header)
     
-    cmd_jq = f"zcat {output_json_file} |  jq -rc '[.doi,.year,.title,.journal_issns,.publisher_dissemination,.bso_classification,.lang,((.detected_countries)?|join(\";\")),[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.observation_date,([.oa_host_type]|flatten)[0]]]|flatten|@csv' >> {output_csv_file}"
+    cmd_jq = f"zcat {output_json_file} |  jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name,.publisher,.publisher_dissemination,.hal_id,.pmid,.bso_classification,((.bsso_classification.field)?|join(\";\"))//null,((.domains)?|join(\";\"))//null,.lang,.genre,.amount_apc_EUR,((.detected_countries)?|join(\";\"))//null,((.bso_local_affiliations)?|join(\";\"))//null,[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.journal_is_in_doaj,.journal_is_oa,.observation_date,([.oa_host_type]|flatten)[0],((.oa_colors)?|join(\";\"))//null,((.licence_publisher)?|join(\";\"))//null,((.licence_repositories)?|join(\";\"))//null,((.repositories)?|join(\";\"))//null]]|flatten|@csv' >> {output_csv_file}"
     logger.debug(cmd_jq)
     os.system(cmd_jq)
+        
+    local_bso_filenames = []
+
+    for page in range(1, 1000000):
+        filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False)
+        if len(filenames) == 0:
+            break
+        for filename in filenames:
+            logger.debug(f'dump bso-local {filename}')
+            local_bso_filenames += filename.split('.')[0].split('_')
+    local_bso_filenames = list(set(local_bso_filenames))
+
+    for local_affiliation in local_bso_filenames:
+        logger.debug(f'bso-local files creation for {local_affiliation}')
+        cmd_local_json = f'zcat {output_json_file} | fgrep {local_affiliation} > enriched_{local_affiliation}.jsonl'
+        cmd_local_csv_header = f'head -n 1 {output_csv_file} > enriched_{local_affiliation}.csv'
+        cmd_local_csv = f'cat {output_csv_file} | fgrep {local_affiliation} >> enriched_{local_affiliation}.csv' 
+        os.system(cmd_local_json)
+        os.system(cmd_local_csv_header)
+        os.system(cmd_local_csv)
+        upload_object(container=container, filename=f'enriched_{local_affiliation}.jsonl')
+        upload_object(container=container, filename=f'enriched_{local_affiliation}.csv')
+        os.system(f'rm -rf enriched_{local_affiliation}.jsonl')
+        os.system(f'rm -rf enriched_{local_affiliation}.csv')
     
     cmd_gzip = f'gzip {output_csv_file}'
     logger.debug(cmd_gzip)
     os.system(cmd_gzip)
-    logger.debug('CSV file is created')
+    logger.debug('global csv file is created')
     # 3. Upload these files into OS
     uploaded_file_json = upload_object(container=container, filename=f'{output_json_file}')
     uploaded_file_csv = upload_object(container=container, filename=f'{output_csv_file}.gz')
@@ -106,25 +130,3 @@ def dump_to_object_storage(args: dict) -> list:
     os.system(f'rm -rf {output_json_file}')
     os.system(f'rm -rf {output_csv_file}.gz')
     return [uploaded_file_json, uploaded_file_csv]
-
-
-def store_local_publications(publications, container, filename):
-    for p in publications:
-        elt = {}
-        for f in ['doi', 'year', 'title', 'bso_classification', 'genre', 'journal_issns',
-              'journal_issn_l', 'journal_name',
-              'lang', 'publisher_dissemination', 'amount_apc_EUR', 'hal_id']:
-            if f in p:
-                elt[f] = p[f]
-        if 'oa_details' in p:
-            last_oa_date = max(list(p['oa_details'].keys()))
-            oa_details = p['oa_details'][last_oa_date]
-            for f in ['is_oa', 'journal_is_in_doaj', 'journal_is_oa', 'oa_host_type',
-                  'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
-                if f in oa_details:
-                    elt[f] = oa_details[f]
-
-        data.append(elt)
-    pd.DataFrame(data).to_csv(filename, index=False)
-    upload_object(container=container, filename=filename)
-    os.system(f'rm -rf {filename}') 

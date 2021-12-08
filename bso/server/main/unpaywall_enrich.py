@@ -164,7 +164,8 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         # Entity fishing
         if entity_fishing:
             ef_info = get_entity_fishing(res)
-            res.update(ef_info)
+            if ef_info:
+                res.update(ef_info)
         # Predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
@@ -267,9 +268,10 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         for f in ['authors', 'references', 'abstract', 'incipit']:
             if f in res:
                 del res[f]
-        for aff in res['affiliations']:
-            if 'name' in aff:
-                del aff['name']
+        if 'affiliations' in res and isinstance(res['affiliations'], list):
+            for aff in res['affiliations']:
+                if 'name' in aff:
+                    del aff['name']
         final.append(res)
     return final
 

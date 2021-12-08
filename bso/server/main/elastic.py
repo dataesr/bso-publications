@@ -131,12 +131,14 @@ def reset_index(index: str) -> None:
     
     dynamic_match = None
     if 'bso-publications' in index:
-        dynamic_match = "*oa_locations"
+        # dynamic_match = "*oa_locations"
+        dynamic_match = None
     elif 'publications-' in index:
         dynamic_match = "*authors"
 
     mappings = { 'properties': {} }
-    for f in ['z_authors.family', 'z_authors.given', 'title', 'journal_name', 'keywords.keyword', 'publisher_dissemination', 
+    # attention l'analyzer .keyword ne sera pas présent pour ce champs !
+    for f in ['z_authors.family', 'z_authors.given', 'title', 'journal_name', 'keywords.keyword', 
       'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name', 'title_first_author']:
         mappings['properties'][f] = { 
                 'type': 'text',

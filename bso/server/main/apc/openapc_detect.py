@@ -76,12 +76,16 @@ for i, row in df_openapc.iterrows():
         apc[key].append(row['euro'])
             
 apc_avg = {}
+
+THRESHOLD_NB_ISSN = 10
+THRESHOLD_NB_PUBLISHER = 50
+
 for k in apc:
     estimation = np.mean(apc[k])
     count = len(apc[k])
-    if count < 10 and 'ISSN' in k:
+    if count < THRESHOLD_NB_ISSN and 'ISSN' in k:
         continue
-    if count < 50 and 'PUBLISHER' in k:
+    if count < THRESHOLD_NB_PUBLISHER and 'PUBLISHER' in k:
         estimation = 0.0
     apc_avg[k] = {'count': count, 'estimation': estimation}
 logger.debug(f'open apc data loaded, {len(apc_avg)} keys stored for estimations')

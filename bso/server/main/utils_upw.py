@@ -38,7 +38,7 @@ def reduce_status(all_statuses: list) -> list:
     statuses = []
     if 'green' in all_statuses:
         statuses.append('green')
-    for status in ['diamond', 'gold', 'hybrid']:
+    for status in ['diamond', 'gold', 'hybrid', 'other']:
         if status in all_statuses:
             statuses.append(status)
             break
@@ -152,10 +152,12 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
                 licence_publisher.append(licence)
             if (has_apc is not None) and (not has_apc) and elem.get('journal_is_in_doaj'):
                 status = 'diamond'
-            elif elem.get('journal_is_oa') == 1:
+            elif elem.get('journal_is_oa') == 1 and (has_apc is True):
                 status = 'gold'
-            else:
+            elif (has_apc is True):
                 status = 'hybrid'
+            else:
+                status = 'other'
         else:
             status = 'unknown'
         host_types.append(host_type)

@@ -33,8 +33,8 @@ def get_entity_fishing(publication: dict) -> dict:
     title = publication.get('title')
     if not title:
         title = ''
-    keywords = ' '.join([k['keyword'] for k in publication.get('keywords', []) if k and 'keyword' in k)
-    abstract = ' '.join([k['abstract'] for k in publication.get('abstracts', []) if k and 'abstract' in k)
+    keywords = ' '.join([k['keyword'] for k in publication.get('keywords', []) if (k and ('keyword' in k))])
+    abstract = ' '.join([k['abstract'] for k in publication.get('abstracts', []) if (k and ('abstract' in k))])
     text = f"{title} {keywords} {abstract}".strip()
 
     if text:
@@ -43,7 +43,7 @@ def get_entity_fishing(publication: dict) -> dict:
         "language": {"lang": lang},
         "mentions": [ "wikipedia"] 
         }
-        r = requests.post(f"{ENTITY_FISHING_SERVICE}/service/disambiguate", "params":json)
+        r = requests.post(f"{ENTITY_FISHING_SERVICE}/service/disambiguate", params = json)
         res = r.json()
 
         classifications = publication.get('classifications', [])

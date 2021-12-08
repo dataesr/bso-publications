@@ -15,7 +15,7 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
-from bso.server.main.utils import download_file, get_dois_from_input, store_local_publications
+from bso.server.main.utils import download_file, get_dois_from_input
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
@@ -35,7 +35,7 @@ def create_task_enrich(args: dict) -> list:
     publications = args.get('publications', [])
     observations = args.get('observations', [])
     affiliation_matching = args.get('affiliation_matching', False)
-    entity_fishing = args.get('entity_fishing', True)
+    entity_fishing = args.get('entity_fishing', False)
     last_observation_date_only = args.get('last_observation_date_only', False)
     return enrich(publications=publications, observations=observations, datasource='user', affiliation_matching=affiliation_matching,
             entity_fishing=entity_fishing,
@@ -120,7 +120,7 @@ def create_task_etl(args: dict) -> None:
     observations = args.get('observations', [])
     datasources = args.get('datasources', ['pubmed_fr', 'parsed_fr', 'crossref_fr', 'dois_fr'])
     affiliation_matching = args.get('affiliation_matching', False)
-    entity_fishing = args.get('entity_fishing', True)
+    entity_fishing = args.get('entity_fishing', False)
     erase_index = args.get('erase_index', True)
     current_date = datetime.date.today().isoformat()
     index = args.get('index', f'bso-publications-{current_date}')
@@ -201,20 +201,18 @@ def create_task_etl(args: dict) -> None:
                 local_affiliations = filename.split('.')[0].split('_')
                 current_dois = get_dois_from_input(container='bso-local', filename=filename)
                 current_dois_set = set(current_dois)
+                logger.debug(f'{len(current_dois)} publications in {filename}')
                 for chunk in chunks(current_dois, 2500):
-                    all_local_publications = [{'doi': d} for d in chunk]
-                    enriched_publications = enrich(publications=all_local_publications, observations=observations, 
+                    publications_not_indexed_yet = [{'doi': d} for d in get_doi_not_in_index(index=index, dois=chunk)]
+                    enriched_publications = enrich(publications=publications_not_indexed_yet, observations=observations, 
                     entity_fishing=entity_fishing,
                             datasource=f'bso-local', affiliation_matching=False, last_observation_date_only=False)
-                    doi_not_index_yet = get_doi_not_in_index(index=index, dois=chunk)
-                    enriched_publications_to_load = [p for p in enriched_publications if p['doi'] in doi_not_index_yet]
                     logger.debug(f'Now indexing {len(enriched_publications)} in {index}')
-                    loaded = load_in_es(data=enriched_publications_to_load, index=index)
+                    loaded = load_in_es(data=enriched_publications, index=index)
                     doi_in_index.update([p['doi'] for p in loaded])
                     # now all dois are in index
                     # just tag them with the local_affiliations
                     update_local_affiliations(index=index,current_dois=chunk, local_affiliations=local_affiliations)
-                    store_local_publications(publications = enriched_publications, container='bso_dump', filename=f'enriched_{filename}')
 
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
