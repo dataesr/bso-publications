@@ -41,21 +41,22 @@ keywords:
 
 # 1. Introduction
 
-The French Open Science Monitor was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its methodology was detailed in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications, for which at least one author has a French affiliation. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data) or disciplinary.
+The French Open Science Monitor was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its methodology was detailed in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications, for which at least one author has a French affiliation. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data and softwares) or disciplinary.
 
-To support the continuation of Open Science public poly with the second National Plan for Open Science [@mesri_2nd_2021], a new framework for the French Open Science Monitor has been produced. It introduces a monitor specific to the Health domain and also develops the features for the Open Access analysis.
+To support the continuation of Open Science public policy with the second National Plan for Open Science [@mesri_2nd_2021], a new framework for the French Open Science Monitor has been produced. It introduces a monitor specific to the Health domain and also develops the features for the Open Access analysis.
 
-Produce a dynamic vision of the evolution of the level of openness
-Analyse in detail how publications are opened, developing indicators specific to open repositories on one hand and indicators specific to the dissemination platforms on the other hand.
+The main goal of the French Open Science Monitor is to produce a dynamic vision of the openness level evolution and to analyse in detail how publications are opened, developing indicators specific to open repositories on one hand and indicators specific to the dissemination platforms on the other hand.
 
 The objective of the French Open Science Monitor in Health is to report on some aspects of Open Science specific to medical research and health, in relation to the sharing of scientific knowledge that has become a paramount urgency during the COVID-19 pandemic. The aim is to have indicators that will make it possible to take stock of the situation and monitor the public policies that will be implemented. 
 
 In addition to the open access to the publications, which is critical for all domains, the registration of clinical trials and observational studies, the publication of their results and the sharing of their data are specific dimensions in the Health domain, and more particularly of clinical research. 
 
 Clinical trials are research conducted on human subjects involving an intervention other than their usual care (delivery of a drug, treatment device, surgical procedure, etc.) for the purpose of developing biological, medical or public health knowledge.
+
 Observational studies are "non-interventional" studies, also involving humans, but not involving any intervention other than the usual management of patients. They may focus on protocol compliance, adverse effects of a treatment after it has been put on the market, etc. This is the case, for example, with cohort studies, which consist of statistical monitoring of a panel of individuals over the long term in order to identify the occurrence of health events of interest and the related risk or protective factors. 
 
-This clinical research is subject to various biases, including publication biases, which are well identified by public health researchers. Amongst them, the most known one is the tendency to publish only trials and studies whose results are conclusive and in line with the expectations of the researchers who carried them out (these are known as "positive" results). The consequence of this bias is that the syntheses or meta-analyses carried out on the basis of scientific publications with a view to guiding public health policies are in fact based on a partial and biased view of scientific knowledge. 
+This clinical research is subject to various biases, including publication biases, which are well identified by public health researchers. Amongst them, the most known is the tendency to publish only trials and studies whose results are conclusive and in line with the expectations of the researchers who carried them out (these are known as "positive" results). The consequence of this bias is that the syntheses or meta-analyses carried out on the basis of scientific publications with a view to guiding public health policies are in fact based on a partial and biased view of scientific knowledge. 
+
 Two main ways exist to correct this bias:
  
  - systematic declaration of studies, before they are carried out, in dedicated registers;
@@ -84,25 +85,24 @@ naturally :
  - **only publications with at least an author who has a French affiliation** are considered. The nationality of the 
 authors does not come into play. Still, this raises the issue of access to affiliation information. Affiliation metadata
 are present in specific sources, like PubMed, but very rarely in the whole Crossref data. To fill in the gaps, we
-propose to crawl the affiliation information displayed publicly from the publications webpages. On top of that
-identifying a country from an affiliation text is not that straightforward. If you are not convinced, think about a
-affiliation stating "Hôtel Dieu de France, Beirut, Lebanon": this does not refer to a French affiliation even thoug
-the word "France" is present. We use an automatic detection algorithm, based on Elasticsearch, described i
+propose to crawl the affiliation information displayed publicly from the publications webpages. On top of that,
+identifying a country from an affiliation text is not that straightforward. If you are not convinced, think about an
+affiliation stating "Hôtel Dieu de France, Beirut, Lebanon": this does not refer to a French affiliation even though
+the word "France" is present. We use an automatic detection algorithm, based on Elasticsearch, described in
 [@lhote_using_2021], to infer the countries from the affiliations field.
 
- - **only the publications with a Crossref DOI** are considered. Duplicates have to be avoided, in order not to count twice (or more) a publication and thus add a bias to the statistics tha are produced. It is then key to use a Persisten
-IDentifier. Also, we choose to use Unpaywall data for Open Access (OA) discovery. This service produces open data an
+ - **only the publications with a Crossref DOI** are considered. Duplicates have to be avoided, in order not to count twice (or more) a publication and thus add a bias to the statistics tha are produced. It is then key to use a Persistent
+Identifier. Also, we choose to use Unpaywall data for Open Access (OA) discovery. This service produces open data and
 offers the possibility to snapshot the whole database, which is an asset to analyse the OA dynamics. For now, Unpaywall
-focuses only on Crossref DOI, which leads us to adopt the same perimeter. We are aware this is a bias against some
+focuses only on Crossref DOI, which leads us to adopt the same perimeter. We are aware that this is a bias against some
 disciplines, most notably Humanities and Social Sciences. 
  
 
 All genres of publications are considered (journal articles, proceedings, books ...) as long as the publication is
-associated to a Crossref DOI. Many types are being coded in the metadata, but for clarity, we group them in categories, namely
+associated to a Crossref DOI. Many types are being coded in the metadata, but for the sake of clarity, we group them in categories, namely
 journal articles, proceedings, preprints, book chapters, books, the rest being grouped in a category 'Others'. It is
 important to note that the 'preprint' type does not appear as such directly in the available metadata (it is generally
-declared as journal article). So preprint detection is based on the dissemination platform information. At the time of
-writing, only the Cold Spring Harbor Laboratory (BioRxiv, MedRxiv) case is covered, but it can be extended as soon as
+declared as a journal article). Some preprint detection is based on the dissemination platform information. At the time this article is written, only the Cold Spring Harbor Laboratory (BioRxiv, MedRxiv) case is covered, but it can be extended as soon as
 another preprint dissemination platform would start using Crossref DOIs, as for example ArXiv has planned it.
 
 #### 2.1.1.2 French Open Science Monitor in Health
@@ -110,8 +110,8 @@ another preprint dissemination platform would start using Crossref DOIs, as for 
 <br />
 
 The French Open Science Monitor also introduces a focus on the Health domain. Delimiting a clear perimeter for Health
-is not very easy. For now, we simply have chosen to consider **in the scope all PubMed publications, and only these**.
-The publications' data used in the French Open Science Monitor in Health is then a subset of the publications descried
+is not very easy. For now, we simply have chosen to consider in the scope **all PubMed publications, and only these**.
+The publications' data used in the French Open Science Monitor in Health is then a subset of the publications described
 above, adding the PubMed presence criterion. Note that "Health" is seen more as a domain than a discipline. In fact,
 publications from a lot of disciplines are taken into account in the French Open Science Monitor in Health. A
 domain-specific set of disciplines is used in the French Open Science Monitor in Health, as described below.  
@@ -126,17 +126,17 @@ of publications, say the publications published during the year Y, it makes sens
 To do so, it becomes necessary to historicize the database containing the open access information. So, instead of
 maintaining a database that keeps track of the opening of each publication, which is the current Unpaywall data policy, we have to make
 regular snapshots of the whole Unpaywall database. Each snapshot is used as an observation date to measure the open
-access rate. It is important to note that this method natively embeds the potentials open access discovery errors from
+access rate. It is important to note that this method natively embeds the potential open access discovery errors from
 the underlying Unpaywall database, that can be false negative (a publication is actually open at this point in time but
 it is not detected) or false positive (wrongly seen as open whereas it is closed). As a side note, it would also allow us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications.  
 
 This method of analysis therefore reveals two temporal dimensions: publication dates and observation dates. Obviously,
-the observation date must be after the publication date. To avoid that the proliferation of possible analyses blurs the
+the observation date must be after the publication date. To avoid that the proliferation of possible analyzes blurs the
 message, we propose to look mainly at two elements :
 
  - A main statistics that is the **1Y Open Access rate**: it represents the open access rate of the publications published during year Y and measured (observed from the snapshot of the OA discovery database) at one point in time during year Y+1 (generally in December if the data is available).
 
- - Also, the **shape of open access curve** (open access rate function of the publication year). For a given observation date, the open access rate can be estimated broken down by publication year. This then produces a curve of the open access rate as a function of the publication year (at a given point in time which is the observation date). This curve may have any shape, and in particular it is not always expected to be monotonic increasing. Indeed, a monotonic increasing curve means that more recent publications are more and more open. That can (hopefully!) happen, but moving barriers and embargoes would genereally lead to another type of shape, that would be an inverted-V shape. The next figure illustrates different shapes of Open Access curves. 
+ - Also, the **shape of open access curve** (open access rate function of the publication year). For a given observation date, the open access rate can be estimated broken down by publication year. This then produces a curve of the open access rate as a function of the publication year (at a given point in time which is the observation date). This curve may have any shape, and in particular it is not always expected to be a monotonic increasing. Indeed, a monotonic increasing curve means that more recent publications are more and more open. That can (hopefully!) happen, but moving barriers and embargoes would genereally lead to another type of shape, that would be an inverted-V shape. The next figure illustrates different shapes of Open Access curves. 
 
 ![Different shapes of Open Access curves](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/types_curve.png){ width=450 }
 
@@ -157,7 +157,7 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
  - **hosted on an open repository and by the publisher**: Free to read on the publisher webpage and there is a free copy in an OA repository.
 
-Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, give a different picture. The next figure shows the kind of impact choosing one or the other OA type break down. 
+Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. The next figure shows the kind of impact choosing one or the other OA type break down. 
 
 ![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
 
