@@ -159,7 +159,7 @@ def create_task_etl(args: dict) -> None:
             continue
         for page in range(1, 1000000):
             logger.debug(f'Getting parsed objects for page {page} from object storage ({container})')
-            publications = get_objects_by_page(container=container, page=page, full_objects=True)
+            publications = get_objects_by_page(container=container, page=page, full_objects=True, nb_objects=1000)
             logger.debug(f'{len(publications)} publications retrieved from object storage')
             if len(publications) == 0:
                 break
@@ -193,7 +193,7 @@ def create_task_etl(args: dict) -> None:
                 doi_in_index.update([p['doi'] for p in loaded])
     if 'bso-local' in datasources:
         for page in range(1, 1000000):
-            filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False)
+            filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False, nb_objects=1000)
             if len(filenames) == 0:
                 break
             for filename in filenames:

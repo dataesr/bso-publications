@@ -247,15 +247,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                             res['external_ids'] = external_ids
                             res['hal_id'] = hal_id
 
-        ## title - first author
-        title_first_author = ""
-        if res.get('title'):
-            title_first_author += normalize(res.get('title'), 1).strip()
-        if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
-            if res['authors'][0].get('full_name'):
-                title_first_author += ';'+normalize(res['authors'][0].get('full_name'), 1)
-        if title_first_author:
-            res['title_first_author'] = title_first_author
 
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:

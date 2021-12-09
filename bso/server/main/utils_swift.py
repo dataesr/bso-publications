@@ -103,14 +103,14 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
 
 
 @retry(delay=2, tries=50)
-def get_objects_by_page(container: str, page: int, full_objects: bool) -> list:
+def get_objects_by_page(container: str, page: int, full_objects: bool, nb_objects = 1000) -> list:
     logger.debug(f'Retrieving object from container {container} and page {page}')
     marker = None
     keep_going = True
     current_page = 0 
     while keep_going:
         connection = get_connection()
-        content = connection.get_container(container=container, marker=marker, limit=1000)[1]
+        content = connection.get_container(container=container, marker=marker, limit=nb_objects)[1]
         filenames = [file['name'] for file in content]
         if len(filenames) == 0:
             return []
