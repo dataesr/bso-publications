@@ -22,6 +22,8 @@ def update_list_publishers() -> dict:
             if 'target' in a.attrs:
                 url = a.attrs['href']
                 domain = get_domain(url)
+                if normalize(domain) in ['mdpi']:
+                    continue
                 name = a.get_text(' ')
                 publisher_clean = detect_publisher(name, '2020', None)['publisher_normalized'] 
                 publishers.append({'url': url, 'publisher': publisher_clean, 'domain': domain})
@@ -39,8 +41,6 @@ def update_list_journals() -> dict:
             if 'target' in a.attrs:
                 url = a.attrs['href']
                 domain = get_domain(url)
-                if normalize(domain) in ['mdpi']:
-                    continue
                 name = a.get_text(' ')
                 journals.append({'url': url, 'journal': name, 'domain': domain})
     df_journals = pd.DataFrame(journals)
