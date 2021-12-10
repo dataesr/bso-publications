@@ -16,6 +16,7 @@ from bso.server.main.unpaywall_feed import download_daily, download_snapshot, sn
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file, get_dois_from_input
+from bso.server.main.extract_transform import extract_all
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
@@ -114,6 +115,11 @@ def create_task_load_mongo(args: dict) -> None:
         logger.debug(f'Deleting file {path}')
         os.remove(path)
 
+def create_task_et(args: dict) -> None:
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+    observations = args.get('observations', [])
+    output_file = f'{MOUNTED_VOLUME}output_publications.jsonl'
+    extract_all(output_file, observations)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
