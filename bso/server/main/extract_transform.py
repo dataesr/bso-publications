@@ -36,7 +36,7 @@ def remove_fields_bso(res):
 def extract_all(output_file, observations):
     ids_in_index, natural_ids_in_index = set(), set()
     bso_local_dict, bso_local_filenames = build_bso_local_dict()
-    os.system('rm -rf {output_file}')
+    os.system(f'rm -rf {output_file}')
     ids_in_index, natural_ids_in_index = extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
     ids_in_index, natural_ids_in_index = extract_container(output_file, 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
     ids_in_index, natural_ids_in_index = extract_container(output_file, 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
@@ -52,7 +52,7 @@ def extract_all(output_file, observations):
     df_chunks = pd.load_json(output_file, lines=True, chunk_size = 10000)
     ix = 0
     enriched_output_file = output_file.replace('.jsonl', '_enriched.jsonl')
-    os.system('rm -rf {enriched_output_file}')
+    os.system(f'rm -rf {enriched_output_file}')
     for c in df_chunks:
         enriched_publications = enrich(publications=c, observations=observations, affiliation_matching=affiliation_matching,
             entity_fishing=entity_fishing,
