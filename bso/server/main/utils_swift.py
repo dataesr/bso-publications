@@ -103,7 +103,7 @@ def get_objects_by_prefix(container: str, prefix: str) -> list:
 
 
 @retry(delay=2, tries=50)
-def get_objects_by_page(container: str, page: int, full_objects: bool, nb_objects = 1000) -> list:
+def get_objects_by_page(container: str, page: int, full_objects: bool, nb_objects=1000) -> list:
     logger.debug(f'Retrieving object from container {container} and page {page}')
     marker = None
     keep_going = True

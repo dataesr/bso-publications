@@ -1,12 +1,9 @@
 import datetime
-import csv
-import gzip
-import json
 import os
+import pandas as pd
 import re
 import requests
 import shutil
-import pandas as pd
 
 from typing import Union
 from urllib import parse
@@ -71,41 +68,46 @@ def download_file(url: str, upload_to_object_storage: bool = True, destination: 
 
 def dump_to_object_storage(args: dict) -> list:
     es_index = args.get('index_name', 'bso-publications')
-    size = args.get('size', -1)
     # 1. Dump ES bso-publications index data into temp file
-    es_url_without_http = ES_URL.replace('https://','').replace('http://','')
+    es_url_without_http = ES_URL.replace('https://', '').replace('http://', '')
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
     container = 'bso_dump'
     today = datetime.date.today().isoformat().replace('-', '')
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_json_file = f'{MOUNTED_VOLUME}{es_index}_{today}.jsonl.gz'
     output_csv_file = f'{MOUNTED_VOLUME}{es_index}_{today}.csv'
-    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} --type=data --sourceOnly=true --fsCompress=gzip --limit 10000'
+    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} ' \
+                      f'--type=data --sourceOnly=true --fsCompress=gzip --limit 10000'
     logger.debug(cmd_elasticdump)
     os.system(cmd_elasticdump)
     logger.debug('Elasticdump is done')
     # 2. Convert JSON file into CSV by selecting fields
-    last_oa_details=args.get('last_oa_details',"2021Q4")
-
-    cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination,hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR,detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date,oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories' > {output_csv_file}"
+    last_oa_details = args.get('last_oa_details', '2021Q4')
+    cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination," \
+                 f"hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR," \
+                 f"detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date," \
+                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories' > {output_csv_file}"
     logger.debug(cmd_header)
     os.system(cmd_header)
-    
-    cmd_jq = f"zcat {output_json_file} |  jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name,.publisher,.publisher_dissemination,.hal_id,.pmid,.bso_classification,((.bsso_classification.field)?|join(\";\"))//null,((.domains)?|join(\";\"))//null,.lang,.genre,.amount_apc_EUR,((.detected_countries)?|join(\";\"))//null,((.bso_local_affiliations)?|join(\";\"))//null,[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.journal_is_in_doaj,.journal_is_oa,.observation_date,([.oa_host_type]|flatten)[0],((.oa_colors)?|join(\";\"))//null,((.licence_publisher)?|join(\";\"))//null,((.licence_repositories)?|join(\";\"))//null,((.repositories)?|join(\";\"))//null]]|flatten|@csv' >> {output_csv_file}"
+    cmd_jq = f"zcat {output_json_file} | jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name," \
+             f".publisher,.publisher_dissemination,.hal_id,.pmid,.bso_classification,((.bsso_classification.field)" \
+             f"?|join(\";\"))//null,((.domains)?|join(\";\"))//null,.lang,.genre,.amount_apc_EUR," \
+             f"((.detected_countries)?|join(\";\"))//null,((.bso_local_affiliations)?|join(\";\"))//null," \
+             f"[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.journal_is_in_doaj," \
+             f".journal_is_oa,.observation_date,([.oa_host_type]|flatten)[0],((.oa_colors)?|join(\";\"))//null," \
+             f"((.licence_publisher)?|join(\";\"))//null,((.licence_repositories)?|join(\";\"))//null," \
+             f"((.repositories)?|join(\";\"))//null]]|flatten|@csv' >> {output_csv_file}"
     logger.debug(cmd_jq)
     os.system(cmd_jq)
-        
     local_bso_filenames = []
-
     for page in range(1, 1000000):
-        filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False)
+        filenames = get_objects_by_page(container='bso-local', page=page, full_objects=False)
         if len(filenames) == 0:
             break
         for filename in filenames:
             logger.debug(f'dump bso-local {filename}')
             local_bso_filenames += filename.split('.')[0].split('_')
     local_bso_filenames = list(set(local_bso_filenames))
-
     for local_affiliation in local_bso_filenames:
         logger.debug(f'bso-local files creation for {local_affiliation}')
         cmd_local_json = f'zcat {output_json_file} | fgrep {local_affiliation} > enriched_{local_affiliation}.jsonl'
@@ -118,7 +120,6 @@ def dump_to_object_storage(args: dict) -> list:
         upload_object(container=container, filename=f'enriched_{local_affiliation}.csv')
         os.system(f'rm -rf enriched_{local_affiliation}.jsonl')
         os.system(f'rm -rf enriched_{local_affiliation}.csv')
-    
     cmd_gzip = f'gzip {output_csv_file}'
     logger.debug(cmd_gzip)
     os.system(cmd_gzip)
