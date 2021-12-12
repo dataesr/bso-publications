@@ -121,7 +121,8 @@ def create_task_et(args: dict) -> None:
     output_file = args.get('output_file', 'bso-publications.jsonl')
     output_file = f'{MOUNTED_VOLUME}{output_file}'
     reset_file = args.get('reset_file', True)
-    extract_all(output_file, observations, reset_file)
+    extract = args.get('extract', True)
+    extract_all(output_file, observations, reset_file, extract)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)

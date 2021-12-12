@@ -33,19 +33,24 @@ def remove_fields_bso(res):
                 del aff['name']
     return res
 
-def extract_all(output_file, observations, reset_file):
+def extract_all(output_file, observations, reset_file, extract):
     ids_in_index, natural_ids_in_index = set(), set()
     bso_local_dict, bso_local_filenames = build_bso_local_dict()
-    if reset_file:
+
+    # reset
+    if reset_file and extract:
         os.system(f'rm -rf {output_file}')
-    ids_in_index, natural_ids_in_index = extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
-    ids_in_index, natural_ids_in_index = extract_container(output_file, 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
-    ids_in_index, natural_ids_in_index = extract_container(output_file, 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
-    # ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
-    # ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict, 'a')
-    ids_in_index, natural_ids_in_index = extract_fixed_list(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
-    for filename in bso_local_filenames:
-        ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file, filename, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
+
+    # extract
+    if extract:
+        ids_in_index, natural_ids_in_index = extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
+        ids_in_index, natural_ids_in_index = extract_container(output_file, 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
+        ids_in_index, natural_ids_in_index = extract_container(output_file, 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
+        # ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
+        # ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict, 'a')
+        ids_in_index, natural_ids_in_index = extract_fixed_list(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
+        for filename in bso_local_filenames:
+            ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file, filename, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
 
     # enrichment
     affiliation_matching = False
@@ -60,6 +65,8 @@ def extract_all(output_file, observations, reset_file):
             last_observation_date_only=False)
         to_jsonl(enriched_publications, enriched_output_file, 'a')
         ix += 1
+
+    # load
 
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
