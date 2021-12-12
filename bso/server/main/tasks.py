@@ -118,8 +118,10 @@ def create_task_load_mongo(args: dict) -> None:
 def create_task_et(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     observations = args.get('observations', [])
-    output_file = f'{MOUNTED_VOLUME}output_publications.jsonl'
-    extract_all(output_file, observations)
+    output_file = args.get('output_file', 'bso-publications.jsonl')
+    output_file = f'{MOUNTED_VOLUME}{output_file}'
+    reset_file = args.get('reset_file', True)
+    extract_all(output_file, observations, reset_file)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)

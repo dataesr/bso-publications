@@ -33,10 +33,11 @@ def remove_fields_bso(res):
                 del aff['name']
     return res
 
-def extract_all(output_file, observations):
+def extract_all(output_file, observations, reset_file):
     ids_in_index, natural_ids_in_index = set(), set()
     bso_local_dict, bso_local_filenames = build_bso_local_dict()
-    os.system(f'rm -rf {output_file}')
+    if reset_file:
+        os.system(f'rm -rf {output_file}')
     ids_in_index, natural_ids_in_index = extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
     ids_in_index, natural_ids_in_index = extract_container(output_file, 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
     ids_in_index, natural_ids_in_index = extract_container(output_file, 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
@@ -138,9 +139,10 @@ def extract_container(output_file, container, ids_in_index, natural_ids_in_index
 def extract_fixed_list(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, write_mode):
     for extra_file in ['dois_fr', 'tmp_dois_fr']:
         download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
-        fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
-        fr_dois_set = set(fr_dois)
-        ids_in_index, natural_ids_in_index = select_missing([{'doi': d} for d in fr_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, extra_file, write_mode)
+        if os.path.isfile(f'{MOUNTED_VOLUME}/{extra_file}.json'):
+            fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
+            fr_dois_set = set(fr_dois)
+            ids_in_index, natural_ids_in_index = select_missing([{'doi': d} for d in fr_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, extra_file, write_mode)
     return ids_in_index, natural_ids_in_index
 
 def extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict, write_mode):
@@ -169,8 +171,8 @@ def build_bso_local_dict():
     return bso_local_dict, list(set(bso_local_filenames))
 
 def extract_one_bso_local(output_file, bso_local_filename, ids_in_index, natural_ids_in_index, bso_local_dict, write_mode):
-    local_affiliations = bso_localfilename.split('.')[0].split('_')
-    current_dois = get_dois_from_input(container='bso-local', filename=filename)
+    local_affiliations = bso_local_filename.split('.')[0].split('_')
+    current_dois = get_dois_from_input(container='bso-local', filename=bso_local_filename)
     current_dois_set = set(current_dois)
     logger.debug(f'{len(current_dois)} publications in {filename}')
     return select_missing([{'doi': d} for d in current_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, f'bso_local_{bso_local_filename}', write_mode)
