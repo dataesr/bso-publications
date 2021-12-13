@@ -116,13 +116,13 @@ def create_task_load_mongo(args: dict) -> None:
         os.remove(path)
 
 def create_task_et(args: dict) -> None:
-    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+    index_name = args.get('index', 'bso-publications-NODATE')
     observations = args.get('observations', [])
-    output_file = args.get('output_file', 'bso-publications.jsonl')
-    output_file = f'{MOUNTED_VOLUME}{output_file}'
     reset_file = args.get('reset_file', True)
     extract = args.get('extract', True)
-    extract_all(output_file, observations, reset_file, extract)
+    affiliation_matching = args.get('affiliation_matching', False)
+    entity_fishing = args.get('entity_fishing', False)
+    extract_all(index_name, observations, reset_file, extract, affiliation_matching, entity_fishing)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)

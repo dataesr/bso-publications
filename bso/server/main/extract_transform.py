@@ -6,21 +6,41 @@ import requests
 
 from dateutil import parser
 
-from bso.server.main.config import MOUNTED_VOLUME
+from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.elastic import load_in_es, reset_index, get_doi_not_in_index, update_local_affiliations
 from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
-from bso.server.main.utils_upw import chunks
+from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object
+from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input
 from bso.server.main.strings import normalize
 
 logger = get_logger(__name__)
     
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+
+def json_to_csv(json_file, last_oa_details):
+    output_csv_file = json_file.replace('.jsonl', '.csv')
+    cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination," \
+                 f"hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR," \
+                 f"detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date," \
+                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories' > {output_csv_file}"
+    logger.debug(cmd_header)
+    os.system(cmd_header)
+    cmd_jq = f"cat {json_file} | jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name," \
+             f".publisher,.publisher_dissemination,.hal_id,.pmid,.bso_classification,((.bsso_classification.field)" \
+             f"?|join(\";\"))//null,((.domains)?|join(\";\"))//null,.lang,.genre,.amount_apc_EUR," \
+             f"((.detected_countries)?|join(\";\"))//null,((.bso_local_affiliations)?|join(\";\"))//null," \
+             f"[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.journal_is_in_doaj," \
+             f".journal_is_oa,.observation_date,([.oa_host_type]|flatten)[0],((.oa_colors)?|join(\";\"))//null," \
+             f"((.licence_publisher)?|join(\";\"))//null,((.licence_repositories)?|join(\";\"))//null," \
+             f"((.repositories)?|join(\";\"))//null]]|flatten|@csv' >> {output_csv_file}"
+    logger.debug(cmd_jq)
+    os.system(cmd_jq)
+    return output_csv_file
 
 def remove_fields_bso(res): 
     # not exposing some fields in index
@@ -33,7 +53,10 @@ def remove_fields_bso(res):
                 del aff['name']
     return res
 
-def extract_all(output_file, observations, reset_file, extract):
+def extract_all(index_name, observations, reset_file, extract, affiliation_matching, entity_fishing):
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+    output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
+    
     ids_in_index, natural_ids_in_index = set(), set()
     bso_local_dict, bso_local_filenames = build_bso_local_dict()
 
@@ -53,11 +76,9 @@ def extract_all(output_file, observations, reset_file, extract):
             ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file, filename, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
 
     # enrichment
-    affiliation_matching = False
-    entity_fishing = False
     df_chunks = pd.load_json(output_file, lines=True, chunk_size = 10000)
     ix = 0
-    enriched_output_file = output_file.replace('.jsonl', '_enriched.jsonl')
+    enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
     os.system(f'rm -rf {enriched_output_file}')
     for c in df_chunks:
         enriched_publications = enrich(publications=c, observations=observations, affiliation_matching=affiliation_matching,
@@ -67,6 +88,42 @@ def extract_all(output_file, observations, reset_file, extract):
         ix += 1
 
     # load
+    # csv
+    last_oa_details = get_millesime(max(observations))
+    enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
+
+    # elastic
+    es_url_without_http = ES_URL.replace('https://','').replace('http://','')
+    es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
+    reset_index(index=index_name)
+    elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
+    logger.debug(f'{elasticimport}')
+    logger.debug('starting import in elastic')
+    os.system(elasticimport)
+
+    for local_affiliation in local_bso_filenames:
+        local_filename = f' {index_name}_{local_affiliation}_enriched'
+        logger.debug(f'bso-local files creation for {local_affiliation}')
+        cmd_local_json = f'cat {enriched_output_file} | fgrep {local_affiliation} > {local_filename}.jsonl'
+        cmd_local_csv_header = f'head -n 1 {enriched_output_file_csv} > {local_filename}.csv'
+        cmd_local_csv = f'cat {enriched_output_file_csv} | fgrep {local_affiliation} >> {local_filename}.csv' 
+        os.system(cmd_local_json)
+        os.system(cmd_local_csv_header)
+        os.system(cmd_local_csv)
+        upload_object(container=container, filename=f'{local_filename}.jsonl')
+        upload_object(container=container, filename=f'{local_filename}.csv')
+        os.system(f'rm -rf {local_filename}.jsonl')
+        os.system(f'rm -rf {local_filename}.csv')
+
+
+    # dump
+    os.system(f'gzip {enriched_output_file}')
+    os.system(f'gzip {enriched_output_file_csv}')
+    upload_object(container='bso_dump', filename=f'{enriched_output_file}.gz')
+    upload_object(container='bso_dump', filename=f'{enriched_output_file_csv}.gz')
+    os.system(f'rm -rf {enriched_output_file}')
+    os.system(f'rm -rf {enriched_output_file_csv}')
+
 
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
