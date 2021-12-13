@@ -39,20 +39,22 @@ for i, row in df_doi.iterrows():
     doi_map[row.doi_prefix.strip()]=row.publisher.strip()
 
 def detect_publisher(raw_input, published_date, doi):
+    raw_input_to_normalize = raw_input
     if isinstance(doi, str):
         doi_prefix = doi.lower().strip().split('/')[0]
         if doi_prefix in doi_map:
-            return {'publisher_normalized': doi_map[doi_prefix], 'publisher_group': doi_map[doi_prefix], 'publisher_dissemination': doi_map[doi_prefix]}
+            publisher_doi_prefix = doi_map[doi_prefix]
+            raw_input_to_normalize = publisher_doi_prefix
     if not isinstance(raw_input, str):
-        return {'publisher_normalized': raw_input, 'publisher_group': raw_input, 'publisher_dissemination': raw_input}
-    unaccented_string = unidecode.unidecode(raw_input).replace(',', ' ').replace('  ', ' ')
+        return {'publisher_normalized': raw_input_to_normalize, 'publisher_group': raw_input_to_normalize, 'publisher_dissemination': raw_input_to_normalize}
+    unaccented_string = unidecode.unidecode(raw_input_to_normalize).replace(',', ' ').replace('  ', ' ')
     unaccented_string = unaccented_string.replace("’", "'")
     without_parenthesis = re.sub(r'\([^)]*\)', '', unaccented_string)
     tested_string = without_parenthesis.strip()
     if pd.isnull(published_date):
         published_date = '2010'
     if '/' in tested_string:
-        return {'publisher_normalized': raw_input, 'publisher_group': raw_input, 'publisher_dissemination': raw_input}
+        return {'publisher_normalized': raw_input_to_normalize, 'publisher_group': raw_input_to_normalize, 'publisher_dissemination': raw_input_to_normalize}
     for r in rgx_list:
         if re.search(r['pattern'], tested_string):
             publisher_normalized = r['publisher_normalized']
@@ -73,4 +75,4 @@ def detect_publisher(raw_input, published_date, doi):
             if current_date >= dissemination_date:
                 publisher_dissemination = r['publisher_dissemination']
             return {'publisher_normalized': publisher_normalized, 'publisher_group': publisher_group, 'publisher_dissemination': publisher_dissemination}
-    return {'publisher_normalized': raw_input, 'publisher_group': raw_input, 'publisher_dissemination': raw_input}
+    return {'publisher_normalized': raw_input_to_normalize, 'publisher_group': raw_input_to_normalize, 'publisher_dissemination': raw_input_to_normalize}
