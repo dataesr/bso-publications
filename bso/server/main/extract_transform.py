@@ -69,20 +69,22 @@ def extract_all(index_name, observations, reset_file, extract, affiliation_match
         ids_in_index, natural_ids_in_index = extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
         ids_in_index, natural_ids_in_index = extract_container(output_file, 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
         ids_in_index, natural_ids_in_index = extract_container(output_file, 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
-        # ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
-        # ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict, 'a')
+        ## ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
+        ## ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict, 'a')
         ids_in_index, natural_ids_in_index = extract_fixed_list(output_file, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
         for filename in bso_local_filenames:
             ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file, filename, ids_in_index, natural_ids_in_index, bso_local_dict, 'a')
 
     # enrichment
-    df_chunks = pd.load_json(output_file, lines=True, chunk_size = 10000)
+    df_chunks = pd.read_json(output_file, lines=True, chunksize = 10000)
     ix = 0
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
     os.system(f'rm -rf {enriched_output_file}')
     for c in df_chunks:
-        enriched_publications = enrich(publications=c, observations=observations, affiliation_matching=affiliation_matching,
+        logger.debug(f'chunk {ix}')
+        enriched_publications = enrich(publications=c.to_dict(orient='records'), observations=observations, affiliation_matching=affiliation_matching,
             entity_fishing=entity_fishing,
+            datasource = None,
             last_observation_date_only=False)
         to_jsonl(enriched_publications, enriched_output_file, 'a')
         ix += 1
@@ -238,7 +240,7 @@ def extract_one_bso_local(output_file, bso_local_filename, ids_in_index, natural
     local_affiliations = bso_local_filename.split('.')[0].split('_')
     current_dois = get_dois_from_input(container='bso-local', filename=bso_local_filename)
     current_dois_set = set(current_dois)
-    logger.debug(f'{len(current_dois)} publications in {filename}')
+    logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
     return select_missing([{'doi': d} for d in current_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, f'bso_local_{bso_local_filename}', write_mode)
 
     # alias update is done manually !

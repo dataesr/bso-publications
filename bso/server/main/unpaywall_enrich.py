@@ -291,9 +291,8 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             publis_dict[doi] = p
     all_updated = []
     logger.debug(f'Enriching {len(publications)} publications')
-    for publi_chunk in chunks(lst=publications, n=5000):
+    for publi_chunk in chunks(lst=publications, n=10000):
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
-        
 
         data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # Remove data with no oa details info (not indexed in unpaywall)
