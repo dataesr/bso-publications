@@ -151,7 +151,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         }
         if isinstance(res.get('lang'), str) and res.get('lang').lower() in lang_mapping:
             res['lang'] = lang_mapping[res['lang'].lower()]
-        elif 'lang' not in res or res['lang'] is None or len(res['lang']) != 2 or res['lang'] != res['lang'].lower():
+        elif (not(isinstance(res.get('lang'), str))) or (len(res['lang']) != 2) or (res['lang'] != res['lang'].lower()):
             publi_title_abstract = ''
             words_title = get_words(res.get('title', ''))
             if isinstance(words_title, str):
