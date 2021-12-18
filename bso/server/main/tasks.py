@@ -37,8 +37,9 @@ def create_task_enrich(args: dict) -> list:
     observations = args.get('observations', [])
     affiliation_matching = args.get('affiliation_matching', False)
     entity_fishing = args.get('entity_fishing', False)
+    datasource = args.get('datasource', 'user')
     last_observation_date_only = args.get('last_observation_date_only', False)
-    return enrich(publications=publications, observations=observations, datasource='user', affiliation_matching=affiliation_matching,
+    return enrich(publications=publications, observations=observations, datasource=datasource, affiliation_matching=affiliation_matching,
             entity_fishing=entity_fishing,
             last_observation_date_only=last_observation_date_only)
 
@@ -122,7 +123,8 @@ def create_task_et(args: dict) -> None:
     extract = args.get('extract', True)
     affiliation_matching = args.get('affiliation_matching', False)
     entity_fishing = args.get('entity_fishing', False)
-    extract_all(index_name, observations, reset_file, extract, affiliation_matching, entity_fishing)
+    skip_download = args.get('skip_download', False)
+    extract_all(index_name, observations, reset_file, extract, affiliation_matching, entity_fishing, skip_download)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
