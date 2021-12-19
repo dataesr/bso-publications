@@ -161,11 +161,11 @@ Obviously, this does not impact the overall Open Access rate, but this balanced 
 
 ![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
 
-Another graphical way to represent this balance is to use a bubble chart. Each bubble represents a cluster of publications (think about having a bubble for each discipline, for each dissemination platform ...), its size depends on the number of publications in the cluster. The x-axis represents the share of OA publications hosted by the publisher: it is then the sum of the share of publication hosted only by the publisher and the share hosted on an open repository and by the publisher. Conversely, the y-axis represents the share of OA publications hosted on a repository: it is then the sum of the share of publication hosted only on a repository and the share hosted on an open repository and by the publisher.
+Another graphical way to represent this balance is to use a bubble chart. Each bubble represents a cluster of publications (one bubble is the equivalent for each discipline, for each dissemination platform ...), its size depends on the number of publications in the cluster. The x-axis represents the share of OA publications hosted by the publisher, corresponding to the sum of publisher-only and publisher / open repository hosted publications. Conversely, the y-axis represents the share of OA publications hosted on a repository, corresponding to the sum of open repository-only and open repository / publisher hosted publications.
 
 ![Share of publications in open access hosted on an open repository vs. by the publisher](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/bubbles.png){ width=450 }
 
-The source of data used to compute these OA types is still Unpaywall, but instead of the 'oa_status' field, we use the 'oa_locations' field. For a publication which is open access, it lists all the existing free copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the free copy, and some metadata of the location is associated, in particular the 'host_type', that can take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are considered repositories.
+The source of data used to compute these OA types is still Unpaywall, but instead of the 'oa_status' field, we use the 'oa_locations' field. For a publication which is in open access, it lists all the existing free copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the free copy, and some metadata for the location is associated, in particular the 'host_type', that can take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are considered as repositories.
 
 
 
@@ -174,11 +174,11 @@ The source of data used to compute these OA types is still Unpaywall, but instea
 All disciplines and publication languages are covered, while no metadata exists to describe the discipline or the publication language. To enrich the metadata, we then rely on machine learning approches, that try to infer
 discipline and language from the available metadata. 
 
-For the language detection, only the title, and the abstract are used if available, with the lid.176.bin fasttext word
+For the language detection, only the title and abstract are used if available, with the lid.176.bin fasttext word
 embedding machine learning algorithm [@joulin_bag_2016].
 
 Discipline detection also uses journal and keywords metadata if available. A general classifier is implemented for all
-domains, it classifies the publications into 10 macro disciplines: Mathematics, Chemistry, Physics & astronomy,
+domains, which classifies the publications into 10 macro disciplines: Mathematics, Chemistry, Physics & astronomy,
 Fondamental biology, Medical research, Computer sciences, Earth science ecology energy & applied biology, Humanities,
 Social sciences, Engineering. It is trained on data from the Pascal & Francis database and uses a Fasttext classifier.
 More details are discussed in the previous paper [@jeangirard_monitoring_2019]. 
@@ -186,7 +186,7 @@ More details are discussed in the previous paper [@jeangirard_monitoring_2019].
 A domain-specific classifier is implemented for the Health domain. It classifies the publications into 17 disciplines,
 built from the Fields of Research taxonomy. The full methodology is detailed in [@jeangirard_content-based_2021].
 
-The main purpose of these metadata enrichments is to be able to analyse the open access rate in function of languages
+The main purpose of these metadata enhancements is to be able to analyse the open access rate in function of languages
 and disciplines. We expect to observe differences not only in the global OA rate (which discipline is the most open ?),
 but also in the dynamics trends (which discipline show the strongest increase over time ?) or in the opening uses
 (relying on publisher hosted open access versus open repositories).
@@ -195,19 +195,19 @@ but also in the dynamics trends (which discipline show the strongest increase ov
 
 #### 2.1.5.1 Identification of the dissemination platforms
 
-The data in the 'publisher' field of Crossref shows many inconsistencies. There are many journals, with a single ISSN, that belong to more than one pubisher - whether they are different lexical forms or really different entities. Consequently, we have made a triple grouping in order to favour the coding of an economic entity diffusing the journal in question.
+The data in the 'publisher' field of Crossref shows many inconsistencies. There are many journals, with a single ISSN, that belong to more than one publisher - whether they are different lexical forms or really different entities. Consequently, we have made a triple grouping in order to favour the coding of an economic entity diffusing the journal in question.
 
- - First, we considered the diversity of lexical forms of the same publisher, existing in developed form and in the form of actronyms, or without and with its economic status (LLC, Ltd.,...);
+ - Firstly, we considered the diversity of lexical forms of the same publisher, existing in developed form and in the form of acronyms, or without and with its economic status (LLC, Ltd.,...);
 
- - Second, we have taken into account the capitalist evolution of the sector, which is marked by a growing concentration, with successive takeovers. The latter do not necessarily make the old group names disappear, most often used as a brand name;
+ - Secondly, we have taken into account the capitalist evolution of the sector, which is marked by a growing concentration, with successive takeovers. The latter do not necessarily make the old group names disappear, most often used as a brand name;
 
- - Third, we have taken into account the separation between publisher and dissemination platform, with many scholarly societies remaining the owner and publisher, but delegating the dissemination of their publications to the publisher.
+ - Thirdly, we have taken into account the separation between publisher and dissemination platform, with many scholarly societies remaining the owner and publisher, but delegating the dissemination of their publications to the publisher.
 
 We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher
 
 #### 2.1.5.2 Business models and open licenses
 
-As explained above, the 'oa_status' in Unpaywall data hides part of the role of the open repositories. It also hides Diamond open access, that is to say it mixes in the same 'Gold' category all publications published in an open-access journal that is indexed by the DOAJ, whether there are Article Process Charges (APC) or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories : 
+As explained above, the 'oa_status' in Unpaywall data hides some part of the role of open repositories. It also hides Diamond open access, that is to say it mixes in the same 'Gold' category all publications published in an open-access journal that is indexed by the DOAJ, whether Article Process Charges (APC) were paid or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories : 
 
  - **Diamond DOAJ**: journal-article published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data).
 
@@ -215,9 +215,9 @@ As explained above, the 'oa_status' in Unpaywall data hides part of the role of 
 
  - **Hybrid**: all other open access publication with a copy available on the publisher webpage.
 
-On one hand, the 'Gold' category from [@piwowar_state_2018] is broken down into 2 categories to make Diamond explictly appear. On the other hand, the 'Hybrid' and 'Bronze' categories from [@piwowar_state_2018] are merged into 'Hybrid', without considering the license information. Indeed, the objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyse the open licenses associated to the OA copies.
+On the one hand, the 'Gold' category from [@piwowar_state_2018] is broken down into 2 categories to make Diamond explictly appear. On the other hand, the 'Hybrid' and 'Bronze' categories from [@piwowar_state_2018] are merged into 'Hybrid', without considering the license information. Indeed, the objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyse the open licenses associated to the OA copies.
 
-For that matter, a third analysis level is used that distingues, for open access publications:
+For that matter, a third analysis level is used that distinguishes, for open access publications:
 
  - **Creative commons** licenses (cc0, cc-by, cc-by-nc etc ...)
 
@@ -225,13 +225,13 @@ For that matter, a third analysis level is used that distingues, for open access
 
  - **No license** 
 
-To be clear, the no license category does not mean the publications are closed, on the contrary they are open but no open license was detected, meaning the reuse conditions, beyond reading, are not defined.
+To be clear, the no license category does not mean that the publications are closed, on the contrary they are in open access but no open license was detected, meaning the reuse conditions, beyond reading, are not defined.
 
-Again, the informations from the field 'oa_locations' in the Unpaywall data that is used, and therefore, the results are dependent on the Unpaywall database data quality.
+Again, the informations from the field 'oa_locations' comes from Unpaywall, therefore the results depend on the quality of the Unpaywall database.
 
 #### 2.1.5.3 Article Processing Charges (APC) estimation
 
-Estimating APC for each journal article remains difficult as few open sources exist. We leverage on the openAPC database (at the publication level) and on the DOAJ data (at the ISSN level). We use the following heuristics to estimate the APC of a publication.
+Estimating APC for each journal article remains difficult as few open sources exist. We leverage on the openAPC database (at the publication level) and on the DOAJ data (at the ISSN level). We use the following heuristics to estimate the APC of a publication :
 
  - If the DOI is not open access with a free copy on the publisher webpage, there is no APC estimation to make.
 
@@ -245,7 +245,7 @@ Estimating APC for each journal article remains difficult as few open sources ex
 
  - Otherwise, no estimation is made.
 
-We are aware this estimation is far from perfect but still brings some insights. On top of that, even if we focus on French publications (publications with at an author with a French affiliation), the sum of the APC estimated is higher than the real amount of APC money spent by French institutions, as a large fraction of the publications are co-authored with scholars affiliated to foreign institutions. Informations on corresponding author could be a proxy to focus on APC spent by France but for now, we do not have an open, reliable and massive source for this information. 
+We are aware that this estimation is far from being perfect, but it still brings some insights. On top of that, even if we focus on French publications (publications with at an author with a French affiliation), the sum of the APC estimated is higher than the real amount of APC money spent by French institutions, as a large share of the publications are co-authored with scholars affiliated to foreign institutions. Informations on the corresponding author could be a proxy to focus on APC spent by France but for now, we do not have an open, reliable and massive source for this information. 
 
  
 ### 2.1.6 The role of the open repositories
@@ -253,45 +253,47 @@ We are aware this estimation is far from perfect but still brings some insights.
 
 ### 2.1.7 Other analysis axis
 
-In the case of the Health domain, we use metadata coming from PubMed. These metadata are quite rich and enable extra analysis. In particular, some **funding metadata** are present in PubMed, as well as the **affiliations for each author** (not always the case when using other sources and scraped metadata). 
+In the case of the Health domain, we use metadata coming from PubMed. These metadata are quite rich and enable extra analysis. In particular, some **funding metadata** are present in PubMed, as well as the **affiliations for each author** (it is not always the case when using other sources and scrapped metadata). 
 
-PubMed gives info on grant declaration. To be clear, the absence of this metadata does not mean that there was no specific funding leading to the given publication. So the only thing we can do is to check whether a correlation exist between the open access rate and the presence of the grant metadata in PubMed. 
+PubMed gives information on grant declaration. To be clear, the absence of this metadata does not mean that there was no specific funding leading to the given publication. So the only thing we can do is to check whether a correlation exist between the open access rate and the presence of the grant metadata in PubMed. 
 
-As the affiliations information is given for each author, we can use [@lhote_using_2021] to infer the country of affiliations of each author. We wish to analyse whether to analyse if the country of affiliations of the corresponding author correlates to the open access rate. Unfortunately the corresponding author metadata is not available, so we chose an approximation looking at the affiliation country of the **first and the last authors**. That will give an insight to know whether, for French publications, the OA rate is in general higher when one of the first or last authors has a French affiliation, or, conversely, if the OA rate is higher when the first and last author are affiliated abroad.
+As the affiliations information is given for each author, we can use [@lhote_using_2021] to infer the country of affiliations of each author. We wish to analyze whether the country of affiliations of the corresponding author correlates to the open access rate or not. Unfortunately, the corresponding author metadata is not available, that is why we chose an approximation looking at the affiliation country of the **first and the last authors**. That will give an insight to know whether, for French publications, the OA rate is in general higher when one of the first or last authors has a French affiliation, or, conversely, if the OA rate is higher when the first and last author are affiliated abroad.
 
 ## 2.2 Clinical trials and observational studies
 
-The French Open Science Monitor focuses, for now, only on publications. Current work is being conducted on monitoring also Research Data and Software Code. The French Open Science Monitor in Health, however, laready introduces new research objects specific to the Health domains: the clinical trials and the observational studies.
+The French Open Science Monitor focuses, for now, only on publications. Current work is being conducted on monitoring also Research Data and Software Code. The French Open Science Monitor in Health, however, already introduces new research objects specific to the Health domains: the clinical trials and the observational studies.
 
-In the US, reporting and publication of results is mandatory for all clinical trials, the reporting registry used is https://clinicaltrials.gov/. This site is also used by many international actors. It also welcomes the report of observational studies, though this reporting is not mandatory.
+In the US, reporting and publication of results is mandatory for all clinical trials. The reporting registry used is https://clinicaltrials.gov/. This site is also used by many international actors. It also welcomes the report of observational studies, though this reporting is not mandatory.
  
 In the European Union, the reporting obligation will only extend to clinical drug, from 2022 on. The European registry https://www.clinicaltrialsregister.eu/ (EUCTR) therefore mainly includes clinical trials involving medicines, and less frequently observational studies, clinical trials involving surgical protocols, medical devices or psychotherapeutic protocols.
 
 The issue of opening up or sharing data arises for clinical research in the same way as for other areas of scientific research. However, it has a particularly complex dimension, since it involves personal data, some of which directly concern the health of individuals. Nevertheless, it is possible to define the modalities for sharing this data.
+
 Two dimensions will be developed: 
  
- - the openness of the results and publications when the study is completed.
+ - The openness of the results and publications when the study is completed.
  
- - the declaration of clinical and observational studies in these public registries.
+ - The declaration of clinical and observational studies in these public registries.
 
 
 ### 2.2.1 Perimeter
 
-Two datasources are used for now to collect metadata about clinical trials and observational studies: clinicaltrials.org and EUCTR. clinicaltrials.org proposes an API while EUCTR does not so the information is crawled from the website. Only the trials and studies that involves at least **one location in France** are analysed. 
+Two datasources are used for now to collect metadata about clinical trials and observational studies: clinicaltrials.org and EUCTR. clinicaltrials.org proposes an API while EUCTR does not; that is why the information is crawled from the website. Only the trials and studies that involves at least **one location in France** are analyzed. 
 
 Some trials or studies appear in both registries, the matching between the two databases being done based on the PIDs NCTId (from clinicaltrials.org) and eudraCT (from EUCTR), both registries keeping track of external PIDs. However, duplicates may still remain if no link was established between the existing PIDs in both registries.
 
-To distinguish between clinical trials on one side and observational studies on the other, we use the study type field, that can be either 'Interventional' (for clinical studies) or 'Observational' (for observational studies).
+To distinguish clinical trials on one side and observational studies on the other, we use the study type field, that can be either 'Interventional' (for clinical studies) or 'Observational' (for observational studies).
 
 ### 2.2.1 Main opening indicators
 
 Mainly two types of indicators are analysed: 
 
- - the declaration of results and / or scholarly publications after a trial or study is completed. [@goldacre_compliance_2018] showed that a large fraction of trials do not report their results. On top of the results declaration rate itself, we look into the time to register the results, meaning how much time has passed between the end of the trial and the actual date when the results are reported.
-We propose both indicators mixing or separating results and scholarly publications. For the publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (whith PubMed for example). The open access status of these publications is also retrieved with the Unpaywall data. 
+ - The declaration of results and / or scholarly publications after a trial or study is completed. [@goldacre_compliance_2018] showed that a large fraction of trials do not report their results. On top of the results declaration rate itself, we look into the results' date of registration, showing how much time has passed between the end of the trial and the actual date when the results are reported.
+
+We propose both indicators mixing or separating results and scholarly publications. For the publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (whith PubMed for example). The open access status of these publications is also retrieved from the Unpaywall data. 
  
 
- - the delay to register the study: is the trial or study publicly registered before it actually starts, or is it done after ? And what is, in month, the actual delay to register ? Does it evolve over time ?
+ - The delay to register the study: is the trial or study publicly registered before it actually starts, or is it done after ? And what is, in month, the actual delay to register ? Does it evolves over time ?
 
 ### 2.2.2 Lead sponsor impact 
 
@@ -299,7 +301,19 @@ We propose both indicators mixing or separating results and scholarly publicatio
 
 ## 2.3 'Local' Open Science Monitors
 
-[@bracco:hal-03450104v1]
+The University of Lorraine was the first institution to propose a local version of the French Monitor. The code created on this occasion is freely accessible:[@bracco:hal-03450104v1].
+
+This local version, published during spring 2020, was designed with reusability in mind. For this purpose, the code has been detailed step by step in Jupyter Notebooks and includes a readme file explaining all the required actions to obtain its own Barometer.
+
+The availability of the code was combined with numerous training sessions as well as individual assistance provided by the University of Lorraine to each institution that requested it.
+
+Following the publication of this code, many institutions were able to generate their own Open Science indicators. This enthusiasm for local implementation has underlined the need for institutions to have reliable and effective tools for monitoring Open Science.
+
+The new version of the national Monitor allows, directly from the website, to generate graphs from a list of DOIs previously sent to the MESRI team. The University of Lorraine has been asked to test and implement this new version.
+
+The constitution of the DOI corpus remains an essential step for the institutions. The code proposed by the University of Lorraine makes it possible to generate this list simply by crossing various databases such as the Web of Science, PubMed or HAL.
+
+This simplified version will probably encourage other institutions to establish their own Monitor.
 
 
 ## 2.4 Data collection system and architecture
@@ -310,21 +324,22 @@ before with the technical and the storage challenges.
 ### 2.4.1 Data manipulation
 
 Collect, Select, Enrich and Save
-As describe before, we collect data from multiple sources (PubMed via Medline, Crossref, our own list of DOIS), we then 
+We collect data from multiple sources (PubMed via Medline, Crossref, our own list of DOIS), and then 
 try to guess the country according to the affiliations. And from the DOIs, we collect more details about that 
 publication via Unpaywall. By details, we mean open access, 
-Each step is really time and CPU consuming. Assuming any step can fail at any time, we choose to develop each step as
+
+Each step consumes time and CPU. Assuming any step can fail at any time, we choose to develop each step as
 independent and idempotent.
 
 
-From PubMed, collect all the database via Medline and store it as JSONL files on Object Storage on OVH Cloud in a
+From PubMed, we collect all the database via Medline and store it as JSONL files on Object Storage on OVH Cloud in a
 dedicated container.
-At that point, we have all the notices of medical publications. We there find the affiliations of each publication.
+At that point, we have all the notices of medical publications. We find there the affiliations of each publication.
 With the affiliation we tried to detect the countries of the institutions mentioned in the affiliations, in order to
 filter on French publications. The selected publications are stored as JSONL files in another dedicated container on 
 Object Storage on OVH Cloud.
 Now focusing on the French publications, we use the extracted notices to match them against a MongoDatabase that we
-built on a dump of Unpaywall. We use th DOI to consolidate the data and then add many detail
+built on a dump of Unpaywall. We use the DOI to consolidate the data and then add many details.
 
 ![Global overview of the publications data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_publications.png){ width=450 }
 
@@ -336,6 +351,7 @@ To do so, we needed to precisely define the input and the output of each step, a
 results. As JSON is the most common format to manipulate data, we choose to store the results into JSONL files and to
 save them into a dedicated container on the ObjectStorage of OVH Cloud. ObjectStorage is a data storage architecture
 that is easily queryable.
+
 MongoDB
 Elastisearch
 
