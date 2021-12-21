@@ -46,7 +46,7 @@ for i, row in df_openapc.iterrows():
     keys = []
     if row.get('period') and len(str(row['period'])) >= 4:
         year_ok = str(row['period'])[0:4]
-    if not pd.isnull(row.get('publisher')):
+    if isinstance(row.get('publisher'), str) and row.get('publisher'):
         publisher_ok = detect_publisher(row['publisher'].strip(), year_ok, doi)['publisher_group']
         
     if year_ok and publisher_ok:
@@ -105,7 +105,7 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
     # en dernier recours, en cas de revue inconnue dans openAPC, on assigne la moyenne des APC de l'année
     issns = [issn for issn in issns if isinstance(issn, str)]
     year_ok = None
-    if date_str:
+    if isinstance(date_str, str) and date_str:
         year_ok = date_str[0:4]
     keys_to_try = []
     for issn in issns:
@@ -113,7 +113,7 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
             keys_to_try.append({'method': 'issn_year', 'key': f'ISSN{issn.strip()};YEAR{year_ok}'})
     for issn in issns:
         keys_to_try.append({'method': 'issn', 'key': f'ISSN{issn.strip()}'})
-    if publisher:
+    if isinstance(publisher, str) and publisher:
         publisher_ok = detect_publisher(publisher.strip(), year_ok, doi)['publisher_group']
         if year_ok:
             keys_to_try.append({'method': 'publisher_year', 'key': f'PUBLISHER{publisher_ok};YEAR{year_ok}'})

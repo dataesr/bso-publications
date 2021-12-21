@@ -58,12 +58,10 @@ def normalize(x, min_length = 0):
 def get_words(x):
     if isinstance(x, str):
         return x
-    elif x is None:
-        return ''
     elif isinstance(x, dict):
         return get_words([get_words(w) for w in list(x.values())])
     elif isinstance(x, list):
         return ' '.join([get_words(w) for w in x])
     else:
-        logger.debug(f'Get_words is called on {type(x)} object when it should be a str, list or dict !')
+        #logger.debug(f'Get_words is called on {type(x)} object when it should be a str, list or dict !')
         return ''

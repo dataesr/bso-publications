@@ -113,7 +113,8 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
     final = []
     for doi in dois_infos:
         if 'global' not in dois_infos[doi]:
-            res = {'doi': doi}
+            continue
+            #res = {'doi': doi}
         else:
             res = dois_infos[doi]['global']
         if doi in extra_data:
@@ -135,11 +136,18 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 res['authors'] = res['z_authors']
             del res['z_authors']
         # Fields detection
+        #logger.debug('fields1')
         res = detect_fields(res)
+        #logger.debug('fieldsEND')
         # APC
+        published_date_for_apc = res.get('published_date')
+        if not isinstance(published_date_for_apc, str):
+            published_date_for_apc = '2100-01-01'
+            logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc") 
         info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
-                              res.get('published_date', '2100-01-01'), dois_infos[doi])
+                              published_date_for_apc, dois_infos[doi])
         res.update(info_apc)
+        #logger.debug('APC_END')
         # Language
         lang_mapping = {
                 'english': 'en',
@@ -153,14 +161,17 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             res['lang'] = lang_mapping[res['lang'].lower()]
         elif (not(isinstance(res.get('lang'), str))) or (len(res['lang']) != 2) or (res['lang'] != res['lang'].lower()):
             publi_title_abstract = ''
-            words_title = get_words(res.get('title', ''))
+            words_title = get_words(res.get('title'))
             if isinstance(words_title, str):
                 publi_title_abstract += words_title + ' '
-            words_abstract = get_words(res.get('abstract', ''))
+            words_abstract = get_words(res.get('abstract'))
             if isinstance(words_abstract, str):
                 publi_title_abstract += words_abstract
+            publi_title_abstract = publi_title_abstract.strip()
             if len(publi_title_abstract) > 5:
                 res['lang'] = identify_language(publi_title_abstract.strip())
+            else:
+                logger.debug(f'not enough info title / abstract for doi {doi} : {publi_title_abstract}')
         # Entity fishing
         if entity_fishing:
             ef_info = get_entity_fishing(res)
@@ -169,6 +180,8 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         # Predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
+        #logger.debug('PREDA_END')
+        # Language
         # normalisation des editeurs
         published_year = None
         if isinstance(res.get('published_date'), str):
@@ -178,6 +191,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             publisher_raw = 'unknown'
         publisher_clean = detect_publisher(publisher_raw, published_year, doi) 
         res.update(publisher_clean)
+        #logger.debug('PUBLISHER_END')
         #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
         #    res['domains'] = ['health']
         # Genre
@@ -223,6 +237,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 else:
                     last_millesime = asof
 
+        #logger.debug('MILLESIME_END')
         # get hal_id if present in one of the last oa locations
         if last_millesime:
             last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
@@ -248,6 +263,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                             res['hal_id'] = hal_id
 
 
+        #logger.debug('HAL_END')
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
             if pd.isna(res.get(field)):
@@ -264,6 +280,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 if 'name' in aff:
                     del aff['name']
         final.append(res)
+    logger.debug(f'format_upw DONE')
     return final
 
 
@@ -291,7 +308,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             publis_dict[doi] = p
     all_updated = []
     logger.debug(f'Enriching {len(publications)} publications')
-    for publi_chunk in chunks(lst=publications, n=10000):
+    for publi_chunk in chunks(lst=publications, n=20000):
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
 
         data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)

@@ -9,7 +9,8 @@ logger = get_logger(__name__)
 
 
 def detect_fields(a_publication):
-    for classif_type in ['bso', 'bsso', 'sdg']:
+    # for classif_type in ['bso', 'bsso', 'sdg']:
+    for classif_type in ['bso', 'bsso']:
         r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication],
                                                                                      'type': classif_type})
         try:

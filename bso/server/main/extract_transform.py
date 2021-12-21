@@ -6,6 +6,7 @@ import requests
 import gzip
 from dateutil import parser
 
+from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.elastic import load_in_es, reset_index, get_doi_not_in_index, update_local_affiliations
 from bso.server.main.inventory import update_inventory
@@ -22,6 +23,7 @@ from bso.server.main.strings import normalize
 logger = get_logger(__name__)
     
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+
 
 def json_to_csv(json_file, last_oa_details):
     output_csv_file = json_file.replace('.jsonl', '.csv')
@@ -131,15 +133,17 @@ def extract_all(index_name, observations, reset_file, extract, affiliation_match
 
     # enrichment
     # TO do check: 10000=>40 min
-    df_chunks = pd.read_json(output_file, lines=True, chunksize = 8000)
+    df_chunks = pd.read_json(output_file, lines=True, chunksize = 20000)
     ix = 0
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
     os.system(f'rm -rf {enriched_output_file}')
     for c in df_chunks:
         logger.debug(f'chunk {ix}')
-        publications = c.to_dict(orient='records') 
-        enriched_publications = enrich_parallel(publi_chunks=list(chunks(publications, 2000)), observations=observations, affiliation_matching=affiliation_matching,
-            entity_fishing=entity_fishing)
+        # list and remove the NaN
+        publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
+        # publis_chunks = list(chunks(publications, 20000))
+        enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
+            entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False)
         to_jsonl(enriched_publications, enriched_output_file, 'a')
         ix += 1
 
