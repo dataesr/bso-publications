@@ -48,9 +48,27 @@ def reduce_status(all_statuses: list) -> list:
 def get_repository(a_repo: str) -> str:
     if a_repo.replace('www.', '')[0:3].lower() == 'hal':
         return 'HAL'
-    for r in ['bioRxiv', 'medRxiv', 'arXiv', 'Research Square', 'Zenodo', 'Archimer', 'RePEc', 'CiteSeerX']:
+    for r in ['bioRxiv', 'medRxiv', 'arXiv', 'Research Square', 'Zenodo', 'Archimer', 'RePEc', 'CiteSeerX', 'univOAK']:
         if r.lower().replace(' ', '') in a_repo.lower():
             return r
+    if 'lilloa' in a_repo.lower():
+        return 'LillOA (Lille Open Archive)'
+    if 'ucl.ac.uk' in a_repo.lower():
+        return 'UCL Discovery'
+    if 'lirias' in a_repo.lower() and 'kuleuven' in a_repo.lower():
+        return 'LIRIAS (KU Leuven)'
+    if 'pure.atira.dk' in a_repo.lower():
+        return 'Pure (Denmark)'
+    if 'digital.csic.es' in a_repo.lower():
+        return 'DIGITAL.CSIC (Spain)'
+    if 'escholarship.org/ark' in a_repo.lower():
+        return 'California Digital Library - eScholarship'
+    if 'jupiter.its.unimelb.edu.au' in a_repo.lower():
+        return 'University of Melbourne - Minerva Access'
+    if 'helda.helsinki' in a_repo.lower():
+        return 'HELDA - Digital Repository of the University of Helsinki'
+    if 'osti.gov' in a_repo.lower():
+        return 'US Office of Scientific and Technical Information'
     for f in ['pubmedcentral', 'ncbi.nlm.nih.gov/pmc', 'europepmc']:
         if f in a_repo:
             return 'PubMed Central'
