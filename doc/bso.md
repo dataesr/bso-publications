@@ -326,7 +326,7 @@ before with the technical and the storage challenges.
 Collect, Select, Enrich and Save
 We collect data from multiple sources (PubMed via Medline, Crossref, our own list of DOIS), and then 
 try to guess the country according to the affiliations. And from the DOIs, we collect more details about that 
-publication via Unpaywall. By details, we mean open access, 
+publication via Unpaywall. By details, we mean open access, DOAJ, APC ... from multiple sources.
 
 Each step consumes time and CPU. Assuming any step can fail at any time, we choose to develop each step as
 independent and idempotent.
@@ -394,6 +394,7 @@ richer metadata
 based only on metadata from registries
 
 ### 4.2.2 Future work
+
 research data, software code
 
 
