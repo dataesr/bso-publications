@@ -96,7 +96,7 @@ def extract_bso_local(index_name, observations):
     enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
 
     # files for bso local
-    dump_bso_local(local_bso_filenames, enriched_output_file, enriched_output_file_csv)
+    dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv)
     
     # upload to OS
     zip_upload(enriched_output_file)
@@ -161,12 +161,12 @@ def extract_all(index_name, observations, reset_file, extract, affiliation_match
     logger.debug('starting import in elastic')
     os.system(elasticimport)
 
-    dump_bso_local(local_bso_filenames, enriched_output_file, enriched_output_file_csv)
+    dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv)
 
     zip_upload(enriched_output_file)
     zip_upload(enriched_output_file_csv)
 
-def dump_bso_local(local_bso_filenames, enriched_output_file, enriched_output_file_csv):
+def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv):
     for local_affiliation in local_bso_filenames:
         local_filename = f' {index_name}_{local_affiliation}_enriched'
         logger.debug(f'bso-local files creation for {local_affiliation}')
