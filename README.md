@@ -7,3 +7,9 @@ To create a new release:
 ```shell
 make release VERSION=X.X.X
 ```
+
+## Generate bsp.pdf from bso.md
+```shell
+cd doc
+sh build_pdf.sh
+```
