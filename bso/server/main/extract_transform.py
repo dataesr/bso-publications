@@ -198,7 +198,7 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
 def zip_upload(a_file):
     os.system(f'gzip {a_file}')
     upload_object(container='bso_dump', filename=f'{a_file}.gz')
-    os.system(f'rm -rf {a_file}')
+    os.system(f'rm -rf {a_file}.gz')
 
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
