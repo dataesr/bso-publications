@@ -121,10 +121,12 @@ def create_task_et(args: dict) -> None:
     observations = args.get('observations', [])
     reset_file = args.get('reset_file', True)
     extract = args.get('extract', True)
+    transform = args.get('transform', True)
+    load = args.get('load', True)
     affiliation_matching = args.get('affiliation_matching', False)
     entity_fishing = args.get('entity_fishing', False)
     skip_download = args.get('skip_download', False)
-    extract_all(index_name, observations, reset_file, extract, affiliation_matching, entity_fishing, skip_download)
+    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)

@@ -96,13 +96,13 @@ def extract_bso_local(index_name, observations):
     enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
 
     # files for bso local
-    dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv)
+    dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
     
     # upload to OS
     zip_upload(enriched_output_file)
     zip_upload(enriched_output_file_csv)
 
-def extract_all(index_name, observations, reset_file, extract, affiliation_matching, entity_fishing, skip_download):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
@@ -133,53 +133,67 @@ def extract_all(index_name, observations, reset_file, extract, affiliation_match
 
     # enrichment
     # TO do check: 10000=>40 min
-    df_chunks = pd.read_json(output_file, lines=True, chunksize = 20000)
-    ix = 0
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
-    os.system(f'rm -rf {enriched_output_file}')
-    for c in df_chunks:
-        logger.debug(f'chunk {ix}')
-        # list and remove the NaN
-        publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
-        # publis_chunks = list(chunks(publications, 20000))
-        enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
-            entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False)
-        to_jsonl(enriched_publications, enriched_output_file, 'a')
-        ix += 1
+    enriched_output_file_csv = enriched_output_file.replace('.jsonl', '.csv')
 
-    # load
-    # csv
-    last_oa_details = get_millesime(max(observations))
-    enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
+    if transform:
+        df_chunks = pd.read_json(output_file, lines=True, chunksize = 20000)
+        ix = 0
+        os.system(f'rm -rf {enriched_output_file}')
+        for c in df_chunks:
+            logger.debug(f'chunk {ix}')
+            # list and remove the NaN
+            publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
+            # publis_chunks = list(chunks(publications, 20000))
+            enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
+                entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False)
+            to_jsonl(enriched_publications, enriched_output_file, 'a')
+            ix += 1
+        
+        # csv
+        last_oa_details = get_millesime(max(observations))
+        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
 
-    # elastic
-    es_url_without_http = ES_URL.replace('https://','').replace('http://','')
-    es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
-    reset_index(index=index_name)
-    elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
-    logger.debug(f'{elasticimport}')
-    logger.debug('starting import in elastic')
-    os.system(elasticimport)
 
-    dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv)
+    if load:
+        # elastic
+        es_url_without_http = ES_URL.replace('https://','').replace('http://','')
+        es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
+        reset_index(index=index_name)
+        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
+        logger.debug(f'{elasticimport}')
+        logger.debug('starting import in elastic')
+        os.system(elasticimport)
+
+    dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
 
     zip_upload(enriched_output_file)
     zip_upload(enriched_output_file_csv)
 
-def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv):
+def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
+    # first remove existing files
     for local_affiliation in local_bso_filenames:
+        local_affiliation = local_affiliation.split('.')[0]
         local_filename = f' {index_name}_{local_affiliation}_enriched'
-        logger.debug(f'bso-local files creation for {local_affiliation}')
-        cmd_local_json = f'cat {enriched_output_file} | fgrep {local_affiliation} > {local_filename}.jsonl'
-        cmd_local_csv_header = f'head -n 1 {enriched_output_file_csv} > {local_filename}.csv'
-        cmd_local_csv = f'cat {enriched_output_file_csv} | fgrep {local_affiliation} >> {local_filename}.csv' 
-        os.system(cmd_local_json)
-        os.system(cmd_local_csv_header)
-        os.system(cmd_local_csv)
-        upload_object(container='bso_dump', filename=f'{local_filename}.jsonl')
-        upload_object(container='bso_dump', filename=f'{local_filename}.csv')
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
+    
+    df = pd.read_json(enriched_output_file, lines=True, chunksize=20000)
+    ix = 0
+    for c in df:
+        logger.debug(f'dumping local bso jsonl chunk {ix}')
+        publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
+        for p in publications:
+            for local_affiliation in p.get('bso_local_affiliations', []):
+                to_jsonl([p], f'{index_name}_{local_affiliation}_enriched.jsonl', 'a')
+        ix += 1
+    
+    for local_affiliation in local_bso_filenames:
+        local_affiliation = local_affiliation.split('.')[0]
+        local_filename_json = f'{index_name}_{local_affiliation}_enriched.jsonl'
+        local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
+        upload_object(container='bso_dump', filename=f'{local_filename_json}')
+        upload_object(container='bso_dump', filename=f'{local_filename_csv}')
 
 def zip_upload(a_file):
     os.system(f'gzip {a_file}')
