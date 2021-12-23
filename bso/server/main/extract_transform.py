@@ -117,24 +117,30 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     if extract:
         ids_in_index, natural_ids_in_index = extract_pubmed(output_file+'_pubmed', ids_in_index, natural_ids_in_index, bso_local_dict)
         ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download)
-        ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, False)
+        ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download)
         ## ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
         ## ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
         ids_in_index, natural_ids_in_index = extract_fixed_list(output_file+'_dois_fr', ids_in_index, natural_ids_in_index, bso_local_dict)
         for filename in bso_local_filenames:
             ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file+'_bso_local_'+filename, filename, ids_in_index, natural_ids_in_index, bso_local_dict, False)
 
+        logger.debug('copying pubmed')
         os.system(f'cat {output_file}_pubmed > {output_file}')
+        logger.debug('copying parsed_fr')
         os.system(f'cat {output_file}_parsed_fr >> {output_file}')
+        logger.debug('copying crossref_fr')
         os.system(f'cat {output_file}_crossref_fr >> {output_file}')
+        logger.debug('copying dois_fr')
         os.system(f'cat {output_file}_dois_fr >> {output_file}')
         for filename in bso_local_filenames:
+            logger.debug(f'copying {filename}')
             os.system(f'cat {output_file}_bso_local_{filename} >> {output_file}')
 
     # enrichment
     # TO do check: 10000=>40 min
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
     enriched_output_file_csv = enriched_output_file.replace('.jsonl', '.csv')
+    last_oa_details = get_millesime(max(observations))
 
     if transform:
         df_chunks = pd.read_json(output_file, lines=True, chunksize = 20000)
@@ -151,7 +157,6 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             ix += 1
         
         # csv
-        last_oa_details = get_millesime(max(observations))
         enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
 
 
@@ -174,9 +179,9 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
     # first remove existing files
     for local_affiliation in local_bso_filenames:
         local_affiliation = local_affiliation.split('.')[0]
-        local_filename = f' {index_name}_{local_affiliation}_enriched'
-        os.system(f'rm -rf {local_filename}.jsonl')
-        os.system(f'rm -rf {local_filename}.csv')
+        local_filename = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched'
+        os.system(f'rm -rf {MOUNTED_VOLUME}{local_filename}.jsonl')
+        os.system(f'rm -rf {MOUNTED_VOLUME}{local_filename}.csv')
     
     df = pd.read_json(enriched_output_file, lines=True, chunksize=20000)
     ix = 0
@@ -185,12 +190,12 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
         for p in publications:
             for local_affiliation in p.get('bso_local_affiliations', []):
-                to_jsonl([p], f'{index_name}_{local_affiliation}_enriched.jsonl', 'a')
+                to_jsonl([p], f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl', 'a')
         ix += 1
     
     for local_affiliation in local_bso_filenames:
         local_affiliation = local_affiliation.split('.')[0]
-        local_filename_json = f'{index_name}_{local_affiliation}_enriched.jsonl'
+        local_filename_json = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl'
         local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
         upload_object(container='bso_dump', filename=f'{local_filename_json}')
         upload_object(container='bso_dump', filename=f'{local_filename_csv}')
@@ -227,16 +232,22 @@ def select_missing(new_publications, ids_in_index, natural_ids_in_index, output_
             natural_id = p['title_first_author']
         unknown_publication = True
         known_ids = []
+        has_an_id = False
         for known_id in ['doi', 'nnt_id']: 
             if isinstance(p.get(known_id), str):
                 current_id = p[known_id].lower().strip()
+                has_an_id = True
                 known_ids.append(current_id)
                 unknown_publication = unknown_publication and (current_id not in ids_in_index)
-        if known_ids and unknown_publication:
-            missing.append(p)
-            ids_in_index.update(known_ids)
-            natural_ids_in_index.update([natural_id])
-        elif natural_id and natural_id not in natural_ids_in_index:
+        
+        if has_an_id:
+            pass
+        elif has_an_id is False and natural_id not in natural_ids_in_index:
+            unknown_publication = True
+        else:
+            unknown_publication = False
+
+        if unknown_publication:
             missing.append(p)
             ids_in_index.update(known_ids)
             natural_ids_in_index.update([natural_id])
@@ -249,6 +260,7 @@ def select_missing(new_publications, ids_in_index, natural_ids_in_index, output_
         output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
         loaded = load_in_es(data=missing, index=output_file.replace(MOUNTED_VOLUME, '').replace('_extract.jsonl', ''))
     logger.debug(f'{len(missing)} publications extracted')
+    logger.debug(f'ids_in_index: {len(ids_in_index)}, natural_ids_in_index: {len(natural_ids_in_index)}')
     return ids_in_index, natural_ids_in_index
 
 def extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict) -> None:
@@ -275,6 +287,7 @@ def extract_container(output_file, container, ids_in_index, natural_ids_in_index
         cmd =  init_cmd + f' download {container} -D {MOUNTED_VOLUME}/{container} --skip-identical'
         os.system(cmd)
     for prefix in os.listdir(f'{MOUNTED_VOLUME}/{container}'):
+        logger.debug(f'prefix {container}/{prefix}')
         publications = []
         json_files = os.listdir(f'{MOUNTED_VOLUME}/{container}/{prefix}')
         for jsonfilename in json_files:
