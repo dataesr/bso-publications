@@ -8,9 +8,9 @@ SCIENTIFIC_TAGGER_SERVICE = os.getenv('SCIENTIFIC_TAGGER_SERVICE')
 logger = get_logger(__name__)
 
 
-def detect_fields(a_publication):
+def detect_fields(a_publication, classification_types):
     # for classif_type in ['bso', 'bsso', 'sdg']:
-    for classif_type in ['bso', 'bsso']:
+    for classif_type in classification_types:
         r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication],
                                                                                      'type': classif_type})
         try:

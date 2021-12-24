@@ -137,7 +137,13 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             del res['z_authors']
         # Fields detection
         #logger.debug('fields1')
-        res = detect_fields(res)
+        classification_types = ['bso']
+        domains = res.get('domains', [])
+        if not isinstance(domains, list):
+            domains = []
+        if 'health' in domains:
+            classification_types.append('bsso')
+        res = detect_fields(res, classification_types)
         #logger.debug('fieldsEND')
         # APC
         published_date_for_apc = res.get('published_date')

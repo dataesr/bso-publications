@@ -126,7 +126,8 @@ def create_task_et(args: dict) -> None:
     affiliation_matching = args.get('affiliation_matching', False)
     entity_fishing = args.get('entity_fishing', False)
     skip_download = args.get('skip_download', False)
-    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download)
+    chunksize = args.get('chunksize', 5000)
+    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)

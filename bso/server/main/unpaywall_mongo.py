@@ -16,7 +16,6 @@ client = None
 logger = get_logger(__name__)
 
 
-@exception_handler
 def get_client() -> Union[pymongo.MongoClient, None]:
     global client
     if client is None:
@@ -24,14 +23,13 @@ def get_client() -> Union[pymongo.MongoClient, None]:
     return client
 
 
-@exception_handler
 def get_database(database: str = 'unpaywall') -> Union[pymongo.database.Database, None]:
     _client = get_client()
     db = _client[database]
     return db
 
 
-@exception_handler
+@retry(delay=200, tries=2)
 def get_collection(collection_name: str) -> Union[pymongo.collection.Collection, None]:
     db = get_database()
     collection = db[collection_name]
@@ -61,7 +59,6 @@ def get_not_crawled(doi) -> dict:
     return not_crawled
 
 
-@retry(delay=60, tries=5)
 def get_unpaywall_infos(publications, collection_name, file_part) -> None:
     dois = []
     input_infos = {}
@@ -84,7 +81,6 @@ def get_unpaywall_infos(publications, collection_name, file_part) -> None:
     return unpaywall_info
 
 
-@retry(delay=60, tries=5)
 def get_doi(doi, collection_name: str) -> dict:
     collection = get_collection(collection_name=collection_name)
     res = {}
@@ -98,7 +94,6 @@ def get_doi(doi, collection_name: str) -> dict:
     return res
 
 
-@retry(delay=60, tries=5)
 def get_doi_full(dois: list, observations: list, last_observation_date_only:bool) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
     db = get_database()

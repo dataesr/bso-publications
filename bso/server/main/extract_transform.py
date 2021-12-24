@@ -102,7 +102,7 @@ def extract_bso_local(index_name, observations):
     zip_upload(enriched_output_file)
     zip_upload(enriched_output_file_csv)
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
@@ -143,7 +143,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     last_oa_details = get_millesime(max(observations))
 
     if transform:
-        df_chunks = pd.read_json(output_file, lines=True, chunksize = 20000)
+        df_chunks = pd.read_json(output_file, lines=True, chunksize = chunksize)
         ix = 0
         os.system(f'rm -rf {enriched_output_file}')
         for c in df_chunks:
