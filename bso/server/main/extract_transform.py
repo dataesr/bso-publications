@@ -118,8 +118,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         ids_in_index, natural_ids_in_index = extract_pubmed(output_file+'_pubmed', ids_in_index, natural_ids_in_index, bso_local_dict)
         ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download)
         ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download)
-        ## ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
-        ## ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
+        ### ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
+        ### ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
         ids_in_index, natural_ids_in_index = extract_fixed_list(output_file+'_dois_fr', ids_in_index, natural_ids_in_index, bso_local_dict)
         for filename in bso_local_filenames:
             ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file+'_bso_local_'+filename, filename, ids_in_index, natural_ids_in_index, bso_local_dict, False)
@@ -134,7 +134,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(f'cat {output_file}_dois_fr >> {output_file}')
         for filename in bso_local_filenames:
             logger.debug(f'copying {filename}')
-            os.system(f'cat {output_file}_bso_local_{filename} >> {output_file}')
+            os.system(f'cat {output_file}_bso_local_{filename} | sort | uniq >> {output_file}')
 
     # enrichment
     # TO do check: 10000=>40 min
@@ -338,7 +338,7 @@ def build_bso_local_dict():
     return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames))
 
 def extract_one_bso_local(output_file, bso_local_filename, ids_in_index, natural_ids_in_index, bso_local_dict, load_in_elastic):
-    os.system(f'rm -rf bso_local_{bso_local_filename}')
+    os.system(f'rm -rf {output_file}')
     local_affiliations = bso_local_filename.split('.')[0].split('_')
     current_dois = get_dois_from_input(container='bso-local', filename=bso_local_filename)
     current_dois_set = set(current_dois)
