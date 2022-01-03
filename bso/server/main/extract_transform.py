@@ -180,8 +180,8 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
     for local_affiliation in local_bso_filenames:
         local_affiliation = local_affiliation.split('.')[0]
         local_filename = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched'
-        os.system(f'rm -rf {MOUNTED_VOLUME}{local_filename}.jsonl')
-        os.system(f'rm -rf {MOUNTED_VOLUME}{local_filename}.csv')
+        os.system(f'rm -rf {local_filename}.jsonl')
+        os.system(f'rm -rf {local_filename}.csv')
     
     df = pd.read_json(enriched_output_file, lines=True, chunksize=20000)
     ix = 0
@@ -197,8 +197,8 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         local_affiliation = local_affiliation.split('.')[0]
         local_filename_json = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl'
         local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
-        upload_object(container='bso_dump', filename=f'{local_filename_json}')
-        upload_object(container='bso_dump', filename=f'{local_filename_csv}')
+        zip_upload(f'{local_filename_json}')
+        zip_upload(f'{local_filename_csv}')
 
 def zip_upload(a_file):
     os.system(f'gzip {a_file}')
