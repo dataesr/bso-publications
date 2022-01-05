@@ -47,7 +47,7 @@ def json_to_csv(json_file, last_oa_details):
 
 def remove_fields_bso(res): 
     # not exposing some fields in index
-    for f in ['authors', 'references', 'abstract', 'incipit']:
+    for f in ['authors', 'references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors']:
         if f in res:
             del res[f]
     if 'affiliations' in res and isinstance(res['affiliations'], list):
@@ -139,6 +139,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     # enrichment
     # TO do check: 10000=>40 min
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
+    enriched_output_file_full = output_file.replace('_extract.jsonl', '_full.jsonl')
     enriched_output_file_csv = enriched_output_file.replace('.jsonl', '.csv')
     last_oa_details = get_millesime(max(observations))
 
@@ -146,6 +147,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         df_chunks = pd.read_json(output_file, lines=True, chunksize = chunksize)
         ix = 0
         os.system(f'rm -rf {enriched_output_file}')
+        os.system(f'rm -rf {enriched_output_file_full}')
         for c in df_chunks:
             logger.debug(f'chunk {ix}')
             # list and remove the NaN
@@ -153,7 +155,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             # publis_chunks = list(chunks(publications, 20000))
             enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
                 entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False)
-            to_jsonl(enriched_publications, enriched_output_file, 'a')
+            to_jsonl(enriched_publications, enriched_output_file_full, 'a')
+            to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, 'a')
             ix += 1
         
         # csv
@@ -164,8 +167,17 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
+        
+        logger.debug('loading bso-publications index')
         reset_index(index=index_name)
         elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
+        logger.debug(f'{elasticimport}')
+        logger.debug('starting import in elastic')
+        os.system(elasticimport)
+        
+        logger.debug('loading FULL publications index')
+        reset_index(index='bso-publications-full')
+        elasticimport = f"elasticdump --input={enriched_output_file_full} --output={es_host}bso-publications-full --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
         logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)

@@ -278,13 +278,13 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             if res.get(field, 0.0) == 0.0:
                 res[field] = False
         # not exposing some fields in index
-        for f in ['authors', 'references', 'abstract', 'incipit']:
-            if f in res:
-                del res[f]
-        if 'affiliations' in res and isinstance(res['affiliations'], list):
-            for aff in res['affiliations']:
-                if 'name' in aff:
-                    del aff['name']
+        # for f in ['authors', 'references', 'abstract', 'incipit']:
+        #    if f in res:
+        #        del res[f]
+        #if 'affiliations' in res and isinstance(res['affiliations'], list):
+        #    for aff in res['affiliations']:
+        #        if 'name' in aff:
+        #            del aff['name']
         final.append(res)
     logger.debug(f'format_upw DONE')
     return final
