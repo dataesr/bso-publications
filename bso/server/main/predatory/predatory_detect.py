@@ -27,6 +27,9 @@ def update_list_publishers() -> dict:
                 name = a.get_text(' ')
                 publisher_clean = detect_publisher(name, '2020', None)['publisher_normalized'] 
                 publishers.append({'url': url, 'publisher': publisher_clean, 'domain': domain})
+                if 'omicsonline' in url:
+                    other_publisher_clean =  detect_publisher('OMICS Publishing Group', '2020', None)['publisher_normalized']
+                    publishers.append({'url': url, 'publisher': other_publisher_clean, 'domain': domain})
     df_publishers = pd.DataFrame(publishers)
     return df_publishers.to_dict(orient='records')
 
