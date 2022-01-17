@@ -209,13 +209,15 @@ We historicized the last two groupings to account for the effective date of the 
 
 As explained above, the 'oa_status' in Unpaywall data hides some part of the role of open repositories. It also hides Diamond open access, that is to say it mixes in the same 'Gold' category all publications published in an open-access journal that is indexed by the DOAJ, whether Article Process Charges (APC) were paid or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories : 
 
- - **Diamond DOAJ**: journal-article published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data).
+ - **Diamond**: journal-article published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data). This category may be under-estimated as some journal have no APC but are not in the DOAJ.
 
- - **(Full APC) Gold**: publications published in an open-access journal (using the field 'journal_is_oa' from Unpaywall) and that are not Diamond DOAJ (either with APC or without information about APC)
+ - **(Full APC) Gold**: publications published in an open-access journal (using the field 'journal_is_oa' = True from Unpaywall) and with APC.
 
- - **Hybrid**: all other open access publication with a copy available on the publisher webpage.
+ - **Hybrid**: publications published in a journal that is not full open access (using the field 'journal_is_oa' = False from Unpaywall) and with APC.
 
-On the one hand, the 'Gold' category from [@piwowar_state_2018] is broken down into 2 categories to make Diamond explictly appear. On the other hand, the 'Hybrid' and 'Bronze' categories from [@piwowar_state_2018] are merged into 'Hybrid', without considering the license information. Indeed, the objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyse the open licenses associated to the OA copies.
+ - **Other**: all other cases, in particular publications with moving barriers, but also cases for which no information about APC has been collected. This catrgoy may be over-estimated as some journal have no APC but this information is not present in a structured database. 
+
+The objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyse the open licenses associated to the OA copies, so this categorization is quite different from the Gold / Hybrid / Bronze from [@piwowar_state_2018].
 
 For that matter, a third analysis level is used that distinguishes, for open access publications:
 
@@ -409,8 +411,8 @@ portail MESRI
 
 # Acknowledgements
 
-WeDoData
+First, we want to thank Florian Naudet (https://orcid.org/0000-0003-3760-3801) from University of Rennes 1, Rennes, France, who helped us a lot to analyse the issues related to the clinical trials data, as well as Nicholas DeVito (https://orcid.org/0000-0001-8286-1995).
+We also want to thank the agency WeDoData (https://wedodata.fr/) that helped us designing the new web interface for the French Open Science Monitor. 
 
-Florian Naudet (https://orcid.org/0000-0003-3760-3801) University of Rennes 1, Rennes, France
 
 # References
