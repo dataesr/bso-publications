@@ -38,11 +38,12 @@ def reduce_status(all_statuses: list) -> list:
     statuses = []
     if 'green' in all_statuses:
         statuses.append('green')
-    for status in ['diamond', 'gold', 'hybrid', 'other']:
+    for status in ['accord_elsevier', 'diamond', 'gold', 'hybrid', 'other']:
         if status in all_statuses:
             statuses.append(status)
             break
-    return statuses
+    # status accord_elsevier prioritaire, mais ensuite on remplace par 'other'
+    return ['other' if x=='accord_elsevier' else x for x in statuses]
 
 
 def get_repository(a_repo: str) -> str:
@@ -98,7 +99,7 @@ def get_millesime(x: str) -> str:
     return 'unk'
 
 
-def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
+def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -> dict:
     res = {'snapshot_date': asof}
     millesime = get_millesime(asof)
     res['observation_date'] = millesime
@@ -168,7 +169,10 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool) -> dict:
         elif host_type == 'publisher':
             if licence:
                 licence_publisher.append(licence)
-            if (has_apc is not None) and (not has_apc) and elem.get('journal_is_in_doaj'):
+            evidence = loc.get('evidence')
+            if ('author manuscript' in loc.get('evidence')) and ('accepted' in loc.get('version')) and (publisher == 'Elsevier'):
+                status = 'accord_elsevier' # accord Elsevier
+            elif (has_apc is not None) and (not has_apc) and elem.get('journal_is_in_doaj'):
                 status = 'diamond'
             elif elem.get('journal_is_oa') == 1 and (has_apc is True):
                 status = 'gold'

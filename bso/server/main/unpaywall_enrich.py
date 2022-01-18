@@ -235,7 +235,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             if asof == 'global':
                 continue
             else:
-                tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'])
+                tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'])
                 res['oa_details'].update(tmp)
                 res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
                 if last_millesime:
@@ -247,6 +247,11 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         # get hal_id if present in one of the last oa locations
         if last_millesime:
             last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
+            #if 'hybrid' not in dois_infos[doi][last_millesime].get('oa_colors', []) and 'gold' not in dois_infos[doi][last_millesime].get('oa_colors', []):
+            #    # si ni gold ni hybrid '
+            #    res['amount_apc_EUR'] = 0
+            #    if res['has_apc'] == True:
+            #        res['has_apc'] = None
             if isinstance(last_oa_loc, list):
                 for loc in last_oa_loc:
                     if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):
@@ -267,7 +272,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                             external_ids.append({'id_type': 'hal_id', 'id_value': hal_id})
                             res['external_ids'] = external_ids
                             res['hal_id'] = hal_id
-
 
         #logger.debug('HAL_END')
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
