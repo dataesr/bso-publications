@@ -121,8 +121,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         ids_in_index, natural_ids_in_index = extract_pubmed(output_file+'_pubmed', ids_in_index, natural_ids_in_index, bso_local_dict)
         ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, None, False)
         ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, None, False)
-        ### ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
-        ids_in_index, natural_ids_in_index = extract_container(output_file+'_hal_fr', 'hal', ids_in_index, natural_ids_in_index, bso_local_dict, False, '20211208/parsed', True)
+        if 'scanr' in index_name:
+            ids_in_index, natural_ids_in_index = extract_container(output_file+'_theses', 'theses', ids_in_index, natural_ids_in_index, bso_local_dict, False, '20211208/parsed', True)
+            ids_in_index, natural_ids_in_index = extract_container(output_file+'_hal_fr', 'hal', ids_in_index, natural_ids_in_index, bso_local_dict, False, '20211208/parsed', True)
         ids_in_index, natural_ids_in_index = extract_fixed_list(output_file+'_dois_fr', ids_in_index, natural_ids_in_index, bso_local_dict)
         for filename in bso_local_filenames:
             ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file+'_bso_local_'+filename, filename, ids_in_index, natural_ids_in_index, bso_local_dict, False)

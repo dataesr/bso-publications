@@ -26,3 +26,9 @@ def update_inventory(elts: list) -> None:
     mycol.create_index('crawl')
     logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
+
+
+
+# pour supprimer
+# inventory = mydb.inventory
+# inventory.delete_many({})
