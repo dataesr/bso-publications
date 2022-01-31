@@ -99,8 +99,11 @@ def extract_bso_local(index_name, observations):
     dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
     
     # upload to OS
+    os.system(f'cp {output_json_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
+    os.system(f'mv {output_json_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
     zip_upload(enriched_output_file)
-    zip_upload(enriched_output_file_csv)
+    zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
+    zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
 
 def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
@@ -116,10 +119,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     # extract
     if extract:
         ids_in_index, natural_ids_in_index = extract_pubmed(output_file+'_pubmed', ids_in_index, natural_ids_in_index, bso_local_dict)
-        ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download)
-        ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download)
+        ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, None, False)
+        ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, None, False)
         ### ids_in_index, natural_ids_in_index = extract_theses(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
-        ### ids_in_index, natural_ids_in_index = extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict)
+        ids_in_index, natural_ids_in_index = extract_container(output_file+'_hal_fr', 'hal', ids_in_index, natural_ids_in_index, bso_local_dict, False, '20211208/parsed', True)
         ids_in_index, natural_ids_in_index = extract_fixed_list(output_file+'_dois_fr', ids_in_index, natural_ids_in_index, bso_local_dict)
         for filename in bso_local_filenames:
             ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file+'_bso_local_'+filename, filename, ids_in_index, natural_ids_in_index, bso_local_dict, False)
@@ -130,6 +133,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(f'cat {output_file}_parsed_fr >> {output_file}')
         logger.debug('copying crossref_fr')
         os.system(f'cat {output_file}_crossref_fr >> {output_file}')
+        logger.debug('copying hal_fr')
+        os.system(f'cat {output_file}_hal_fr >> {output_file}')
         logger.debug('copying dois_fr')
         os.system(f'cat {output_file}_dois_fr >> {output_file}')
         for filename in bso_local_filenames:
@@ -182,10 +187,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         logger.debug('starting import in elastic')
         os.system(elasticimport)
 
-    dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
+        dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
 
-    zip_upload(enriched_output_file)
-    zip_upload(enriched_output_file_csv)
+        zip_upload(enriched_output_file)
+        zip_upload(enriched_output_file_csv)
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
     # first remove existing files
@@ -209,8 +214,10 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         local_affiliation = local_affiliation.split('.')[0]
         local_filename_json = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl'
         local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
-        zip_upload(f'{local_filename_json}')
-        zip_upload(f'{local_filename_csv}')
+        os.system(f'mv {local_filename_json} {MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
+        os.system(f'mv {local_filename_csv} {MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
+        zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
+        zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
 
 def zip_upload(a_file):
     os.system(f'gzip {a_file}')
@@ -293,18 +300,32 @@ def extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_di
         ids_in_index, natural_ids_in_index = select_missing(publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, 'pubmed', False)
     return ids_in_index, natural_ids_in_index
    
-def extract_container(output_file, container, ids_in_index, natural_ids_in_index, bso_local_dict, skip_download):
+def extract_container(output_file, container, ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, download_prefix, filter_fr):
     os.system(f'rm -rf {output_file}')
     if skip_download is False:
         cmd =  init_cmd + f' download {container} -D {MOUNTED_VOLUME}/{container} --skip-identical'
+        if download_prefix:
+            cmd += f" --prefix {download_prefix}"
         os.system(cmd)
-    for prefix in os.listdir(f'{MOUNTED_VOLUME}/{container}'):
-        logger.debug(f'prefix {container}/{prefix}')
+    local_path = f'{MOUNTED_VOLUME}/{container}'
+    if download_prefix:
+        path_prefix = '/'.join(download_prefix.split('/')[0:-1])
+        local_path = f'{local_path}/{path_prefix}'
+    for prefix in os.listdir(local_path):
+        logger.debug(f'prefix {local_path}/{prefix}')
         publications = []
-        json_files = os.listdir(f'{MOUNTED_VOLUME}/{container}/{prefix}')
+        json_files = os.listdir(f'{local_path}/{prefix}')
         for jsonfilename in json_files:
-            with gzip.open(f'{MOUNTED_VOLUME}/{container}/{prefix}/{jsonfilename}', 'r') as fin:
-                publications += json.loads(fin.read().decode('utf-8'))
+            with gzip.open(f'{local_path}/{prefix}/{jsonfilename}', 'r') as fin:
+                current_publications = json.loads(fin.read().decode('utf-8'))
+                for publi in current_publications:
+                    if filter_fr:
+                        countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
+                        countries_flat_list = list(set([item for sublist in countries for item in sublist]))
+                        if 'fr' in countries_flat_list:
+                            publications.append(publi)
+                    else:
+                        publications.append(publi)
         ids_in_index, natural_ids_in_index = select_missing(publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, container, False)
     return ids_in_index, natural_ids_in_index
    
