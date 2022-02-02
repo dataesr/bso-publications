@@ -16,9 +16,8 @@ FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf
 logger = get_logger(__name__)
 
 
-def get_dois_from_input(container: str, filename: str) -> list:
-    target = f'{MOUNTED_VOLUME}/{filename}'
-    download_object(container=container, filename=filename, out=target) 
+def get_dois_from_input(filename: str) -> list:
+    target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
     if 'xls' in filename.lower():
         df = pd.read_excel(target, engine='openpyxl')
     else:

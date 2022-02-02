@@ -111,14 +111,11 @@ def has_fr(countries: list) -> bool:
 
 def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list:
     final = []
-    for doi in dois_infos:
-        if 'global' not in dois_infos[doi]:
-            continue
-            #res = {'doi': doi}
-        else:
-            res = dois_infos[doi]['global']
-        if doi in extra_data:
-            res.update(extra_data[doi])
+    for identifier in extra_data:
+        res = extra_data[identifier]
+        doi = res.get('doi')
+        if isinstance(doi, str) and (doi in dois_infos) and ('global' in dois_infos[doi]):
+            res.update(dois_infos[doi]['global'])
         if 'z_authors' in res and isinstance(res['z_authors'], list):
             for a in res['z_authors']:
                 full_name = ''
@@ -143,16 +140,19 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             domains = []
         if 'health' in domains:
             classification_types.append('bsso')
+        if entity_fishing:
+            classification_types.append('sdg')
         res = detect_fields(res, classification_types)
         #logger.debug('fieldsEND')
         # APC
         published_date_for_apc = res.get('published_date')
         if not isinstance(published_date_for_apc, str):
             published_date_for_apc = '2100-01-01'
-            logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc") 
-        info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
+            logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc")
+        if isinstance(doi, str):
+            info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
                               published_date_for_apc, dois_infos[doi])
-        res.update(info_apc)
+            res.update(info_apc)
         #logger.debug('APC_END')
         # Language
         lang_mapping = {
@@ -228,50 +228,51 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         res['author_useful_rank_fr'] = author_useful_rank_fr
         res['author_useful_rank_countries'] = author_useful_rank_countries
         # OA Details
-        res['observation_dates'] = []
-        res['oa_details'] = {}
-        last_millesime = None
-        for asof in dois_infos[doi]:
-            if asof == 'global':
-                continue
-            else:
-                tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'])
-                res['oa_details'].update(tmp)
-                res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
-                if last_millesime:
-                    last_millesime = max(last_millesime, asof)
+        if 'oa_details' not in res:
+            res['observation_dates'] = []
+            res['oa_details'] = {}
+            last_millesime = None
+            for asof in dois_infos[doi]:
+                if asof == 'global':
+                    continue
                 else:
-                    last_millesime = asof
+                    tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'])
+                    res['oa_details'].update(tmp)
+                    res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
+                    if last_millesime:
+                        last_millesime = max(last_millesime, asof)
+                    else:
+                        last_millesime = asof
 
-        #logger.debug('MILLESIME_END')
-        # get hal_id if present in one of the last oa locations
-        if last_millesime:
-            last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
-            #if 'hybrid' not in dois_infos[doi][last_millesime].get('oa_colors', []) and 'gold' not in dois_infos[doi][last_millesime].get('oa_colors', []):
-            #    # si ni gold ni hybrid '
-            #    res['amount_apc_EUR'] = 0
-            #    if res['has_apc'] == True:
-            #        res['has_apc'] = None
-            if isinstance(last_oa_loc, list):
-                for loc in last_oa_loc:
-                    if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):
-                        hal_id = None
-                        if isinstance(loc.get('pmh_id'), str):
-                            hal_id = loc['pmh_id'].split(':')[2].strip().lower()
-                            if hal_id[-2] == 'v': # remove version
-                                hal_id = hal_id[:-2]
-                        if hal_id is None and isinstance(loc.get('url_for_pdf'), str) and '/document' in loc['url_for_pdf'].lower():
-                            try:
-                                url_split = loc['url_for_pdf'].lower().split('/')[-2]
-                                if '-' in url_split:
-                                    hal_id = url_split
-                            except:
-                                pass
-                        if hal_id:
-                            external_ids = []
-                            external_ids.append({'id_type': 'hal_id', 'id_value': hal_id})
-                            res['external_ids'] = external_ids
-                            res['hal_id'] = hal_id
+            #logger.debug('MILLESIME_END')
+            # get hal_id if present in one of the last oa locations
+            if last_millesime:
+                last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
+                #if 'hybrid' not in dois_infos[doi][last_millesime].get('oa_colors', []) and 'gold' not in dois_infos[doi][last_millesime].get('oa_colors', []):
+                #    # si ni gold ni hybrid '
+                #    res['amount_apc_EUR'] = 0
+                #    if res['has_apc'] == True:
+                #        res['has_apc'] = None
+                if isinstance(last_oa_loc, list):
+                    for loc in last_oa_loc:
+                        if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):
+                            hal_id = None
+                            if isinstance(loc.get('pmh_id'), str):
+                                hal_id = loc['pmh_id'].split(':')[2].strip().lower()
+                                if hal_id[-2] == 'v': # remove version
+                                    hal_id = hal_id[:-2]
+                            if hal_id is None and isinstance(loc.get('url_for_pdf'), str) and '/document' in loc['url_for_pdf'].lower():
+                                try:
+                                    url_split = loc['url_for_pdf'].lower().split('/')[-2]
+                                    if '-' in url_split:
+                                        hal_id = url_split
+                                except:
+                                    pass
+                            if hal_id:
+                                external_ids = []
+                                external_ids.append({'id_type': 'hal_id', 'id_value': hal_id})
+                                res['external_ids'] = external_ids
+                                res['hal_id'] = hal_id
 
         #logger.debug('HAL_END')
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
@@ -281,14 +282,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         for field in ['has_coi', 'has_grant', 'is_paratext']:
             if res.get(field, 0.0) == 0.0:
                 res[field] = False
-        # not exposing some fields in index
-        # for f in ['authors', 'references', 'abstract', 'incipit']:
-        #    if f in res:
-        #        del res[f]
-        #if 'affiliations' in res and isinstance(res['affiliations'], list):
-        #    for aff in res['affiliations']:
-        #        if 'name' in aff:
-        #            del aff['name']
         final.append(res)
     logger.debug(f'format_upw DONE')
     return final
@@ -313,20 +306,23 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
     for p in publications:
         if datasource:
             p['datasource'] = datasource
-        if 'doi' in p and isinstance(p['doi'], str):
-            doi = p['doi'].lower()
-            publis_dict[doi] = p
+        p['id'] = None
+        for identifier in ['doi', 'nnt_id', 'hal_id', 'pmid']:
+            if identifier in p and isinstance(p[identifier], str):
+                new_identifier = p[identifier].lower()
+                if identifier != 'doi' or (identifier=='doi' and new_identifier[0:2] == '10'):
+                    publis_dict[new_identifier] = p
+                    p['id'] = new_identifier
+                    break
+
     all_updated = []
     logger.debug(f'Enriching {len(publications)} publications')
     for publi_chunk in chunks(lst=publications, n=20000):
-        doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str) and '10' in p['doi']]
+        doi_chunk = [p.get('id') for p in publi_chunk if p and isinstance(p.get('id'), str)]
 
         data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
-        # Remove data with no oa details info (not indexed in unpaywall)
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
         for d in new_updated:
-            if len(d.get('oa_details', {})) == 0:
-                continue
             # some post-filtering
             if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
                 continue

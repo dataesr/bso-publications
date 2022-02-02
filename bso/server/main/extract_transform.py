@@ -161,12 +161,16 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             # publis_chunks = list(chunks(publications, 20000))
             enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
                 entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False)
-            to_jsonl(enriched_publications, enriched_output_file_full, 'a')
-            to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, 'a')
+            if 'bso-publications' in index_name:
+                enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
+                to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, 'a')
+            else:
+                to_jsonl(enriched_publications, enriched_output_file_full, 'a')
             ix += 1
         
         # csv
-        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
+        if 'bso-publications' in index_name:
+            enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
 
 
     if load:
@@ -340,41 +344,33 @@ def extract_fixed_list(output_file, ids_in_index, natural_ids_in_index, bso_loca
             ids_in_index, natural_ids_in_index = select_missing([{'doi': d} for d in fr_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, extra_file, False)
     return ids_in_index, natural_ids_in_index
 
-def extract_hal(output_file, ids_in_index, natural_ids_in_index, snapshot_date, bso_local_dict):
-    os.system(f'rm -rf {output_file}')
-    for ix in range(1,10):
-        publications = get_objects_by_prefix(container = 'hal', prefix=f'{snapshot_date}/parsed/hal_parsed_all_years_{ix}')
-        ids_in_index, natural_ids_in_index = select_missing(publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, f'hal_{snapshot_date}', False)
-    return ids_in_index, natural_ids_in_index
-
 def build_bso_local_dict():
     bso_local_dict = {}
     bso_local_dict_aff = {}
     bso_local_filenames = []
-    for page in range(1, 1000000):
-        filenames = get_objects_by_page(container = 'bso-local', page=page, full_objects=False)
-        bso_local_filenames += filenames
-        if len(filenames) == 0:
-            break
-        for filename in filenames:
-            local_affiliations = filename.split('.')[0].split('_')
-            current_dois = get_dois_from_input(container='bso-local', filename=filename)
-            for d in current_dois:
-                if d not in bso_local_dict:
-                    bso_local_dict[d] = []
-                for local_affiliation in local_affiliations:
-                    if local_affiliation not in bso_local_dict[d]:
-                        bso_local_dict[d].append(local_affiliation)
-                    if local_affiliation not in bso_local_dict_aff:
-                        bso_local_dict_aff[local_affiliation] = []
-                    if d not in bso_local_dict_aff[local_affiliation]:
-                        bso_local_dict_aff[local_affiliation].append(d)
+    os.system(f'mkdir -p {MOUNTED_VOLUME}/bso_local')
+    cmd =  init_cmd + f' download bso-local -D {MOUNTED_VOLUME}/bso_local --skip-identical'
+    os.system(cmd)
+    for filename in os.listdir(f'{MOUNTED_VOLUME}/bso_local'):
+        bso_local_filenames.append(filename)
+        local_affiliations = filename.split('.')[0].split('_')
+        current_dois = get_dois_from_input(filename=filename)
+        for d in current_dois:
+            if d not in bso_local_dict:
+                bso_local_dict[d] = []
+            for local_affiliation in local_affiliations:
+                if local_affiliation not in bso_local_dict[d]:
+                    bso_local_dict[d].append(local_affiliation)
+                if local_affiliation not in bso_local_dict_aff:
+                    bso_local_dict_aff[local_affiliation] = []
+                if d not in bso_local_dict_aff[local_affiliation]:
+                    bso_local_dict_aff[local_affiliation].append(d)
     return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames))
 
 def extract_one_bso_local(output_file, bso_local_filename, ids_in_index, natural_ids_in_index, bso_local_dict, load_in_elastic):
     os.system(f'rm -rf {output_file}')
     local_affiliations = bso_local_filename.split('.')[0].split('_')
-    current_dois = get_dois_from_input(container='bso-local', filename=bso_local_filename)
+    current_dois = get_dois_from_input(filename=bso_local_filename)
     current_dois_set = set(current_dois)
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
     return select_missing([{'doi': d} for d in current_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, f'bso_local_{bso_local_filename}', load_in_elastic)
