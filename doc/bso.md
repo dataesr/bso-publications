@@ -1,5 +1,5 @@
 ---
-title: 'A new framework for the French Open Science Monitor'
+title: 'A new framework for the French Open Science Monitor (BSO)'
 author:
   - Anne L'Hôte:
       institute: mesri
@@ -25,7 +25,7 @@ institute:
   - université de lorraine:
       name: 'University of Lorraine, France'
 bibliography: bso.bib
-date: November 2021
+date: February 2022
 keywords:
   - open science
   - open access
