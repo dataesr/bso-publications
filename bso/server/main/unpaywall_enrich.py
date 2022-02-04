@@ -111,7 +111,11 @@ def has_fr(countries: list) -> bool:
 
 def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list:
     final = []
+    identifier_idx = 0
     for identifier in extra_data:
+        identifier_idx += 1
+        if identifier_idx % 100 == 0:
+            logger.debug(f'format_upw {identifier_idx} / {len(extra_data)}')
         res = extra_data[identifier]
         doi = res.get('doi')
         if isinstance(doi, str) and (doi in dois_infos) and ('global' in dois_infos[doi]):

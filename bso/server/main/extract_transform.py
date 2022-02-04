@@ -251,6 +251,7 @@ def get_natural_id(res):
         if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
             if res['authors'][0].get('full_name'):
                 title_first_author += ';'+normalize(res['authors'][0].get('full_name'), 1)
+    res['title_first_author_raw'] = title_first_author
     res['title_first_author'] = get_hash(title_first_author)
     return res['title_first_author'] 
 
