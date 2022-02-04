@@ -142,6 +142,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             logger.debug(f'copying {filename}')
             os.system(f'cat {output_file}_bso_local_{filename} | sort | uniq >> {output_file}')
 
+    del ids_in_index
+    del natural_ids_in_index
     # enrichment
     # TO do check: 10000=>40 min
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
