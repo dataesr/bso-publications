@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import requests
 import gzip
+import hashlib
 from dateutil import parser
 
 from urllib import parse
@@ -237,25 +238,26 @@ def to_jsonl(input_list, output_file, mode = 'a'):
             json.dump(entry, outfile)
             outfile.write('\n')
 
+def get_hash(txt):
+    return hashlib.md5(text.encode()).hexdigest()
+
 def get_natural_id(res):
-    ## title - first author
     title_first_author = ""
-    if res.get('title'):
-        title_first_author += normalize(res.get('title'), 1).strip()
-    if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
-        if res['authors'][0].get('full_name'):
-            title_first_author += ';'+normalize(res['authors'][0].get('full_name'), 1)
-    if title_first_author:
-        res['title_first_author'] = title_first_author
-    return title_first_author 
+    if res.get('title_first_author'):
+        title_first_author = res['title_first_author']
+    else:
+        if res.get('title'):
+            title_first_author += normalize(res.get('title'), 1).strip()
+        if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
+            if res['authors'][0].get('full_name'):
+                title_first_author += ';'+normalize(res['authors'][0].get('full_name'), 1)
+    res['title_first_author'] = get_hash(title_first_author)
+    return res['title_first_author'] 
 
 def select_missing(new_publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, datasource, load_in_elastic):
     missing = []
     for p in new_publications:
-        if not isinstance(p.get('title_first_author'), str):
-            natural_id = get_natural_id(p)
-        else:
-            natural_id = p['title_first_author']
+        natural_id = get_natural_id(p)
         unknown_publication = True
         known_ids = []
         has_an_id = False
