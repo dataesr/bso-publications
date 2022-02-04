@@ -15,6 +15,11 @@ from bso.server.main.utils_swift import download_object, upload_object, get_obje
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
 
+def clean_doi(doi):
+    res = doi.lower().strip()
+    for f in [',', ';', ' ']:
+        res = res.replace(f, '')
+    return res.strip()
 
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
@@ -27,7 +32,7 @@ def get_dois_from_input(filename: str) -> list:
         doi_column = doi_columns[0]
     else:
         return []
-    dois = list(set([d.lower().strip() for d in df[doi_column].dropna().tolist()]))
+    dois = list(set([clean_doi(d) for d in df[doi_column].dropna().tolist()]))
     logger.debug(f'doi column: {doi_column} for {filename} with {len(dois)} dois')
     return dois
 
