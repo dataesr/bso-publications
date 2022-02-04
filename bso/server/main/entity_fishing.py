@@ -47,12 +47,12 @@ def get_entity_fishing(publication: dict) -> dict:
         res = r.json()
 
         classifications = publication.get('classifications', [])
-        global_categories = [{'label': r['category'], 'code':r['page_id'], 'reference': r['source']} for r in res['global_categories']]
-        wikidataIds = [{'code': r['wikidataId'], 'label': r['rawName'], 'reference': 'wikidata'} for r in res['entities']]
+        global_categories = [{'label': r['category'], 'code':r['page_id'], 'reference': r['source']} for r in res.get('global_categories', [])]
+        wikidataIds = [{'code': r['wikidataId'], 'label': r['rawName'], 'reference': 'wikidata'} for r in res.get('entities', [])]
 
         domains = []
-        for r in res['entities']:
-            for d in r['domains']:
+        for r in res.get('entities', []):
+            for d in r.get('domains', []):
                 domains.append({'label': d, 'code': r['wikipediaExternalRef'], 'reference': 'wikipedia'})
 
         classifications += global_categories + wikidataIds + domains
