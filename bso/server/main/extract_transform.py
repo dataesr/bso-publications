@@ -176,7 +176,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
 
 
-    if load:
+    if load and 'bso-publications' in index_name:
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
@@ -197,8 +197,12 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
         dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
 
+        # upload to OS
+        os.system(f'cp {enriched_output_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
+        os.system(f'mv {enriched_output_file_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
         zip_upload(enriched_output_file)
-        zip_upload(enriched_output_file_csv)
+        zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
+        zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
     # first remove existing files
