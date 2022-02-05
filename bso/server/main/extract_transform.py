@@ -238,7 +238,7 @@ def to_jsonl(input_list, output_file, mode = 'a'):
             json.dump(entry, outfile)
             outfile.write('\n')
 
-def get_hash(txt):
+def get_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
 def get_natural_id(res):
