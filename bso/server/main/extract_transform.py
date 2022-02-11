@@ -163,7 +163,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
             # publis_chunks = list(chunks(publications, 20000))
             enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
-                entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False)
+                entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, index_name=index_name)
             if 'bso-publications' in index_name:
                 enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
                 to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, 'a')

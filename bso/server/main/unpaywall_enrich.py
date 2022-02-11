@@ -110,6 +110,8 @@ def has_fr(countries: list) -> bool:
 
 
 def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list:
+    # dois_infos contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
+    # extra_data contains info for all publi, even if no DOI crossref
     final = []
     identifier_idx = 0
     for identifier in extra_data:
@@ -153,7 +155,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         if not isinstance(published_date_for_apc, str):
             published_date_for_apc = '2100-01-01'
             logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc")
-        if isinstance(doi, str):
+        if isinstance(doi, str) and (doi in dois_infos):
             info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
                               published_date_for_apc, dois_infos[doi])
             res.update(info_apc)
@@ -291,7 +293,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
     return final
 
 
-def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool) -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, index_name='bso-publications') -> list:
     publis_dict = {}
 
     
@@ -325,13 +327,18 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         doi_chunk = [p.get('id') for p in publi_chunk if p and isinstance(p.get('id'), str)]
 
         data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
+        # data contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
+        # publis_dict contains info for all publi, even if no DOI crossref
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
         for d in new_updated:
             # some post-filtering
             if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
                 continue
-            if d.get('genre') == 'other':
+            if d.get('genre') == 'other' and 'scanr' not in index_name:
                 continue
+            if d.get('genre') not in ['thesis'] and int(d.get('year'))<2013:
+                continue
+
             all_updated.append(d)
         logger.debug(f'{len(publi_chunk)} / {len(publications)} enriched')
     for p in all_updated:
