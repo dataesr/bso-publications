@@ -343,8 +343,8 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             except:
                 year = None
             if not isinstance(year, int):
-                logger.debug(f'year is not integer for publication {d}')
-            if d.get('genre') not in ['thesis'] and year and year<2013:
+                logger.debug(f'year is not integer for publication { d.get("doi") }')
+            if d.get('genre') not in ['thesis'] and year and year < 2013:
                 continue
 
             all_updated.append(d)
