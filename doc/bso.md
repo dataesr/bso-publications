@@ -347,31 +347,6 @@ built on a dump of Unpaywall. We use the DOI to consolidate the data and then ad
 
 ![Global overview of the trials and studies data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_registries.png){ width=450 }
 
-### 2.4.2 Data storage
-
-To do so, we needed to precisely define the input and the output of each step, and how to store the intermediate
-results. As JSON is the most common format to manipulate data, we choose to store the results into JSONL files and to
-save them into a dedicated container on the ObjectStorage of OVH Cloud. ObjectStorage is a data storage architecture
-that is easily queryable.
-
-MongoDB
-Elastisearch
-
-
-### 2.4.2. Microservices
-
-synchronous / asynchronous, Docker
-All the tasks before are developed in Python and running as microservices in a Docker images. We used Flask as a Web
-Framework. It enables us to launch the steps by calling the endpoint urls with the specified arguments. This way we
-were still the bandmaster of the wall workflow and where still able to follow the progress of all these asynchronous
-tasks.
-
-### 2.4.3. Cloud
-
-OVH Cloud, remote, scalability, kubernetes
-As a limitation, we chose to collect all the publications from 2013 to today. Only from Crossref, it's about 45 million
-publications. Let's call that "big". And the time to collect all these data could be quite long. So we had to 
-
 \newpage
 
 # 3. Results
