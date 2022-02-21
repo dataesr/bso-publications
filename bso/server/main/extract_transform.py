@@ -187,13 +187,6 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
-        
-        logger.debug('loading FULL publications index')
-        reset_index(index='bso-publications-full')
-        elasticimport = f"elasticdump --input={enriched_output_file_full} --output={es_host}bso-publications-full --type=data --limit 1000 " + "--transform='doc._source=Object.assign({},doc)'"
-        logger.debug(f'{elasticimport}')
-        logger.debug('starting import in elastic')
-        os.system(elasticimport)
 
         dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
 
