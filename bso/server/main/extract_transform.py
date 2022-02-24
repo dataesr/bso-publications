@@ -394,3 +394,17 @@ def extract_one_bso_local(output_file, bso_local_filename, ids_in_index, natural
 
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
+
+def tmp_apc_study():
+    for y in range(2013, 2022):
+        os.system(f'rm -rf /upw_data/study-apc_{y}.jsonl')
+    df_all = pd.read_json('/upw_data/study-apc.jsonl', lines=True, chunksize=25000)
+    ix = 0
+    for df in df_all:
+        for y in range(2013, 2022):
+            x = df[df.year==y].to_dict(orient='records')
+            to_jsonl(x, f'/upw_data/study-apc_{y}.jsonl')
+        logger.debug(ix)
+        ix += 1
+    for y in range(2013, 2022):
+        zip_upload(f'/upw_data/study-apc_{y}.jsonl')
