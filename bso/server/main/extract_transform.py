@@ -142,8 +142,13 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(f'cat {output_file}_parsed_fr >> {output_file}')
         logger.debug('copying crossref_fr')
         os.system(f'cat {output_file}_crossref_fr >> {output_file}')
-        logger.debug('copying hal_fr')
-        os.system(f'cat {output_file}_hal_fr >> {output_file}')
+        
+        if 'scanr' in index_name:
+            logger.debug('copying theses')
+            os.system(f'cat {output_file}_theses >> {output_file}')
+            logger.debug('copying hal_fr')
+            os.system(f'cat {output_file}_hal_fr >> {output_file}')
+
         logger.debug('copying dois_fr')
         os.system(f'cat {output_file}_dois_fr >> {output_file}')
         for filename in bso_local_filenames:
