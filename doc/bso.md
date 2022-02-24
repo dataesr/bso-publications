@@ -215,7 +215,7 @@ As explained above, the 'oa_status' in Unpaywall data hides some part of the rol
 
  - **Hybrid**: publications published in a journal that is not full open access (using the field 'journal_is_oa' = False from Unpaywall) and with APC.
 
- - **Other**: all other cases, in particular publications with moving barriers, but also cases for which no information about APC has been collected. This catrgoy may be over-estimated as some journal have no APC but this information is not present in a structured database. 
+ - **Other**: all other cases, in particular publications with moving barriers, but also cases for which no information about APC has been collected. This category may be over-estimated as some journal have no APC but this information is not present in a structured database. 
 
 The objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyse the open licenses associated to the OA copies, so this categorization is quite different from the Gold / Hybrid / Bronze from [@piwowar_state_2018].
 
