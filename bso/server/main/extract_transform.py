@@ -46,16 +46,23 @@ def json_to_csv(json_file, last_oa_details):
     os.system(cmd_jq)
     return output_csv_file
 
+def remove_extra_fields(res): 
+    # not exposing some fields in index
+    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors']:
+        if f in res:
+            del res[f]
+    return res
+
 def remove_fields_bso(res): 
     # not exposing some fields in index
-    for f in ['authors', 'references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors']:
+    for f in ['authors']:
         if f in res:
             del res[f]
     if 'affiliations' in res and isinstance(res['affiliations'], list):
         for aff in res['affiliations']:
             if 'name' in aff:
                 del aff['name']
-    return res
+    return remove_extra_fields(res)
 
 def extract_bso_local(index_name, observations):
     bso_local_dict, bso_local_dict_aff, bso_local_filenames = build_bso_local_dict()
@@ -167,8 +174,11 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             if 'bso-publications' in index_name:
                 enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
                 to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, 'a')
-            else:
+            elif 'scanr' in index_name:
                 to_jsonl(enriched_publications, enriched_output_file_full, 'a')
+            else: # study APC
+                enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
+                to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, 'a')
             ix += 1
         
         # csv
