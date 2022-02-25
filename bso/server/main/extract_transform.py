@@ -125,6 +125,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(f'rm -rf {output_file}')
 
     # extract
+    # TODO : have a real 'id' for each publication
+    # TODO : add other_ids (doi and hal and pmid ...) 
+    # TODO : merge informations on authors full_name, last_name etc ... => use full_name fingerprint
     if extract:
         ids_in_index, natural_ids_in_index = extract_pubmed(output_file+'_pubmed', ids_in_index, natural_ids_in_index, bso_local_dict)
         ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, download_prefix=None, filter_fr=False)
