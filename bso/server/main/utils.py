@@ -19,6 +19,8 @@ def clean_doi(doi):
     res = doi.lower().strip()
     for f in [',', ';', ' ']:
         res = res.replace(f, '')
+    if 'doi.org' in doi:
+        res = re.sub('(.*)?doi.org/', '', res)
     return res.strip()
 
 def get_dois_from_input(filename: str) -> list:
