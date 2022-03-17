@@ -25,7 +25,7 @@ institute:
   - université de lorraine:
       name: 'University of Lorraine, France'
 bibliography: bso.bib
-date: February 2022
+date: March 2022
 keywords:
   - open science
   - open access
@@ -351,7 +351,24 @@ built on a dump of Unpaywall. We use the DOI to consolidate the data and then ad
 
 # 3. Results
 
-\newpage
+All the results are extracted from the French Open Science Monitor website https://frenchopensciencemonitor.esr.gouv.fr from February 2022.
+
+## 3.1 Open access dynamics in France
+
+### 3.1.1 General dynamics
+
+The steady increase in the open access rate observed each year since 2018 is an indicator of the impact of public policies in favour of open access. It is a proof of the evolution of researchers' publication practices, the strengthening of open access publication infrastructures and the strategies of scientific publishing actors.
+Open access to publications is an evolutionary process over time. A publication that is not available in open access at the time of its publication may become so in the following months and years, throughvarious mechanisms: deposit by the author in an open archive after a period of embargo imposed by the publisher or the application by the publisher of a moving wall, i.e., a time limit at the end of which it itself makes the publication available in open access.
+
+
+The Figure X presents, for each observation date since 2018, the open access rate of scientific publications françaises published during the previous year. The observations made during the current year are updated every quarter.
+Thus, 52% of scientific publications françaises published in 2019 were open access in 2020 (observation date). And 62% of scientific publications françaises published in 2020 were open in 2021. The access rate has thus increased by 10 points in just one year.
+
+![Open access rate of scientific publications françaises published during the previous year by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_publications.png){ width=450 }
+
+## 3.2 Open access in France in the biomedical field
+
+## 3.3 Clinical trials transparency in France
 
 # 4. Discussion and conclusion
 
