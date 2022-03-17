@@ -6,7 +6,7 @@ from rq import Connection, Queue
 
 from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
-    create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et
+    create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et, create_task_tmp
 from bso.server.main.utils import dump_to_object_storage
 
 default_timeout = 43200000
@@ -17,6 +17,15 @@ main_blueprint = Blueprint('main', __name__, )
 @main_blueprint.route('/', methods=['GET'])
 def home():
     return render_template('home.html')
+
+@main_blueprint.route('/tmp', methods=['POST'])
+def run_task_tmp():
+    args = request.get_json(force=True)
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(create_task_tmp, args)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202
 
 
 @main_blueprint.route('/forward', methods=['POST'])

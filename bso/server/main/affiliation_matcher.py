@@ -1,7 +1,9 @@
 import os
 import requests
 import time
+import pymongo
 import multiprocess as mp
+from bso.server.main.utils import get_hash
 
 from bso.server.main.logger import get_logger
 
@@ -22,6 +24,60 @@ def exception_handler(func):
             logger.error(exception)
             return None
     return inner_function
+
+def get_from_mongo(name):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    collection_name = 'affiliations'
+    mycoll = mydb[collection_name]
+    name_md5 = get_hash(name)
+    res = mycoll.find_one({'name_md5': name_md5})
+    if res:
+        return res['ids']
+    return
+
+def clean(p):
+    if not isinstance(p.get('authors'), list):
+        p['authors'] = []
+    if not isinstance(p.get('affiliations'), list):
+        p['affiliations'] = []
+    for aut in p['authors']:
+        if 'affiliations' in aut and not isinstance(aut.get('affiliations'), list):
+            aut['affiliations'] = []
+    return p
+
+def get_affiliations_computed(publications):
+    affiliations = {}
+    done, todo = [], []
+    for p in publications:
+        nb_aff_with_id = 0
+        nb_aff = 0
+        for aff in p.get('affiliations'):
+            aff_name = aff.get('name')
+            if not aff_name:
+                continue
+            if aff_name not in affiliations:
+                res = get_from_mongo(aff_name)
+                if res:
+                    affiliations[aff_name] = res 
+            if aff_name in affiliations:
+                aff['ids'] = affiliations[aff_name]
+                nb_aff_with_id += 1
+            nb_aff += 1
+        authors = p.get('authors')
+        if isinstance(authors, list):
+            for aut in authors:
+                if isinstance(aut.get('affiliations'), list):
+                    for aff in aut.get('affiliations'):
+                        if aff['name'] in affiliations:
+                            aff['ids'] = affiliations[aff['name']]
+        if nb_aff_with_id == nb_aff:
+            done.append(p)
+        else:
+            # remove None affiliations / authors
+            todo.append(clean(p))
+    logger.debug(f'affiliation matching {len(todo)}/{len(publications)} todo, {len(done)}/{len(publications)} done')
+    return done, todo
 
 
 @exception_handler
@@ -45,6 +101,7 @@ def get_matcher_results(publications: list, proc_num = 0, return_dict = {}) -> l
             continue
         else:
             logger.error(f'Error with task {task_id} : status {status}')
+            logger.debug(f'{r_task}')
             return_dict[proc_num] = []
             return return_dict[proc_num]
 

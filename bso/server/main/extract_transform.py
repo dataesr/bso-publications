@@ -1,11 +1,13 @@
 import datetime
 import json
+import pymongo
 import os
 import pandas as pd
 import requests
 import gzip
-import hashlib
 from dateutil import parser
+import multiprocess as mp
+from retry import retry
 
 from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
@@ -18,7 +20,7 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
 from bso.server.main.utils_upw import chunks, get_millesime
-from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage
+from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash
 from bso.server.main.strings import normalize
 
 logger = get_logger(__name__)
@@ -48,146 +50,107 @@ def json_to_csv(json_file, last_oa_details):
 
 def remove_extra_fields(res): 
     # not exposing some fields in index
-    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors']:
+    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw']:
         if f in res:
             del res[f]
     return res
 
 def remove_fields_bso(res): 
     # not exposing some fields in index
-    for f in ['authors']:
-        if f in res:
+    for f in list(res):
+        if 'authors' in f:
             del res[f]
-    if 'affiliations' in res and isinstance(res['affiliations'], list):
-        for aff in res['affiliations']:
-            if 'name' in aff:
-                del aff['name']
+        if 'affiliations_' in f and (f not in ['bso_local_affiliations', 'french_affiliations_types']) :
+            del res[f]
+        if f == 'affiliations' and isinstance(res['affiliations'], list):
+            for aff in res['affiliations']:
+                for k in ['name', 'datasource']:
+                    if k in aff:
+                        del aff[k]
     return remove_extra_fields(res)
 
-def extract_bso_local(index_name, observations):
-    bso_local_dict, bso_local_dict_aff, bso_local_filenames = build_bso_local_dict()
-
-    # first recreates indices for doi and natural ids
-    ids_in_index, natural_ids_in_index = set(), set()
-    enriched_output_file = f'{MOUNTED_VOLUME}{index_name}.jsonl'
-    cmd_jq = f"cat {enriched_output_file} | jq -rc '[.doi,.title_first_author]|@csv' > {MOUNTED_VOLUME}{index_name}_indices.csv"
-    os.system(cmd_jq)
-    df = pd.read_csv(f'{MOUNTED_VOLUME}{index_name}_indices.csv', header=None, names=['doi', 'title_first_author'], chunksize=100000)
-    for c in df:
-        ids_in_index.update(set(c['doi'].tolist()))
-        natural_ids_in_index.update(set(c['title_first_author'].tolist()))
-    logger.debug(f'{len(ids_in_index)} ids_in_index and {len(natural_ids_in_index)} natural_ids_in_index')
-
-    # adding new publications publications, if any
-    for filename in bso_local_filenames:
-        ids_in_index, natural_ids_in_index = extract_one_bso_local(f'{MOUNTED_VOLUME}{index_name}_extract.jsonl', filename, ids_in_index, natural_ids_in_index, bso_local_dict, True)
-
-    #patching existing 
-    for local_aff in bso_local_dict_aff:
-        for chunk in chunks(bso_local_dict_aff[local_aff], 500):
-            update_local_affiliations(index=index_name,current_dois=chunk, local_affiliations=[local_aff])
-
-    last_oa_details = get_millesime(max(observations))
-   
-    # dumping index
-    es_url_without_http = ES_URL.replace('https://', '').replace('http://', '')
-    es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
-    container = 'bso_dump'
-    output_json_file = f'{MOUNTED_VOLUME}{index_name}.jsonl'
-    cmd_elasticdump = f'elasticdump --input={es_host}{es_index} --output={output_json_file} ' \
-                      f'--type=data --sourceOnly=true --limit 10000'
-    logger.debug(cmd_elasticdump)
-    os.system(cmd_elasticdump)
-    logger.debug('Elasticdump is done')
-
-    #creating csv
-    enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
-
-    # files for bso local
-    dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
-    
-    # upload to OS
-    os.system(f'cp {output_json_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
-    os.system(f'mv {output_json_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
-    zip_upload(enriched_output_file)
-    zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
-    zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
+def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode):
+    # list and remove the NaN
+    publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
+    # publis_chunks = list(chunks(publications, 20000))
+    enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
+        entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, index_name=index_name)
+    if 'bso-publications' in index_name:
+        enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
+        to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, write_mode)
+    elif 'scanr' in index_name:
+        to_jsonl(enriched_publications, enriched_output_file, write_mode)
+    else: # study APC
+        enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
+        to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, write_mode)
 
 def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
-    ids_in_index, natural_ids_in_index = set(), set()
     bso_local_dict, bso_local_dict_aff, bso_local_filenames = build_bso_local_dict()
 
-    # reset
-    if reset_file and extract:
-        os.system(f'rm -rf {output_file}')
-
     # extract
-    # TODO : have a real 'id' for each publication
-    # TODO : add other_ids (doi and hal and pmid ...) 
-    # TODO : merge informations on authors full_name, last_name etc ... => use full_name fingerprint
     if extract:
-        ids_in_index, natural_ids_in_index = extract_pubmed(output_file+'_pubmed', ids_in_index, natural_ids_in_index, bso_local_dict)
-        ids_in_index, natural_ids_in_index = extract_container(output_file+'_parsed_fr', 'parsed_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, download_prefix=None, filter_fr=False)
-        ids_in_index, natural_ids_in_index = extract_container(output_file+'_crossref_fr', 'crossref_fr', ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, download_prefix=None, filter_fr=False)
+        myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+        mydb = myclient['scanr']
+        collection_name = 'publications_before_enrichment'
+        mycoll = mydb[collection_name]
+        mycoll.drop()
+
+        extract_pubmed(bso_local_dict)
+        #extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
+        extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
         if 'scanr' in index_name:
-            ids_in_index, natural_ids_in_index = extract_container(output_file+'_theses', 'theses', ids_in_index, natural_ids_in_index, bso_local_dict, False, download_prefix='20211208/parsed', filter_fr=False)
-            ids_in_index, natural_ids_in_index = extract_container(output_file+'_hal_fr', 'hal', ids_in_index, natural_ids_in_index, bso_local_dict, False, download_prefix='20211208/parsed', filter_fr=True)
-        ids_in_index, natural_ids_in_index = extract_fixed_list(output_file+'_dois_fr', ids_in_index, natural_ids_in_index, bso_local_dict)
+            extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
+            extract_container('hal',    bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=True)
+        extract_fixed_list(bso_local_dict)
         for filename in bso_local_filenames:
-            ids_in_index, natural_ids_in_index = extract_one_bso_local(output_file+'_bso_local_'+filename, filename, ids_in_index, natural_ids_in_index, bso_local_dict, False)
+            extract_one_bso_local(filename, bso_local_dict)
 
-        logger.debug('copying pubmed')
-        os.system(f'cat {output_file}_pubmed > {output_file}')
-        logger.debug('copying parsed_fr')
-        os.system(f'cat {output_file}_parsed_fr >> {output_file}')
-        logger.debug('copying crossref_fr')
-        os.system(f'cat {output_file}_crossref_fr >> {output_file}')
-        
-        if 'scanr' in index_name:
-            logger.debug('copying theses')
-            os.system(f'cat {output_file}_theses >> {output_file}')
-            logger.debug('copying hal_fr')
-            os.system(f'cat {output_file}_hal_fr >> {output_file}')
+        # export to jsonl
+        dump_cmd = f'mongoexport --forceTableScan --uri mongodb://mongo:27017/scanr --collection {collection_name} --out {output_file}'
+        os.system(dump_cmd)
 
-        logger.debug('copying dois_fr')
-        os.system(f'cat {output_file}_dois_fr >> {output_file}')
-        for filename in bso_local_filenames:
-            logger.debug(f'copying {filename}')
-            os.system(f'cat {output_file}_bso_local_{filename} | sort | uniq >> {output_file}')
-
-    del ids_in_index
-    del natural_ids_in_index
     # enrichment
-    # TO do check: 10000=>40 min
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
-    enriched_output_file_full = output_file.replace('_extract.jsonl', '_full.jsonl')
+    #enriched_output_file_full = output_file.replace('_extract.jsonl', '_full.jsonl')
     enriched_output_file_csv = enriched_output_file.replace('.jsonl', '.csv')
     last_oa_details = get_millesime(max(observations))
 
     if transform:
         df_chunks = pd.read_json(output_file, lines=True, chunksize = chunksize)
-        ix = 0
+       
         os.system(f'rm -rf {enriched_output_file}')
-        os.system(f'rm -rf {enriched_output_file_full}')
+        #os.system(f'rm -rf {enriched_output_file_full}')
+       
+        ix = -1
         for c in df_chunks:
-            logger.debug(f'chunk {ix}')
-            # list and remove the NaN
-            publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
-            # publis_chunks = list(chunks(publications, 20000))
-            enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
-                entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, index_name=index_name)
-            if 'bso-publications' in index_name:
-                enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
-                to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, 'a')
-            elif 'scanr' in index_name:
-                to_jsonl(enriched_publications, enriched_output_file_full, 'a')
-            else: # study APC
-                enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
-                to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, 'a')
+            publications = c.to_dict(orient='records')
             ix += 1
+            
+            # NOT PARALLEL
+            #logger.debug(f'chunk {ix}')
+            #transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a')
+    
+            # PARALLEL
+            publis_chunks = list(chunks(lst=publications, n=1700))
+            jobs = []
+            outputs = []
+            for jx, c in enumerate(publis_chunks):
+                current_output = f'{enriched_output_file}_{ix}_{jx}'
+                logger.debug(current_output)
+                p = mp.Process(target=transform_publications, args=(c, index_name, observations, affiliation_matching, entity_fishing, current_output, 'w'))
+                outputs.append(current_output)
+                p.start()
+                jobs.append(p)
+            for p in jobs:
+                p.join()
+            for k, o in enumerate(outputs):
+                logger.debug(f'dumping {o} into {enriched_output_file}')
+                os.system(f'cat {o} >> {enriched_output_file}')
+                os.system(f'rm -rf {o}')
         
         # csv
         if 'bso-publications' in index_name:
@@ -201,7 +164,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         
         logger.debug('loading bso-publications index')
         reset_index(index=index_name)
-        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 10000 " + "--transform='doc._source=Object.assign({},doc)'"
+        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 5000 " + "--transform='doc._source=Object.assign({},doc)'"
         logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
@@ -247,14 +210,55 @@ def zip_upload(a_file):
     upload_object(container='bso_dump', filename=f'{a_file}.gz')
     os.system(f'rm -rf {a_file}.gz')
 
+@retry(delay=200, tries=3)
+def to_mongo(input_list):
+    logger.debug(f'importing {len(input_list)} publications')
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    output_json = f'{MOUNTED_VOLUME}publications-current.jsonl'
+    #pd.DataFrame(input_list).to_json(output_json, lines=True, orient='records')
+    to_jsonl(input_list, output_json, 'w')
+    collection_name = 'publications_before_enrichment'
+    mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
+                  f' --collection {collection_name}'
+    logger.debug(f'{mongoimport}')
+    os.system(mongoimport)
+    logger.debug(f'Checking indexes on collection {collection_name}')
+    mycol = mydb[collection_name]
+    for f in ['id', 'doi', 'nnt_id', 'hal_id', 'pmid', 'sudoc_id', 'natural_id', 'all_ids']:
+        mycol.create_index(f)
+    logger.debug(f'Deleting {output_json}')
+    os.remove(output_json)
+
+@retry(delay=200, tries=3)
+def get_from_mongo(identifier_type, identifiers):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    collection_name = 'publications_before_enrichment'
+    mycoll = mydb[collection_name]
+    res = []
+    cursor = mycoll.find({ identifier_type : { '$in': identifiers } }, no_cursor_timeout=True).batch_size(40)
+    for r in cursor:
+        del r['_id']
+        res.append(r)
+    cursor.close()
+    return res
+
+@retry(delay=200, tries=3)
+def delete_from_mongo(identifiers):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    collection_name = 'publications_before_enrichment'
+    mycoll = mydb[collection_name]
+    logger.debug(f'removing {len(identifiers)} publis for {identifiers[0:10]} ...')
+    mycoll.delete_many({ 'id' : { '$in': identifiers } })
+
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
         for entry in input_list:
             json.dump(entry, outfile)
             outfile.write('\n')
 
-def get_hash(text):
-    return hashlib.md5(text.encode()).hexdigest()
 
 def get_natural_id(res):
     title_first_author = ""
@@ -270,45 +274,119 @@ def get_natural_id(res):
     res['title_first_author'] = get_hash(title_first_author)
     return res['title_first_author'] 
 
-def select_missing(new_publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, datasource, load_in_elastic):
-    missing = []
-    for p in new_publications:
-        natural_id = get_natural_id(p)
-        unknown_publication = True
-        known_ids = []
-        has_an_id = False
-        for known_id in ['doi', 'nnt_id']: 
-            if isinstance(p.get(known_id), str):
-                current_id = p[known_id].lower().strip()
-                has_an_id = True
-                known_ids.append(current_id)
-                unknown_publication = unknown_publication and (current_id not in ids_in_index)
-        
-        if has_an_id:
-            pass
-        elif has_an_id is False and natural_id not in natural_ids_in_index:
-            unknown_publication = True
-        else:
-            unknown_publication = False
+def get_common_id(p):
+    for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
+        if isinstance(p.get(f), str):
+            return f.replace('_id', '')+p[f]
 
-        if unknown_publication:
-            missing.append(p)
-            ids_in_index.update(known_ids)
-            natural_ids_in_index.update([natural_id])
-    for p in missing:
+
+def merge_publications(current_publi, new_publi):
+    change = False
+    new_datasource = new_publi['datasource']
+    for f in new_publi:
+        if 'authors' in f:
+            current_publi[f+'_'+new_datasource] = new_publi[f]
+            change = True
+        if 'affiliations' in f:
+            current_publi[f+'_'+new_datasource] = new_publi[f]
+            change = True
+        if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and f not in current_publi:
+            current_publi[f] = new_publi[f]
+            change = True
+        for f in new_publi['all_ids']:
+            if f not in current_publi['all_ids']:
+                current_publi['all_ids'].append(f)
+                change = True
+    return current_publi, change
+
+
+def tag_affiliations(p, datasource):
+    affiliations = p.get('affiliations')
+    if isinstance(affiliations, list):
+        for aff in affiliations:
+            if 'name_in_document' in aff:
+                aff['name'] = aff['name_in_document']
+            aff['datasource'] = datasource
+    authors = p.get('authors')
+    if isinstance(authors, list):
+        for aut in authors:
+            aut['datasource'] = datasource
+            affiliations = aut.get('affiliations')
+            if isinstance(affiliations, list):
+                for aff in affiliations:
+                    if 'name_in_document' in aff:
+                        aff['name'] = aff['name_in_document']
+                #aff['datasource'] = datasource
+    return p
+
+
+
+def update_publications_infos(new_publications, bso_local_dict, datasource):
+    existing_publis_all_ids_to_main_id = {}
+    existing_publis_dict = {}
+    to_add, to_delete = [], []
+    ids_to_check = []
+    for p in new_publications:
+        p['datasource'] = datasource
+        p = tag_affiliations(p, datasource)
+        p['all_ids'] = []
+        if p.get('doi'):
+            p['doi'] = clean_doi(p['doi'])
+        for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
+            if p.get(f):
+                if not is_valid(p[f], f):
+                    logger.debug(f'invalid {f} detected: {p[f]}')
+                    del p[f]
+            if p.get(f):
+                if not isinstance(p[f], str):
+                    p[f] = str(int(p[f]))
+                p[f] = p[f].lower().strip()
+        natural_id = get_natural_id(p)
+        p_id = get_common_id(p)
+        if p_id:
+            p['id'] = p_id
+        else:
+            logger.debug(f'No ID for publi {p}')
+            continue
+        if p.get('pmid'):
+            p['pmid'] = str(int(p['pmid']))
+        for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id', 'natural_id']:
+            if isinstance(p.get(f), str):
+                p['all_ids'].append(f.replace('_id', '')+p[f])
+            ids_to_check += p['all_ids']
+    # on récupère les data des publis déjà en base
+    ids_to_check = list(set(ids_to_check))
+    existing_publis = get_from_mongo('all_ids', ids_to_check)
+    for p in existing_publis:
+        for identifier in p.get('all_ids'):
+            existing_publis_all_ids_to_main_id[identifier] = p['id']
+            existing_publis_dict[p['id']] = p
+    for p in new_publications:
+        # on cherche si la publication est déjà en base pour lui ajouter des infos complémentaires
+        existing_publi = None
+        for f in p['all_ids']:
+            if f in existing_publis_all_ids_to_main_id:
+                current_id = existing_publis_all_ids_to_main_id[f]
+                existing_publi = existing_publis_dict[current_id]
+                existing_publi, change = merge_publications(existing_publi, p)
+                if change:
+                    to_add.append(existing_publi)
+                    to_delete.append(current_id)
+                break
+        if existing_publi is None:
+            to_add.append(p)
+    for p in to_add:
         if p.get('doi') and p['doi'] in bso_local_dict:
             p['bso_local_affiliations'] = bso_local_dict[p['doi']]
-        p['datasource'] = datasource
-    to_jsonl(missing, output_file, 'a')
-    if load_in_elastic:
-        output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
-        loaded = load_in_es(data=missing, index=output_file.replace(MOUNTED_VOLUME, '').replace('_extract.jsonl', ''))
-    logger.debug(f'{len(missing)} publications extracted')
-    logger.debug(f'ids_in_index: {len(ids_in_index)}, natural_ids_in_index: {len(natural_ids_in_index)}')
-    return ids_in_index, natural_ids_in_index
+    if to_delete:
+        delete_from_mongo(to_delete)
+    to_mongo(to_add)
+    nb_add = len(to_add)
+    nb_del = len(to_delete)
+    nb_new = nb_add - nb_del
+    logger.debug(f'new : {nb_new} publis, updating {nb_del} publis')
 
-def extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_dict) -> None:
-    os.system(f'rm -rf {output_file}')
+def extract_pubmed(bso_local_dict) -> None:
     start_string = '2013-01-01'
     end_string = datetime.date.today().isoformat()
     start_date = parser.parse(start_string).date()
@@ -322,11 +400,9 @@ def extract_pubmed(output_file, ids_in_index, natural_ids_in_index, bso_local_di
         logger.debug(f'Getting parsed objects for {prefix} from object storage (pubmed)')
         publications = get_objects_by_prefix(container='pubmed', prefix=f'parsed/fr/{prefix}')
         logger.debug(f'{len(publications)} publications retrieved from object storage')
-        ids_in_index, natural_ids_in_index = select_missing(publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, 'pubmed', False)
-    return ids_in_index, natural_ids_in_index
-   
-def extract_container(output_file, container, ids_in_index, natural_ids_in_index, bso_local_dict, skip_download, download_prefix, filter_fr):
-    os.system(f'rm -rf {output_file}')
+        update_publications_infos(publications, bso_local_dict, 'pubmed')
+
+def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr):
     if skip_download is False:
         cmd =  init_cmd + f' download {container} -D {MOUNTED_VOLUME}/{container} --skip-identical'
         if download_prefix:
@@ -341,6 +417,9 @@ def extract_container(output_file, container, ids_in_index, natural_ids_in_index
         publications = []
         json_files = os.listdir(f'{local_path}/{prefix}')
         for jsonfilename in json_files:
+            # if one by one => one json file at a time
+            if one_by_one:
+                publications = []
             with gzip.open(f'{local_path}/{prefix}/{jsonfilename}', 'r') as fin:
                 current_publications = json.loads(fin.read().decode('utf-8'))
                 for publi in current_publications:
@@ -351,18 +430,18 @@ def extract_container(output_file, container, ids_in_index, natural_ids_in_index
                             publications.append(publi)
                     else:
                         publications.append(publi)
-        ids_in_index, natural_ids_in_index = select_missing(publications, ids_in_index, natural_ids_in_index, output_file, bso_local_dict, container, False)
-    return ids_in_index, natural_ids_in_index
+            if one_by_one:
+                update_publications_infos(publications, bso_local_dict, container)
+        if not one_by_one:
+            update_publications_infos(publications, bso_local_dict, container)
    
-def extract_fixed_list(output_file, ids_in_index, natural_ids_in_index, bso_local_dict):
-    os.system(f'rm -rf {output_file}')
+def extract_fixed_list(bso_local_dict):
     for extra_file in ['dois_fr', 'tmp_dois_fr']:
         download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
         if os.path.isfile(f'{MOUNTED_VOLUME}/{extra_file}.json'):
             fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
-            fr_dois_set = set(fr_dois)
-            ids_in_index, natural_ids_in_index = select_missing([{'doi': d} for d in fr_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, extra_file, False)
-    return ids_in_index, natural_ids_in_index
+            for chunk in chunks(fr_dois, 10000):
+                update_publications_infos([{'doi': d} for d in chunk], bso_local_dict, extra_file)
 
 def build_bso_local_dict():
     bso_local_dict = {}
@@ -387,13 +466,12 @@ def build_bso_local_dict():
                     bso_local_dict_aff[local_affiliation].append(d)
     return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames))
 
-def extract_one_bso_local(output_file, bso_local_filename, ids_in_index, natural_ids_in_index, bso_local_dict, load_in_elastic):
-    os.system(f'rm -rf {output_file}')
+def extract_one_bso_local(bso_local_filename, bso_local_dict):
     local_affiliations = bso_local_filename.split('.')[0].split('_')
     current_dois = get_dois_from_input(filename=bso_local_filename)
-    current_dois_set = set(current_dois)
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
-    return select_missing([{'doi': d} for d in current_dois_set], ids_in_index, natural_ids_in_index, output_file, bso_local_dict, f'bso_local_{bso_local_filename}', load_in_elastic)
+    for chunk in chunks(current_dois, 10000):
+        update_publications_infos([{'doi': d} for d in chunk], bso_local_dict, f'bso_local_{bso_local_filename}')
 
     # alias update is done manually !
     # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)

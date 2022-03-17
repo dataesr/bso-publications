@@ -4,6 +4,7 @@ import time
 
 from bso.server.main.logger import get_logger
 
+import pymongo
 
 ENTITY_FISHING_SERVICE = os.getenv('ENTITY_FISHING_SERVICE')
 
@@ -22,8 +23,27 @@ def exception_handler(func):
     return inner_function
 
 
+def get_from_mongo(pid):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    collection_name = 'classifications'
+    mycoll = mydb[collection_name]
+    res = mycoll.find_one({'id': pid})
+    if res:
+        return {'classifications': res['classifications']}
+    return
+
+
 @exception_handler
 def get_entity_fishing(publication: dict) -> dict:
+
+    pre_computed = get_from_mongo(publication['id'])
+    if pre_computed:
+        return pre_computed
+
+    # TODO TO REMOVE
+    return {}
+
     ans = {}
 
     lang = publication.get('lang')
@@ -47,8 +67,8 @@ def get_entity_fishing(publication: dict) -> dict:
         res = r.json()
 
         classifications = publication.get('classifications', [])
-        global_categories = [{'label': r['category'], 'code':r['page_id'], 'reference': r['source']} for r in res.get('global_categories', [])]
-        wikidataIds = [{'code': r['wikidataId'], 'label': r['rawName'], 'reference': 'wikidata'} for r in res.get('entities', [])]
+        global_categories = [{'label': r['category'], 'code':r['page_id'], 'reference': r['source']} for r in res.get('global_categories', []) if 'category' in r]
+        wikidataIds = [{'code': r['wikidataId'], 'label': r['rawName'], 'reference': 'wikidata'} for r in res.get('entities', []) if 'wikidataId' in r]
 
         domains = []
         for r in res.get('entities', []):

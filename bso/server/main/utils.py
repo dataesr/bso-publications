@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import requests
 import shutil
+import hashlib
 
 from typing import Union
 from urllib import parse
@@ -15,8 +16,24 @@ from bso.server.main.utils_swift import download_object, upload_object, get_obje
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
 
+def get_hash(text):
+    return hashlib.md5(text.encode()).hexdigest()
+
+def is_valid(identifier, identifier_type):
+    if identifier_type == 'doi':
+        if '/' not in identifier:
+            return False
+        if identifier[0:3] != '10.':
+            return False
+        for k in ['xxxxxx', 'nnnnnn']:
+            if k in identifier.lower():
+                return False
+    return True
+
 def clean_doi(doi):
-    res = doi.lower().strip()
+    res = doi.lower().replace(' ', '').strip()
+    res = res.replace('%2f', '/')
+    res = res.replace('doi:', '')
     for f in [',', ';', ' ']:
         res = res.replace(f, '')
     if 'doi.org' in doi:
@@ -28,11 +45,16 @@ def get_dois_from_input(filename: str) -> list:
     if 'xls' in filename.lower():
         df = pd.read_excel(target, engine='openpyxl')
     else:
-        df = pd.read_csv(target)
+        df = pd.read_csv(target, sep=',')
+        doi_columns = [c for c in df.columns if 'doi' in c.lower()]
+        if doi_columns and ';' in doi_columns[0]:
+            df = pd.read_csv(target, sep=';')
+
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]
     if len(doi_columns) > 0:
         doi_column = doi_columns[0]
     else:
+        logger.debug(f'ATTENTION !! Pas de colonne avec doi détectée pour {filename}')
         return []
     dois = list(set([clean_doi(d) for d in df[doi_column].dropna().tolist()]))
     logger.debug(f'doi column: {doi_column} for {filename} with {len(dois)} dois')

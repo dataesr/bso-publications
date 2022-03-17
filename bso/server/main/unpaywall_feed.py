@@ -64,7 +64,8 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     ## mongo done
 
     ## elastic start
-    if collection_name == 'global':
+    create_full_index = False
+    if collection_name == 'global' and create_full_index:
         start = datetime.datetime.now()
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
