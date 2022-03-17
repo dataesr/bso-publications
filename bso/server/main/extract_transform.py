@@ -127,30 +127,32 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
        
         ix = -1
         for c in df_chunks:
+            parallel = False
+
             publications = c.to_dict(orient='records')
             ix += 1
             
-            # NOT PARALLEL
-            #logger.debug(f'chunk {ix}')
-            #transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a')
+            if not parallel:
+                logger.debug(f'chunk {ix}')
+                transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a')
     
-            # PARALLEL
-            publis_chunks = list(chunks(lst=publications, n=1700))
-            jobs = []
-            outputs = []
-            for jx, c in enumerate(publis_chunks):
-                current_output = f'{enriched_output_file}_{ix}_{jx}'
-                logger.debug(current_output)
-                p = mp.Process(target=transform_publications, args=(c, index_name, observations, affiliation_matching, entity_fishing, current_output, 'w'))
-                outputs.append(current_output)
-                p.start()
-                jobs.append(p)
-            for p in jobs:
-                p.join()
-            for k, o in enumerate(outputs):
-                logger.debug(f'dumping {o} into {enriched_output_file}')
-                os.system(f'cat {o} >> {enriched_output_file}')
-                os.system(f'rm -rf {o}')
+            else:
+                publis_chunks = list(chunks(lst=publications, n=1700))
+                jobs = []
+                outputs = []
+                for jx, c in enumerate(publis_chunks):
+                    current_output = f'{enriched_output_file}_{ix}_{jx}'
+                    logger.debug(current_output)
+                    p = mp.Process(target=transform_publications, args=(c, index_name, observations, affiliation_matching, entity_fishing, current_output, 'w'))
+                    outputs.append(current_output)
+                    p.start()
+                    jobs.append(p)
+                for p in jobs:
+                    p.join()
+                for k, o in enumerate(outputs):
+                    logger.debug(f'dumping {o} into {enriched_output_file}')
+                    os.system(f'cat {o} >> {enriched_output_file}')
+                    os.system(f'rm -rf {o}')
         
         # csv
         if 'bso-publications' in index_name:
