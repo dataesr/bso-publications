@@ -43,7 +43,7 @@ def reduce_status(all_statuses: list) -> list:
             statuses.append(status)
             break
     # status accord_elsevier prioritaire, mais ensuite on remplace par 'other'
-    return ['other' if x=='accord_elsevier' else x for x in statuses]
+    return ['other' if x == 'accord_elsevier' else x for x in statuses]
 
 
 def get_repository(a_repo: str) -> str:
@@ -110,8 +110,8 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
         else:
             res[f] = False
     if res['is_oa'] is False:
-        res['oa_host_type'] = ["closed"]
-        res['oa_colors'] = ["closed"]
+        res['oa_host_type'] = ['closed']
+        res['oa_colors'] = ['closed']
         res['oa_colors_with_priority_to_publisher'] = ['closed']
         return {millesime: res}
     oa_loc = elem.get('oa_locations', [])
@@ -124,13 +124,14 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
     licence_repositories = []
     licence_publisher = []
     oa_locations = []
+    res['unpaywall_oa_status'] = elem.get('oa_status')
     for loc in oa_loc:
         if loc is None:
             continue
         if isinstance(loc.get('url'), str):
             loc['url'] = loc['url'].lower().strip()
         licence = normalize_license(loc.get('license'))
-        loc['license_normalized'] = licence 
+        loc['license_normalized'] = licence
         host_type = loc.get('host_type')
         if host_type == 'repository':
             current_repo_instit = loc.get('repository_institution')
@@ -158,7 +159,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
                 repositories_institution.append(current_repo_instit)
                 if current_repo is None:
                     current_repo = get_repository(current_repo_instit)
-            #if current_repo in ['mdpi.com', 'edpsciences.org']:
+            # if current_repo in ['mdpi.com', 'edpsciences.org']:
             #    continue # not green !
             loc['repository_normalized'] = current_repo
             if current_repo:
@@ -169,9 +170,8 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
         elif host_type == 'publisher':
             if licence:
                 licence_publisher.append(licence)
-            evidence = loc.get('evidence')
             if ('author manuscript' in loc.get('evidence')) and ('accepted' in loc.get('version')) and (publisher == 'Elsevier'):
-                status = 'accord_elsevier' # accord Elsevier
+                status = 'accord_elsevier'  # accord Elsevier
             elif (has_apc is not None) and (not has_apc) and elem.get('journal_is_in_doaj'):
                 status = 'diamond'
             elif elem.get('journal_is_oa') == 1 and (has_apc is True):
@@ -203,5 +203,3 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
     res['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(res['oa_colors'])
     res['oa_host_type'] = ";".join(dedup_sort(host_types))
     return {millesime: res}
-
-

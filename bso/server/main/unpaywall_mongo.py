@@ -8,7 +8,6 @@ from retry import retry
 from typing import Union
 
 from bso.server.main.config import MONGO_URL, MOUNTED_VOLUME
-from bso.server.main.decorator import exception_handler
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import upload_object
 
@@ -94,14 +93,14 @@ def get_doi(doi, collection_name: str) -> dict:
     return res
 
 
-def get_doi_full(dois: list, observations: list, last_observation_date_only:bool) -> dict:
+def get_doi_full(dois: list, observations: list, last_observation_date_only: bool) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
     db = get_database()
     res = {}
     for d in dois:
         res[d] = {}
     collections = db.list_collection_names()
-    collections_dates = [col for col in collections if col[0:2]=='20']
+    collections_dates = [col for col in collections if col[0:2] == '20']
 
     for collection in collections:
         if collection in ['pubmed', 'inventory']:
@@ -119,7 +118,7 @@ def get_doi_full(dois: list, observations: list, last_observation_date_only:bool
             if asof != 'global':
                 del e['doi']
             res[d].update({asof: e})
-    logger.debug(f'Getting doi infos DONE')
+    logger.debug('Getting doi infos DONE')
     return res
 
 
