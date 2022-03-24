@@ -303,7 +303,7 @@ We propose both indicators mixing or separating results and scholarly publicatio
 
 ## 2.3 'Local' Open Science Monitors
 
-The University of Lorraine was the first institution to propose a local version of the French Monitor. The code created on this occasion is freely accessible:[@bracco:hal-03450104v1].
+The University of Lorraine was the first institution to propose a local version of the French Monitor. The code created on this occasion is freely accessible [@bracco:hal-03450104v1].
 
 This local version, published during spring 2020, was designed with reusability in mind. For this purpose, the code has been detailed step by step in Jupyter Notebooks and includes a readme file explaining all the required actions to obtain its own Barometer.
 
@@ -313,7 +313,7 @@ Following the publication of this code, many institutions were able to generate 
 
 The new version of the national Monitor allows, directly from the website, to generate graphs from a list of DOIs previously sent to the MESRI team. The University of Lorraine has been asked to test and implement this new version.
 
-The constitution of the DOI corpus remains an essential step for the institutions. The code proposed by the University of Lorraine makes it possible to generate this list simply by crossing various databases such as the Web of Science, PubMed or HAL.
+The constitution of the DOI corpus remains an essential step for the institutions. The code proposed by the University of Lorraine makes it possible to generate this list simply by crossing various databases.
 
 This simplified version will probably encourage other institutions to establish their own Monitor.
 
@@ -495,36 +495,64 @@ We see in particular that among the scientific publications in France released i
 
 ## 3.3 Clinical trials transparency in France
 
-# 4. Discussion and conclusion
+The clinical trials are research conducted on human beings, involving an intervention other than their usual care (delivery of a drug, use of a medical device, surgical act, etc.) in order to develop biological or medical knowledge. The lead sponsor of a clinical trial, who initiates, finances and supervises its conduct, may be a public or private organization: a health institution, a research organization, a pharmaceutical company, a medical device manufacturer, etc. The Open Science Barometer takes into account French clinical trials, i.e. those in which at least one of the participating institutions is located in France.
 
-## 4.1 Findings
+The registration of clinical trials and their results in public databases contributes to greater transparency in medical research. It allows a rapid circulation of results, even when these have been unsuccessful and are not the subject of a scientific publication. It avoids the duplication of trials, verifies the methodology used and increases the confidence of the patients involved. It also attests to the proper use of funds allocated to medical research. The World Medical Association's Declaration of Helsinki, which defines the ethical principles applicable to medical research involving human subjects, establishes since 2008 that all clinical trials should be registered in a public database before the first patient is enrolled and that the results should be made public. These principles have also been affirmed since 2006 by the World Health Organization. Registries exist to carry out these registrations: ClinicalTrials.gov, an American registry that lists many studies conducted outside the United States, and the EU Clinical Trials Register in the European Union. Other registries exist but are not taken into account here because of their much lower use. In EU countries, the reporting of the results of clinical trials involving drugs within 12 months of their completion was made mandatory by a 2014 regulation, which came into force on January 31, 2022, the date the Clinical Trials Information System (CTIS) became operational. This requirement does not apply to non-drug clinical trials. The analyses presented do not take into account clinical trials that are not registered in a public registry, the number of which is not known.
+The registration of clinical trials in a public registry should not be confused with prior declarations made to the competent authorities, such as ethics committees, to obtain authorizations to conduct these trials. These are not public.
 
+The next figure represents, for all clinical trials conducted in France that have been registered and reported as completed in a public registry since 2010, those for which results have been communicated in this same registry. This communication can take the form of a compilation of the results obtained (we speak of "posted" results), a scientific publication (we speak of "published" results) or both. We do not introduce any hierarchy between posted results and published results. In both cases, it is a communication of results. The graph distinguishes between clinical trials whose sponsor is an industrial company (industrial sponsor) and those whose sponsor is a public research institution (academic sponsor). The graph does not take into account clinical trials that are not registered in a public registry.
+In France, the share of completed clinical trials that have posted and/or published results of publications is estimated at 57%. Industrial sponsors have much more systematic practices of transparency of their results (76%) while public sponsors share their results much less (31%).
 
-## 4.2 Limitations and future research
+![Share of registered and completed clinical trials that have posted or published results](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_1.png){ width=450 }
 
-### 4.2.1 Limitations
+The next figure has to be read from left to right. It presents, for all clinical trials conducted in France that have been registered and reported as completed in a public registry since 2010, those for which a result has been posted or published. When a result has been reported, the graph distinguishes between those that are posted and those that are published in a peer-reviewed scientific publication. Finally, when a publication is mentioned, it specifies whether or not it is available in open access.
 
-DOI only
+![Distribution of clinical trials by results reporting](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_2.png){ width=450 }
 
-mixes preprint servers / open repo
+The World Medical Association (WMA)'s Declaration of Helsinki states that the dissemination of results from medical research involving human beings, is an ethical obligation for all those involved, whether researchers, sponsors or publishers of scientific journals. Indeed, it appears to be a necessary counterpart to the involvement of patients in such research and as a major scientific and public health issue. The dissemination of results may take the form of an article in a scientific journal (published results) or a summary in a clinical trial register (posted results). This second vector ensures that the results of negative or inconclusive clinical trials, which are difficult to valorize in a scientific publication, are made public and properly disseminated. They are indeed valuable scientific contributions and the trials from which they result should not be ignored or unnecessarily duplicated.
 
-richer metadata
+![Procedures for reporting the results of completed clinical trials](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_3.png){ width=450 }
 
-based only on metadata from registries
+Responsible sharing of individual data from clinical trials is a major challenge for the scientific community: sharing these data allows great transparency and maximizes the value of the data collected with the realization:
+• of re-analyses with the aim of verifying the conclusions of the trials,
+• secondary analyses exploring new research questions based on existing data,
+• meta-analyses on individual data which, by pooling different studies exploring the same question, make it possible to provide the most precise answer possible.
+The International Committee of Medical Journal Editors (ICMJE) has stated that responsible sharing of clinical trial data is ethically justified: since research subjects are willing to take risks for uncertain individual benefits, they are expected to make the best use of the data collected, while minimizing the risk of re-identification. The ICMJE therefore requires that a data sharing statement specifying the terms of any sharing be included in each publication from July 1, 2018, and that it be specified in advance during clinical trial registration from January 1, 2019. At this point, data sharing is recommended by the ICMJE but is not a requirement.
 
-### 4.2.2 Future work
+The next figure shows the number of registered clinical trials with and without individual data sharing statements by year since 2010.
+There has been a slow increase in the use of this instrument: 4% in 2010 and 17% in 2021.
 
-research data, software code
+![Distribution of registered clinical trials by presence of a data sharing statement](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_4.png){ width=450 }
 
+Observational studies are research studies conducted on human beings that do not involve any intervention other than their usual care, for example by questionnaires, cohort studies, etc. The legislation does not make it compulsory to publish the results of observational studies. However, a priori registration and systematic publication of the results of observational studies, on the same model as clinical trials, is a good practice that we are trying to measure.
+For this version of the barometer, we are working only on observational studies registered on the ClinicalTrials.gov and EU Clinical Trial Register platforms, with a methodology comparable to that used for the clinical trials barometer. However, our object of study is different and more difficult to measure since many observational studies are not registered on these platforms. These results should therefore be analyzed with caution.
+
+As with clinical trials, the registration of studies and publication of their results is an important contribution to open science.
+
+For this edition of the monitor, we estimate that 23% of observational studies publish results, with greater transparency from industrial sponsors (39%) than from public sponsors (17%).
+
+![Share of registered observational studies reporting results between 2010 and 2020](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_os_1.png){ width=450 }
+
+## 3.4 Limitations and future research
+
+### 3.4.1 Limitations
+
+The main limitation of the current approach for the publications is the restriction to Crossref DOI. Indeed, we know it hides a fraction of the publications, especially in the humanities and social sciences and in computer science. This limitation is due to the fact that we need, first, to use identifiers to make sure no duplicates are counted in the monitor. Introducing productions without DOI would imply to set up a proper methodology to remove potential duplicates. On top of that, we also need an OA discovery tool. Unpaywall focuses only on Crossref DOI. So, going beyond Crossref DOI would imply as well to use / set-up another tool to discover OA. Ideally, we would also want to have past snapshots of this tool to be able to keep on producing a dynamic analysis of the open access trends.  
+
+Another limitation of the current approach is that we mix up preprint servers and open repositories. Both of them host open access version of articles, but they play very different roles in reality. 
+Also, about preprints, the monitor does not account for potential links between preprint and published article. So, an article with a preprint with a crossref DOI d1 and then published with another DOI d2 will actually counts twice in the current methodology. However, this phenomenon remains very limited as preprints represent less than 3% of the publications in the monitor database, especially because of the crossref DOI restriction. arXiv announced they will set DOI on their documents, but it will be Datacite DOI and not Crossref DOI. 
+
+### 3.4.2 Future work
+
+A new genereration of French Open Science Monitor is being developed in order to integrate new research output to go beyond publications and clinical trials. In particular, we are working on the research data and softwares.
 
 # Software and code availability
 
-https://github.com/dataesr/bso-publications
-
-https://github.com/dataesr/bso-clinical-trials
+The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules for harvesting and parsing (https://github.com/dataesr/harvest-pubmed and https://github.com/dataesr/bso-parser-html), country and affiliation matching (https://github.com/dataesr/matcher), discipline inference (https://github.com/dataesr/scientific_tagger), indicators computations (https://github.com/dataesr/bso-publications and https://github.com/dataesr/bso-clinical-trials) and the web user interface (https://github.com/dataesr/bso-ui).
 
 # Data availability
-portail MESRI
+
+The data resusting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/ and https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/
 
 # Acknowledgements
 
