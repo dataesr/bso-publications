@@ -105,10 +105,16 @@ def create_task_unpaywall_to_crawler():
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     destination = f'{MOUNTED_VOLUME}/weekly_upw.jsonl.gz'
     download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
+    
+    crawl_all = True
+
     chunks = pd.read_json(destination, lines=True, chunksize=5000)
     for c in chunks:
         sub_df = c[c.year >= START_YEAR]
-        element_to_crawl = get_not_crawled(sub_df.doi.tolist())
+        if crawl_all:
+            element_to_crawl = sub_df.doi.tolist()
+        else:
+            element_to_crawl = get_not_crawled(sub_df.doi.tolist())
         logger.debug(f'{len(c)} lines in weekly upw file')
         for i, row in sub_df.iterrows():
             title = row.title

@@ -22,6 +22,7 @@ from bso.server.main.utils_swift import download_object, get_objects_by_page, ge
 from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash
 from bso.server.main.strings import normalize
+from bso.server.main.scanr import to_scanr
 
 logger = get_logger(__name__)
     
@@ -105,6 +106,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'scanr' in index_name:
             extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
             extract_container('hal',    bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=True)
+            for fst in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+                for snd in ["X", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+                    extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed/{fst}{snd}', one_by_one=False, filter_fr=False)
         extract_fixed_list(bso_local_dict)
         for filename in bso_local_filenames:
             extract_one_bso_local(filename, bso_local_dict)
@@ -121,7 +125,6 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
     if transform:
         df_chunks = pd.read_json(output_file, lines=True, chunksize = chunksize)
-       
         os.system(f'rm -rf {enriched_output_file}')
         #os.system(f'rm -rf {enriched_output_file_full}')
        
@@ -179,6 +182,20 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         zip_upload(enriched_output_file)
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
+
+    if 'scanr' in index_name:
+        df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
+        scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.jsonl')
+        os.system(f'rm -rf {scanr_output_file}')
+        ix = 0
+        for c in df_chunks:
+            publications = c.to_dict(orient='records')
+            to_json(to_scanr(publications), scanr_output_file, ix)
+            ix += 1
+            logger.debug(f'scanr extract, {ix}')
+        with open(scanr_output_file, 'a') as outfile:
+            outfile.write(']')
+
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
     # first remove existing files
@@ -260,6 +277,19 @@ def to_jsonl(input_list, output_file, mode = 'a'):
         for entry in input_list:
             json.dump(entry, outfile)
             outfile.write('\n')
+
+def to_json(input_list, output_file, ix):
+    if ix == 0:
+        mode = 'w'
+    else:
+        mode = 'a'
+    with open(output_file, mode) as outfile:
+        if ix == 0:
+            outfile.write('[')
+        else:
+            outfile.write(',\n')
+        for entry in input_list:
+            json.dump(entry, outfile)
 
 
 def get_natural_id(res):
