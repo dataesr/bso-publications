@@ -323,27 +323,22 @@ This simplified version will probably encourage other institutions to establish 
 In this section, we will try to present the global workflow to collect, enrich and consolidate the data as described
 before with the technical and the storage challenges.
 
-### 2.4.1 Data manipulation
-
-Collect, Select, Enrich and Save
-We collect data from multiple sources (PubMed via Medline, Crossref, our own list of DOIS), and then 
-try to guess the country according to the affiliations. And from the DOIs, we collect more details about that 
-publication via Unpaywall. By details, we mean open access, DOAJ, APC ... from multiple sources.
+We collect data from multiple sources (PubMed, Crossref, parsed html ...), and then 
+try to guess the affiliations countries. From the DOIs (crossref), we collect more details about that 
+publication via Unpaywall (title, published year, ISSNs, but also the open access locations if any). 
 
 Each step consumes time and CPU. Assuming any step can fail at any time, we choose to develop each step as
 independent and idempotent.
 
+From the different datasources, we store the raw data on Object Storage on the public OVH Cloud. These data are then transformed into a common 'pivot' json schema, and enriched with affiliations countries, so that only the French publications are kept in the rest of the process. These publications metadata are then enriched with Unpaywall informations (open access locations), openAPC and DOAJ informations to infere if APC were paid or not.
 
-From PubMed, we collect all the database via Medline and store it as JSONL files on Object Storage on OVH Cloud in a
-dedicated container.
-At that point, we have all the notices of medical publications. We find there the affiliations of each publication.
-With the affiliation we tried to detect the countries of the institutions mentioned in the affiliations, in order to
-filter on French publications. The selected publications are stored as JSONL files in another dedicated container on 
-Object Storage on OVH Cloud.
-Now focusing on the French publications, we use the extracted notices to match them against a MongoDatabase that we
-built on a dump of Unpaywall. We use the DOI to consolidate the data and then add many details.
+Eventually, the data is loaded in an elasticsearch cluster that is consumed by the French OSM User Interface. 
+
 
 ![Global overview of the publications data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_publications.png){ width=450 }
+
+A similar workflow, yet simpler is set up for clinical trials.
+
 
 ![Global overview of the trials and studies data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_registries.png){ width=450 }
 
@@ -492,6 +487,10 @@ We see in particular that among the scientific publications in France released i
 ![HAL coverage rate on scientific publications in France available in an open repository](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_repo_4.png){ width=450 }
 
 ## 3.2 Open access in France in the biomedical field
+
+All the above indicators are detailed for the biomedical field. We simply apply the same computations rules on the publications that are indexed in PubMed.
+
+![Open access rate of scientific publications in France in health published during the previous year by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_health_1.png){ width=450 }
 
 ## 3.3 Clinical trials transparency in France
 
