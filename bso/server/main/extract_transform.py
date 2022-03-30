@@ -107,9 +107,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'scanr' in index_name:
             extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
             extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=True)
-            for fst in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
-                for snd in ["X", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
-                    extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed/{fst}{snd}', one_by_one=False, filter_fr=False)
+            extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
         extract_fixed_list(bso_local_dict)
         for filename in bso_local_filenames:
             extract_one_bso_local(filename, bso_local_dict)
@@ -443,7 +441,11 @@ def extract_pubmed(bso_local_dict) -> None:
 
 def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr):
     local_path = download_container(container, skip_download, download_prefix)
-    return get_data(local_path, one_by_one, filter_fr, bso_local_dict, container)
+    if one_by_one is False:
+        for subdir in os.listdir(local_path):
+            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container)
+    else:
+        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container)
 
 def download_container(container, skip_download, download_prefix):
     if skip_download is False:
@@ -451,9 +453,12 @@ def download_container(container, skip_download, download_prefix):
         if download_prefix:
             cmd += f" --prefix {download_prefix}"
         os.system(cmd)
-    return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
+    if download_prefix:
+        return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
+    return f'{MOUNTED_VOLUME}/{container}'
 
 def get_data(local_path, batch, filter_fr, bso_local_dict, container):
+    logger.debug(f'getting data from {local_path}')
     publications = []
     for jsonfilename in os.listdir(local_path):
         if batch:
