@@ -47,7 +47,6 @@ def get_person_ids(publications):
     return publications
 
 def to_scanr(publications):
-    publications = get_person_ids(publications)
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
@@ -99,7 +98,10 @@ def to_scanr(publications):
                 elt['year'] = int(elt['publicationDate'][0:4])
                 break
         # genre
-        elt['type'] = p.get('genre')
+        if isinstance(p.get('genre'), str):
+            elt['type'] = p['genre']
+        else:
+            elt['type'] = 'other'
         if p.get('genre') == 'thesis':
             elt['productionType'] = 'thesis'
         else:

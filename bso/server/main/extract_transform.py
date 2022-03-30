@@ -22,7 +22,7 @@ from bso.server.main.utils_swift import download_object, get_objects_by_page, ge
 from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash
 from bso.server.main.strings import normalize
-from bso.server.main.scanr import to_scanr
+from bso.server.main.scanr import to_scanr, get_person_ids
 
 logger = get_logger(__name__)
     
@@ -99,13 +99,14 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         mycoll = mydb[collection_name]
         mycoll.drop()
 
-        extract_pubmed(bso_local_dict)
+        ##extract_pubmed(bso_local_dict)
         #extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
-        extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
-        extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+
+        ##extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        ##extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
         if 'scanr' in index_name:
-            extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
-            extract_container('hal',    bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=True)
+            ##extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
+            ##extract_container('hal',    bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=True)
             for fst in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                 for snd in ["X", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                     extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed/{fst}{snd}', one_by_one=False, filter_fr=False)
@@ -185,14 +186,20 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
     if 'scanr' in index_name:
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
-        scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.jsonl')
+        scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
+        internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.json')
         os.system(f'rm -rf {scanr_output_file}')
+        os.system(f'rm -rf {internal_output_file}')
         ix = 0
         for c in df_chunks:
             publications = c.to_dict(orient='records')
+            publications = get_person_ids(publications)
             to_json(to_scanr(publications), scanr_output_file, ix)
+            to_jsonl(publications, internal_output_file, 'a')
             ix += 1
             logger.debug(f'scanr extract, {ix}')
+            # TODO remove
+            break
         with open(scanr_output_file, 'a') as outfile:
             outfile.write(']')
 
@@ -286,9 +293,9 @@ def to_json(input_list, output_file, ix):
     with open(output_file, mode) as outfile:
         if ix == 0:
             outfile.write('[')
-        else:
-            outfile.write(',\n')
-        for entry in input_list:
+        for jx, entry in enumerate(input_list):
+            if ix + jx != 0:
+                outfile.write(',\n')
             json.dump(entry, outfile)
 
 
@@ -435,38 +442,50 @@ def extract_pubmed(bso_local_dict) -> None:
         update_publications_infos(publications, bso_local_dict, 'pubmed')
 
 def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr):
+    local_path = download_container(container, skip_download, download_prefix)
+    return get_data(local_path, one_by_one, filter_fr, bso_local_dict, container)
+
+def download_container(container, skip_download, download_prefix):
     if skip_download is False:
         cmd =  init_cmd + f' download {container} -D {MOUNTED_VOLUME}/{container} --skip-identical'
         if download_prefix:
             cmd += f" --prefix {download_prefix}"
         os.system(cmd)
-    local_path = f'{MOUNTED_VOLUME}/{container}'
-    if download_prefix:
-        path_prefix = '/'.join(download_prefix.split('/')[0:-1])
-        local_path = f'{local_path}/{path_prefix}'
-    for prefix in os.listdir(local_path):
-        logger.debug(f'prefix {local_path}/{prefix}')
-        publications = []
-        json_files = os.listdir(f'{local_path}/{prefix}')
-        for jsonfilename in json_files:
-            # if one by one => one json file at a time
-            if one_by_one:
-                publications = []
-            with gzip.open(f'{local_path}/{prefix}/{jsonfilename}', 'r') as fin:
+    return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
+
+def get_data(local_path, batch, filter_fr, bso_local_dict, container):
+    publications = []
+    for jsonfilename in os.listdir(local_path):
+        if batch:
+            publications = []
+        if jsonfilename[-3:] == '.gz':
+            with gzip.open(f'{local_path}/{jsonfilename}', 'r') as fin:
                 current_publications = json.loads(fin.read().decode('utf-8'))
-                for publi in current_publications:
-                    if filter_fr:
-                        countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
-                        countries_flat_list = list(set([item for sublist in countries for item in sublist]))
-                        if 'fr' in countries_flat_list:
-                            publications.append(publi)
-                    else:
-                        publications.append(publi)
-            if one_by_one:
-                update_publications_infos(publications, bso_local_dict, container)
-        if not one_by_one:
+        else:
+            with open(f'{local_path}/{jsonfilename}', 'r') as fin:
+                current_publications = json.loads(fin.read())
+        if isinstance(current_publications, dict):
+            current_publications = [current_publications]
+        assert(isinstance(current_publications, list))
+        for publi in current_publications:
+            if not isinstance(publi, dict):
+                logger.debug(f"publi not a dict : {publi}")
+                continue
+            if filter_fr:
+                countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
+                countries_flat_list = list(set([item for sublist in countries for item in sublist]))
+                if 'fr' in countries_flat_list:
+                    publications.append(publi)
+            else:
+                publications.append(publi)
+        if batch:
+            logger.debug(f'{len(publications)} publications')
             update_publications_infos(publications, bso_local_dict, container)
-   
+    if not batch:
+        logger.debug(f'{len(publications)} publications')
+        update_publications_infos(publications, bso_local_dict, container)
+    return publications
+
 def extract_fixed_list(bso_local_dict):
     for extra_file in ['dois_fr', 'tmp_dois_fr']:
         download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
