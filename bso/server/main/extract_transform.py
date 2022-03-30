@@ -99,14 +99,14 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         mycoll = mydb[collection_name]
         mycoll.drop()
 
-        ##extract_pubmed(bso_local_dict)
+        extract_pubmed(bso_local_dict)
         #extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
 
-        ##extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
-        ##extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
         if 'scanr' in index_name:
-            ##extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
-            ##extract_container('hal',    bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=True)
+            extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
+            extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=True)
             for fst in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                 for snd in ["X", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                     extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed/{fst}{snd}', one_by_one=False, filter_fr=False)
@@ -187,7 +187,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     if 'scanr' in index_name:
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
         scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
-        internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.json')
+        internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
         os.system(f'rm -rf {scanr_output_file}')
         os.system(f'rm -rf {internal_output_file}')
         ix = 0
