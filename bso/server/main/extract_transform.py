@@ -203,8 +203,6 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             to_jsonl(publications, internal_output_file, 'a')
             ix += 1
             logger.debug(f'scanr extract, {ix}')
-            # TODO remove
-            break
         with open(scanr_output_file, 'a') as outfile:
             outfile.write(']')
 
