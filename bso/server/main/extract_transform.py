@@ -93,11 +93,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
     # extract
     if extract:
-        myclient = pymongo.MongoClient('mongodb://mongo:27017/')
-        mydb = myclient['scanr']
-        collection_name = 'publications_before_enrichment'
-        mycoll = mydb[collection_name]
-        mycoll.drop()
+        drop_collection('scanr', 'publications_before_enrichment')
 
         extract_pubmed(bso_local_dict)
         #extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
@@ -188,11 +184,22 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
         os.system(f'rm -rf {scanr_output_file}')
         os.system(f'rm -rf {internal_output_file}')
+
+        drop_collection('scanr', 'publi_meta')
+
         ix = 0
         for c in df_chunks:
             publications = c.to_dict(orient='records')
             publications = get_person_ids(publications)
+            publications_scanr = to_scanr(publications)
             to_json(to_scanr(publications), scanr_output_file, ix)
+            relevant_infos = []
+            for p in publications_scanr:
+                new_elt = {'id': p['id']}
+                for f in ['authors', 'domains', 'keywords', 'year']:
+                    if p.get(f):
+                        new_elt[f] = p[f]
+            save_to_mongo_publi(relevant_infos)
             to_jsonl(publications, internal_output_file, 'a')
             ix += 1
             logger.debug(f'scanr extract, {ix}')
@@ -201,6 +208,28 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         with open(scanr_output_file, 'a') as outfile:
             outfile.write(']')
 
+def drop_collection(db, collection_name):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient[db]
+    mycoll = mydb[collection_name]
+    mycoll.drop()
+
+def save_to_mongo_publi(relevant_infos):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    output_json = f'{MOUNTED_VOLUME}publi-current.jsonl'
+    pd.DataFrame(relevant_infos).to_json(output_json, lines=True, orient='records')
+    collection_name = 'publi_meta'
+    mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
+                  f' --collection {collection_name}'
+    logger.debug(f'{mongoimport}')
+    os.system(mongoimport)
+    logger.debug(f'Checking indexes on collection {collection_name}')
+    mycol = mydb[collection_name]
+    mycol.create_index('id')
+    mycol.create_index('authors.id')
+    logger.debug(f'Deleting {output_json}')
+    os.remove(output_json)
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
     # first remove existing files

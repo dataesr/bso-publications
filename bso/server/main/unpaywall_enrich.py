@@ -129,8 +129,10 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 first_name = a.get('given')
                 if isinstance(first_name, str):
                     full_name = f'{first_name} '
+                    a['first_name'] = first_name.strip()
                 if isinstance(last_name, str):
                     full_name += last_name
+                    a['last_name'] = last_name.strip()
                 full_name = full_name.strip()
                 if full_name:
                     a['full_name'] = full_name
