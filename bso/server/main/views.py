@@ -8,6 +8,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
     create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et, create_task_tmp
 from bso.server.main.utils import dump_to_object_storage
+from bso.server.main.extract_transform import xx
 
 default_timeout = 43200000
 logger = get_logger(__name__)
@@ -23,7 +24,8 @@ def run_task_tmp():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
-        task = q.enqueue(create_task_tmp, args)
+        #task = q.enqueue(create_task_tmp, args)
+        task = q.enqueue(xx, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 

@@ -8,6 +8,7 @@ import gzip
 from dateutil import parser
 import multiprocess as mp
 from retry import retry
+import pysftp
 
 from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
@@ -28,6 +29,18 @@ logger = get_logger(__name__)
     
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
 
+def xx(args):
+    os.system('mkdir -p  /upw_data/scanr')
+    os.system('mkdir -p  /upw_data/logs')
+    os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
+    host=os.getenv('SWORD_PREPROD_HOST')
+    username=os.getenv('SWORD_PREPROD_USERNAME')
+    password=os.getenv('SWORD_PREPROD_PASSWORD')
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    with pysftp.Connection(host, username=username, password=password, port=2222, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
+        with sftp.cd('upload'):             # temporarily chdir to public
+            sftp.put('/upw_data/scanr/publications.json')  # upload file to public/ on remote
 
 def json_to_csv(json_file, last_oa_details):
     output_csv_file = json_file.replace('.jsonl', '.csv')
@@ -199,6 +212,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                 for f in ['authors', 'domains', 'keywords', 'year']:
                     if p.get(f):
                         new_elt[f] = p[f]
+                relevant_infos.append(new_elt)
             save_to_mongo_publi(relevant_infos)
             to_jsonl(publications, internal_output_file, 'a')
             ix += 1
