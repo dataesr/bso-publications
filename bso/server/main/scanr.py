@@ -77,7 +77,6 @@ def to_scanr(publications):
         # identifiers
         if isinstance(p.get('doi'), str):
             elt['doiUrl'] = f"http://doi.org/{p['doi']}"
-            elt['doi'] = p['doi']
         external_ids = []
         for idi in p.get('all_ids', []):
             if idi[0:3] == 'doi':
@@ -220,7 +219,7 @@ def to_scanr(publications):
                 if a.get('full_name'):
                     author['fullName'] = a['full_name']
                 if a.get('id'):
-                    author['id'] = a['id']
+                    author['person'] = a['id']
                 affiliations = []
                 if isinstance(a.get('affiliations'), list):
                     for aff in a['affiliations']:
@@ -237,8 +236,7 @@ def to_scanr(publications):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
+        elt = {f: elt[f] for f in elt if elt[f]==elt[f] }
         if elt:
             scanr_publications.append(elt)
     return scanr_publications
-
-
