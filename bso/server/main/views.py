@@ -8,7 +8,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
     create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et, create_task_tmp
 from bso.server.main.utils import dump_to_object_storage
-from bso.server.main.extract_transform import xx
+from bso.server.main.extract_transform import load_scanr_publications, upload_sword
 
 default_timeout = 43200000
 logger = get_logger(__name__)
@@ -19,13 +19,21 @@ main_blueprint = Blueprint('main', __name__, )
 def home():
     return render_template('home.html')
 
-@main_blueprint.route('/tmp', methods=['POST'])
-def run_task_tmp():
+@main_blueprint.route('/upload_sword', methods=['POST'])
+def run_task_upload_sword():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
-        #task = q.enqueue(create_task_tmp, args)
-        task = q.enqueue(xx, args)
+        task = q.enqueue(upload_sword, args)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202
+
+@main_blueprint.route('/load_scanr_publications', methods=['POST'])
+def run_task_load_scanr_publications():
+    args = request.get_json(force=True)
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(load_scanr_publications, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 

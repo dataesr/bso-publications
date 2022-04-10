@@ -29,7 +29,7 @@ logger = get_logger(__name__)
     
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
 
-def xx(args):
+def upload_sword(args):
     os.system('mkdir -p  /upw_data/scanr')
     os.system('mkdir -p  /upw_data/logs')
     os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
@@ -106,7 +106,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
     # extract
     if extract:
-        drop_collection('scanr', 'publications_before_enrichment')
+        collection_name = 'publications_before_enrichment'
+        drop_collection('scanr', collection_name)
 
         extract_pubmed(bso_local_dict)
         #extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
@@ -214,11 +215,36 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                         new_elt[f] = p[f]
                 relevant_infos.append(new_elt)
             save_to_mongo_publi(relevant_infos)
-            to_jsonl(publications, internal_output_file, 'a')
+            publications_cleaned = []
+            for elt in publications:
+                if isinstance(elt.get('classifications'), list):
+                    for d in elt['classifications']:
+                        if 'code' in d:
+                            del d['code']
+                for f in ['is_paratext', 'has_grant', 'has_apc', 'references']:
+                    if f in elt:
+                        del elt[f]
+                elt = {f: elt[f] for f in elt if elt[f]==elt[f] }
+                publications_cleaned.append(elt)
+            to_jsonl(publications_cleaned, internal_output_file, 'a')
             ix += 1
             logger.debug(f'scanr extract, {ix}')
         with open(scanr_output_file, 'a') as outfile:
             outfile.write(']')
+        load_scanr_publications({})
+        #upload_object(container='tmp', filename=f'{scanr_output_file}')
+
+def load_scanr_publications(args):
+    internal_output_file=f'{MOUNTED_VOLUME}test-scanr_export_internal.jsonl'
+    es_url_without_http = ES_URL.replace('https://','').replace('http://','')
+    es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
+    index_name='scanr-publications'
+    logger.debug('loading scanr-publications index')
+    reset_index(index=index_name)
+    elasticimport = f"elasticdump --input={internal_output_file} --output={es_host}{index_name} --type=data --limit 500 " + "--transform='doc._source=Object.assign({},doc)'"
+    logger.debug(f'{elasticimport}')
+    logger.debug('starting import in elastic')
+    os.system(elasticimport)
 
 def drop_collection(db, collection_name):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -321,6 +347,7 @@ def delete_from_mongo(identifiers):
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
         for entry in input_list:
+            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
             json.dump(entry, outfile)
             outfile.write('\n')
 
@@ -335,6 +362,7 @@ def to_json(input_list, output_file, ix):
         for jx, entry in enumerate(input_list):
             if ix + jx != 0:
                 outfile.write(',\n')
+            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
             json.dump(entry, outfile)
 
 
