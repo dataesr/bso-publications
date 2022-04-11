@@ -42,7 +42,7 @@ def get_entity_fishing(publication: dict) -> dict:
         return pre_computed
 
     # TODO TO REMOVE
-    return {}
+    #return {}
 
     ans = {}
 

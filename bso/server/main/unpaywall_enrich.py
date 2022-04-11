@@ -416,10 +416,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             all_updated.append(d)
 
     # affiliation matcher
-    tmp = False
+    tmp = True
     publicationsWithAffiliations = []
     if affiliation_matching:
-        done, todo = get_affiliations_computed(all_updated)
+        done, todo = [], [] #get_affiliations_computed(all_updated)
         NB_PARALLEL_JOBS = 20
         PUBLI_GROUP_SIZE = 100
         # TODO TO REMOVE
