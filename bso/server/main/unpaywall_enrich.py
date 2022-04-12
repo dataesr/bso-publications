@@ -116,7 +116,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
     identifier_idx = 0
     for identifier in extra_data:
         identifier_idx += 1
-        if identifier_idx % 500 == 0:
+        if identifier_idx % 2500 == 0:
             logger.debug(f'format_upw {identifier_idx} / {len(extra_data)}')
         res = extra_data[identifier]
         doi = res.get('doi')
@@ -419,7 +419,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
     tmp = True
     publicationsWithAffiliations = []
     if affiliation_matching:
-        done, todo = [], [] #get_affiliations_computed(all_updated)
+        done, todo = get_affiliations_computed(all_updated, recompute_all = True)
         NB_PARALLEL_JOBS = 20
         PUBLI_GROUP_SIZE = 100
         # TODO TO REMOVE

@@ -115,7 +115,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
         extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
         if 'scanr' in index_name:
-            extract_container('theses', bso_local_dict, False, download_prefix='20211208/parsed', one_by_one=True, filter_fr=False)
+            extract_container('theses', bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
             extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=True)
             extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
         extract_fixed_list(bso_local_dict)
@@ -192,7 +192,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
 
-    if 'scanr' in index_name:
+    if load and 'scanr' in index_name:
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
         scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
         internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
