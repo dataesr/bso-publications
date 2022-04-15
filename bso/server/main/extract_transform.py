@@ -21,7 +21,7 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
 from bso.server.main.utils_upw import chunks, get_millesime
-from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash
+from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl
 from bso.server.main.strings import normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
 
@@ -198,10 +198,18 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
         os.system(f'rm -rf {scanr_output_file}')
         os.system(f'rm -rf {internal_output_file}')
+        
+        ix = 0
+
+        download_object(container='patstat', filename=f'fam_final_json.jsonl', out=f'{MOUNTED_VOLUME}/fam_final_json.jsonl')
+        df_patents = pd.read_json(f'{MOUNTED_VOLUME}/fam_final_json.jsonl', lines=True, chunksize=10000)
+        for c in df_patents:
+            patents = c.to_dict(orient='records')
+            to_json(patents, scanr_output_file, ix)
+            ix += 1
 
         drop_collection('scanr', 'publi_meta')
 
-        ix = 0
         for c in df_chunks:
             publications = c.to_dict(orient='records')
             publications = get_person_ids(publications)
@@ -220,7 +228,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                 if isinstance(elt.get('classifications'), list):
                     for d in elt['classifications']:
                         if 'code' in d:
-                            del d['code']
+                            d['code'] = str(d['code'])
                 for f in ['is_paratext', 'has_grant', 'has_apc', 'references']:
                     if f in elt:
                         del elt[f]
@@ -344,26 +352,6 @@ def delete_from_mongo(identifiers):
     logger.debug(f'removing {len(identifiers)} publis for {identifiers[0:10]} ...')
     mycoll.delete_many({ 'id' : { '$in': identifiers } })
 
-def to_jsonl(input_list, output_file, mode = 'a'):
-    with open(output_file, mode) as outfile:
-        for entry in input_list:
-            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
-            json.dump(entry, outfile)
-            outfile.write('\n')
-
-def to_json(input_list, output_file, ix):
-    if ix == 0:
-        mode = 'w'
-    else:
-        mode = 'a'
-    with open(output_file, mode) as outfile:
-        if ix == 0:
-            outfile.write('[')
-        for jx, entry in enumerate(input_list):
-            if ix + jx != 0:
-                outfile.write(',\n')
-            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
-            json.dump(entry, outfile)
 
 
 def get_natural_id(res):

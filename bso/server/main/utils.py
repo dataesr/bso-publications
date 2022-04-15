@@ -16,6 +16,27 @@ from bso.server.main.utils_swift import download_object, upload_object, get_obje
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
 
+def to_jsonl(input_list, output_file, mode = 'a'):
+    with open(output_file, mode) as outfile:
+        for entry in input_list:
+            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
+            json.dump(entry, outfile)
+            outfile.write('\n')
+
+def to_json(input_list, output_file, ix):
+    if ix == 0:
+        mode = 'w'
+    else:
+        mode = 'a'
+    with open(output_file, mode) as outfile:
+        if ix == 0:
+            outfile.write('[')
+        for jx, entry in enumerate(input_list):
+            if ix + jx != 0:
+                outfile.write(',\n')
+            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
+            json.dump(entry, outfile)
+
 def get_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
