@@ -201,10 +201,21 @@ def to_scanr(publications):
         affiliations = []
         if isinstance(p.get('affiliations'), list):
             for aff in p['affiliations']:
+                #data from matcher
                 if isinstance(aff.get('ids'), list):
                     for x in aff['ids']:
                         if x.get('id'):
                             affiliations.append(x['id'])
+                #data scraped
+                if isinstance(aff.get('grid'), list):
+                    for x in aff['grid']:
+                        if x not in affiliations:
+                            affiliations.append(x)
+        #data from local bso
+        if isinstance(p.get('bso_local_affiliations'), list):
+            for aff in p['bso_local_affiliations']:
+                if aff not in affiliations:
+                    affiliations.append(aff)
         if affiliations:
             elt['affiliations'] = affiliations
         ## authors
@@ -227,6 +238,10 @@ def to_scanr(publications):
                             for x in aff['ids']:
                                 if x.get('id'):
                                     affiliations.append(x['id'])
+                if isinstance(a.get('grid'), list):
+                    for x in a['grid']:
+                        if x not in affiliations:
+                            affiliations.append(x)
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
@@ -240,3 +255,4 @@ def to_scanr(publications):
         if elt:
             scanr_publications.append(elt)
     return scanr_publications
+
