@@ -21,10 +21,10 @@ author:
 institute:
   - mesri:
       name: 'French Ministry of Higher Education, Research and Innovation, Paris, France'
-  - cnrs:
-      name: 'CNRS, France'
   - université de lorraine:
       name: 'University of Lorraine, France'
+  - cnrs:
+      name: 'CNRS, France'
 bibliography: bso.bib
 date: March 2022
 keywords:
@@ -82,7 +82,7 @@ Regulations have been implemented to improve transparency: in the United States,
 
 The French Open Science Monitor is a tool that aims at steering the Open Science policy in France. As such, it produces
 statistics that are analyzed over time, and it has to focus on "French" productions. Also, as stated in
-[@coso_feedback_2018], we want to use only public or open datasources, contrary to other monitoring systems like the German open access monitor (@refurl https://open-access-monitor.de/open-access) which relies on partially on proprietary databases. As the monitor perimeter is not defined by these selective databases, there are only two limits to the imposed to the scope of the monitor :
+[@coso_feedback_2018], we want to use only public or open datasources, contrary to other monitoring systems like the German open access monitor [https://open-access-monitor.de/open-access](https://open-access-monitor.de/open-access) which relies on partially on proprietary databases. As the monitor perimeter is not defined by these selective databases, there are only two limits to the imposed to the scope of the monitor :
 
  - **only publications with at least one author who has a French affiliation** are considered.  Conversely, the nationality of the
 authors does not play a role in the selection. This choice raises the issue of access to affiliation information: affiliation metadata
@@ -112,13 +112,13 @@ above, adding the PubMed presence criterion to the other criteria (author affili
 ### 2.1.2 Open access dynamic
 
 From the first edition of the French Open Science Monitor, it was clear that the open access rate was far from stable though time, so we should try to capture the opening dynamics [@jeangirard_monitoring_2019]. Indeed, the
-immediate open access has focused most attention, but we know it does not represent the totality of the open access, notably considering the various publishers mobile barriers, but also theirs and funders and national embargo policies [@refLaaksoandBjork]. Therefore, for a given set of publications, say the publications published during the year Y, it is important to measure the open access rate at different points in time, for example at year Y+1, Y+2 ...
+immediate open access has focused most attention, but we know it does not represent the totality of the open access, notably considering the various publishers mobile barriers, but also theirs and funders and national embargo policies [@laakso_delayed_2013]. Therefore, for a given set of publications, say the publications published during the year Y, it is important to measure the open access rate at different points in time, for example at year Y+1, Y+2 ...
 
 To do so, it becomes necessary to historicize the database containing the open access information. So, instead of
 maintaining a database that keeps track of the opening of each publication, which is the current Unpaywall data policy, we have to make regular snapshots of the whole Unpaywall database. Each snapshot is used as an observation date to measure the open
 access rate. It is important to note that this method natively embeds the potential open access discovery errors from
 the underlying Unpaywall database. That includes false negative (a publication is actually opened at that time but
-it is not detected as such) and false positive (wrongly seen as opened whereas it is closed). As a side note, it would also enable us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications [@refArrizabalaga].  
+it is not detected as such) and false positive (wrongly seen as opened whereas it is closed). As a side note, it would also enable us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications [@arrizabalaga_open_2020].  
 
 This method of analysis therefore reveals two temporal dimensions: publication dates and observation dates. Obviously,
 the observation date must be after the publication date. To avoid that the proliferation of possible analyzes blurs the
@@ -147,7 +147,7 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
  - **hosted on an open repository and by the publisher**: Free to read on the publisher webpage and there is a free copy in an OA repository.
 
-Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. It seems that a similar choice has been recently made to represent COKI data and its sources of openness [@refurl https://openknowledge.community/dashboards/coki-open-access-dashboard/]
+Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. It seems that a similar choice has been recently made to represent COKI data and its sources of openness [https://openknowledge.community/dashboards/coki-open-access-dashboard/](https://openknowledge.community/dashboards/coki-open-access-dashboard/)
 
 The next figure shows the kind of impact choosing one or the other OA type break down.
 ![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
@@ -190,17 +190,17 @@ The data in the 'publisher' field of Crossref shows many inconsistencies. There 
 
  - Firstly, we have considered the diversity of lexical forms of the same publisher, existing in developed form and in the form of acronyms, including or not its economic status (LLC, Ltd.,...);
 
- - Secondly, we have taken into account the capitalist evolution of the sector, which is marked by a growing concentration, with successive takeovers [@refLariviere_etal]. The latter do not necessarily make the old group names vanish, as they are often used as a brand name of the new entity(e.g. Palgrave being a brand of the Springer Nature group);
+ - Secondly, we have taken into account the capitalist evolution of the sector, which is marked by a growing concentration, with successive takeovers [@lariviere_oligopoly_2015]. The latter do not necessarily make the old group names vanish, as they are often used as a brand name of the new entity(e.g. Palgrave being a brand of the Springer Nature group);
 
  - Thirdly, we have taken into account the possible distinction between publisher and dissemination platform, with many scholarly societies remaining the owner and publisher, but delegating the dissemination of their publications to a given publisher/disseminator though multi-year contracts.
 
-We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher.
+We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at [https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher](https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher).
 
 #### 2.1.5.2 Business models and open licenses
 
 As explained above, the 'oa_status' in Unpaywall data belittles the role of open repositories. It also invisibilize Diamond open access, indifferently mixing in the same 'Gold' category all publications in an open-access journal that is indexed by the DOAJ, whether Article Process Charges (APC) are part of the business model or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories :
 
- - **Diamond**: articles published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data). This category may be under-estimated as many journals have a no-APC model are not currently included in the DOAJ (@ref_OPERAS_Diamond)
+ - **Diamond**: articles published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data). This category may be under-estimated as many journals have a no-APC model are not currently included in the DOAJ (@bosman_jeroen_oa_2021)
 
  - **(Full APC) Gold**: articles published in an open-access journal (using the field 'journal_is_oa' = True from Unpaywall) and with an estimated APC, as described above.
 
@@ -413,7 +413,7 @@ Thus, between 2018 and 2021, the share of publications released in 2017 that are
 
 ![Evolution of the share of publications in France made available in open access by publisher by year of observation](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_2.png){ width=450 }
 
-The dissemination of open access articles by academic journal publishers is based on various business models. Some publishers have replaced traditional subscription revenues with the payment of publication fees (APC) charged on a per-article basis to researchers, their institutions or their funders. This change of model is often done at the level of an entire journal (full APC model), but other publishers maintain the subscription while offering authors the choice to open their article in return for the payment of a publication fee (a model known as hybrid), thus establishing a particularly unreadable double payment. Some publishers do not charge publication fees but mobilize, in the context of a non-commercial activity, funding from states, public actors, universities or other non-profit organisations, in order to finance the editorial and publication activity upstream: this is the so-called diamond OA model (@ref_OPERAS_Diamond). Finally, other models exist, such as the one where the publisher collects subscriptions for the most recent publications while releasing them in open access after a set period of time (moving barrier).
+The dissemination of open access articles by academic journal publishers is based on various business models. Some publishers have replaced traditional subscription revenues with the payment of publication fees (APC) charged on a per-article basis to researchers, their institutions or their funders. This change of model is often done at the level of an entire journal (full APC model), but other publishers maintain the subscription while offering authors the choice to open their article in return for the payment of a publication fee (a model known as hybrid), thus establishing a particularly unreadable double payment. Some publishers do not charge publication fees but mobilize, in the context of a non-commercial activity, funding from states, public actors, universities or other non-profit organisations, in order to finance the editorial and publication activity upstream: this is the so-called diamond OA model (@bosman_jeroen_oa_2021). Finally, other models exist, such as the one where the publisher collects subscriptions for the most recent publications while releasing them in open access after a set period of time (moving barrier).
 
 The next figure shows the distribution of scientific articles published in 2020 and distributed in open access by their publisher, according to the business model of the journal in which they are published. It distinguishes between four types of economic models: articles published in full open access journals that do not charge publication fees ("diamond"), articles published in full open access journals that do charge publication fees ("Gold full APC"), and articles published in hybrid journals (where only some part of the content is in open access and the other part is available through individually paid publication fees), and all other cases. The "Diamant" part is probably underestimated.
 In particular, we observe that for scientific publications in France released in 2020, diamond represents 9% of the articles disseminated in open access by their publisher.
@@ -500,7 +500,7 @@ The next figure must be read from left to right. It presents, for all clinical t
 
 ![Distribution of clinical trials by results reporting](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_2.png){ width=450 }
 
-The World Medical Association (WMA)'s Declaration of Helsinki (@ref_WMA) states that the dissemination of results from medical research involving human beings, is an ethical obligation for all those involved, whether researchers, sponsors or publishers of scientific journals. Indeed, it appears to be a necessary counterpart to the involvement of patients in such research and as a major scientific and public health issue. The dissemination of results may take the form of an article in a scientific journal (published results) or a summary in a clinical trial register (posted results). This second vector ensures that the results of negative or inconclusive clinical trials, which are difficult to value in a scientific publication, are made public and properly disseminated. They are indeed valuable scientific contributions and the trials from which they result should not be ignored or unnecessarily duplicated.
+The World Medical Association (WMA)'s Declaration of Helsinki (@world_medical_association_world_nodate) states that the dissemination of results from medical research involving human beings, is an ethical obligation for all those involved, whether researchers, sponsors or publishers of scientific journals. Indeed, it appears to be a necessary counterpart to the involvement of patients in such research and as a major scientific and public health issue. The dissemination of results may take the form of an article in a scientific journal (published results) or a summary in a clinical trial register (posted results). This second vector ensures that the results of negative or inconclusive clinical trials, which are difficult to value in a scientific publication, are made public and properly disseminated. They are indeed valuable scientific contributions and the trials from which they result should not be ignored or unnecessarily duplicated.
 
 ![Procedures for reporting the results of completed clinical trials](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_3.png){ width=450 }
 
@@ -508,7 +508,7 @@ Responsible sharing of individual data from clinical trials is a major challenge
 • of re-analyzes with the aim of verifying the conclusions of the trials,
 • secondary analyzes exploring new research questions based on existing data,
 • meta-analyzes on individual data which, by pooling different studies exploring the same question, make it possible to provide the most precise answer possible.
-The International Committee of Medical Journal Editors (ICMJE) has stated that the responsible sharing of clinical trial data is ethically justified (@REFZarin_etal): since research subjects are willing to take risks for uncertain individual benefits, they expect the best possible use of the data collected, while minimizing the risk of re-identification. The ICMJE therefore requires that a data sharing statement specifying the terms of any sharing be included in each publication from July 1, 2018, and that it be specified in advance during clinical trial registration from January 1, 2019. At this point, data sharing is recommended by the ICMJE but is not a requirement.
+The International Committee of Medical Journal Editors (ICMJE) has stated that the responsible sharing of clinical trial data is ethically justified (@zarin_update_2017): since research subjects are willing to take risks for uncertain individual benefits, they expect the best possible use of the data collected, while minimizing the risk of re-identification. The ICMJE therefore requires that a data sharing statement specifying the terms of any sharing be included in each publication from July 1, 2018, and that it be specified in advance during clinical trial registration from January 1, 2019. At this point, data sharing is recommended by the ICMJE but is not a requirement.
 
 The next figure shows the number of registered clinical trials with and without individual data sharing statements by year since 2010.
 There has been a slow increase in the use of this instrument: 4% in 2010 and 17% in 2021.
