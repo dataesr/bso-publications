@@ -38,7 +38,7 @@ keywords:
 
 ---
 
-**Keywords**: clinical trials, journal business models,  observational studies, open access, open science,    scientometrics,unpaywall.
+**Keywords**: clinical trials, journal business models,  observational studies, open access, open science, scientometrics, unpaywall.
 
 # Abstract
 
@@ -199,7 +199,7 @@ The data in the 'publisher' field of Crossref shows many inconsistencies. There 
 
  - Thirdly, we have taken into account the separation between publisher and dissemination platform, with many scholarly societies remaining the owner and publisher, but delegating the dissemination of their publications to a given publisher though multi-year contracts.
 
-We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher
+We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher.
 
 #### 2.1.5.2 Business models and open licenses
 
@@ -291,7 +291,7 @@ Two key types of indicators are analyzed:
 We propose both indicators, mixing or separating results and scholarly publications. For  publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (with PubMed for example). The open access status of these publications is also retrieved from the Unpaywall data.
 
 
- - The delay to register the study: is the trial or study publicly registered before it actually starts, or is it done afterwards ? And how many moths is the actual delay to register ? Does it evolves over time ?
+ - The delay to register the study: is the trial or study publicly registered before it actually starts, or is it done afterwards ? And how many months is the actual delay to register ? Does it evolves over time ?
 
 ### 2.2.2 Lead sponsor impact
 
@@ -299,11 +299,11 @@ We propose both indicators, mixing or separating results and scholarly publicati
 
 ## 2.3 'Local' Open Science Monitors
 
-The University of Lorraine was the first institution to provide a local version of the French Monitor : https://scienceouverte.univ-lorraine.fr/barometre-lorrain-de-la-science-ouverte/
+The University of Lorraine was the first institution to provide a local version of the French Monitor : https://scienceouverte.univ-lorraine.fr/barometre-lorrain-de-la-science-ouverte/.
 
 The code created on this occasion is freely accessible [@bracco:hal-03450104v1].
 
-This local version, published during spring 2020, was designed with reusability in mind. For this purpose, the code has been detailed step by step in Jupyter Notebooks and includes a readme file explaining all the required actions to obtain its own Barometer.
+This local version, published during spring 2020, was designed with reusability in mind. For this purpose, the code has been detailed step by step in Jupyter Notebooks and includes a readme file explaining all the required actions to obtain its own Monitor.
 
 The availability of the code was combined with numerous training sessions as well as individual assistance provided by the University of Lorraine to each institution that requested it.
 
@@ -328,7 +328,7 @@ publication via Unpaywall (title, published year, ISSNs, but also open access lo
 Each step consumes time and CPU. Assuming any step can fail at any time, we choose to develop each step as
 independent and idempotent.
 
-From the different datasources, we store the raw data on Object Storage on the public OVH Cloud. These data are then transformed into a common 'pivot' json schema, and enriched with affiliations countries, so that only the French publications are kept in the rest of the process. These publications metadata are then enriched with Unpaywall informations (open access locations), openAPC and DOAJ informations to infere if APC were paid or not.
+From the different datasources, we store the raw data on Object Storage on the public OVH Cloud. These data are then transformed into a common 'pivot' json schema, and enriched with affiliations countries, so that only the French publications are kept in the rest of the process. These publications metadata are then enriched with Unpaywall informations (open access locations), openAPC and DOAJ informations to infer if APC were paid or not.
 
 Eventually, the data is loaded in an elasticsearch cluster that is consumed by the French Open Science Monitor User Interface.
 
