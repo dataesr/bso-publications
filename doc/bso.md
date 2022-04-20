@@ -38,13 +38,13 @@ keywords:
 
 ---
 
-**Keywords**: clinical trials, journal business models,  observational studies, open access, open science,    scientometrics,unpaywall.
+**Keywords**: clinical trials, journal business models,  observational studies, open access, open science, scientometrics, unpaywall.
 
 # Abstract
 
 # 1. Introduction
 
-The French Open Science Monitor was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its methodology was detailed in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications, for which at least one author has a French affiliation. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data and softwares) or disciplinary.
+The French Open Science Monitor was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its methodology has between described in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications, for which at least one author has a French affiliation. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data and softwares) or disciplinary.
 
 To support the continuation of Open Science public policy with the second National Plan for Open Science [@mesri_2nd_2021], a new framework for the French Open Science Monitor has been produced. It introduces a monitor specific to the Health domain and also develops the features for the Open Access analysis.
 
@@ -82,33 +82,28 @@ Regulations have been implemented to improve transparency: in the United States,
 
 The French Open Science Monitor is a tool that aims at steering the Open Science policy in France. As such, it produces
 statistics that are analyzed over time, and it has to focus on "French" productions. Also, as stated in
-[@coso_feedback_2018], we want to use only public or open datasources. Two constraints of perimeter thus appear
-naturally :
+[@coso_feedback_2018], we want to use only public or open datasources, contrary to other monitoring systems like the German open access monitor (@refurl https://open-access-monitor.de/open-access) which relies on partially on proprietary databases. As the monitor perimeter is not defined by these selective databases, there are only two limits to the imposed to the scope of the monitor :
 
- - **only publications with at least one author who has a French affiliation** are considered. The nationality of the
-authors does not play a role in the selection. Still, this raises the issue of access to affiliation information. Affiliation metadata
-are present in specific sources, like PubMed, but appear quite rarely in the whole Crossref data. To fill in the gaps, we
+ - **only publications with at least one author who has a French affiliation** are considered.  Conversely, the nationality of the
+authors does not play a role in the selection. This choice raises the issue of access to affiliation information: affiliation metadata
+are present in specific sources, like PubMed, but quite rarely appear in the whole Crossref data. To fill in the gaps, we
 proposed to crawl the affiliation information displayed publicly from the publications webpages. On top of that,
-identifying a country from an affiliation text is not that straightforward. To take an actual example, think about an
+identifying a country from an affiliation text is far from being straightforward. To take an actual example, think about an
 affiliation stating "Hôtel Dieu de France, Beirut, Lebanon": this does not refer to a French affiliation even though
-the word "France" is present. We use an automatic detection algorithm, based on Elasticsearch, described in
-[@lhote_using_2021], to infer the countries from the affiliations field.
+the word "France" is present in the address or institution field. We use an automatic detection algorithm, based on Elasticsearch, described in
+[@lhote_using_2021], to infer the relevant countries from the authors affiliation field.
 
- - **only the publications associated with a Crossref DOI** are considered. Duplicates have to be avoided, in order to avoid counting twice (or more) a publication and thus add a bias to the statistics that are produced. It is then crucial to use a Persistent
-Identifier. Also, we chose to use Unpaywall data for Open Access (OA) discovery. This service produces open data and
-offers the possibility to snapshot the whole database, which is an asset to analyse OA dynamics. For now, Unpaywall
-only include Crossref DOI documents, which led us to adopt the same perimeter. We are aware that this is currently a bias against some disciplines, most notably Humanities and Social Sciences, and some type of research output.
+ - **only the publications associated with a Crossref DOI** are considered. We wish to avoid duplicates, as counting twice (or more) a publication would add a bias to the statistics being produced. It is then crucial to use a Persistent
+Identifier: as we chose to use Unpaywall data for Open Access (OA) discovery, it only include Crossref DOI documents, which led us to adopt the same perimeter. We are aware that this is currently a bias, though less imortant than commercial databases against some disciplines, most notably Humanities and Social Sciences, and some type of research output. Unpaywall delivers open data and
+enables to snapshot the whole database, which is an asset to analyse OA dynamics.
 
-
-Yet, all publications types are considered (journal articles, proceedings, books, book chapters, ...) as soon as the publication is
-associated to a Crossref DOI. Many types are being coded in the metadata, but for the sake of clarity, we group them in the following categories, namely journal articles, proceedings, preprints, book chapters, books, the rest being gathered in a category 'Others'. It is important to note that the 'preprint' type does not appear as such directly in the available metadata (it is generally
-declared as a journal article). Some preprint detection is based on the dissemination platform information. At the time this article is written, only the Cold Spring Harbor Laboratory case (BioRxiv, MedRxiv) is covered, but it will be extended as soon as other preprint dissemination platforms would start using Crossref DOIs, or whether Unpaywall reverts its policy and covers Datacite DOIs, which would enable us to include ArXiv preprints.
+All publications types are considered (journal articles, proceedings, books, book chapters, ...) as soon as documents are
+associated to a Crossref DOI. Many types are being coded in the metadata, but for the sake of results and figure clarity, we regrouped them in the following categories, namely journal articles, proceedings, preprints, book chapters, books, the rest being gathered in an 'Others' category . It is important to note that the 'preprint' type does not appear as such in the available metadata (it is generally
+declared as a journal article). Some preprint detection is based on the dissemination platform information. At the time this article is written, only the Cold Spring Harbor Laboratory platforms (BioRxiv, MedRxiv) are covered, but it will be extended as soon as other preprint dissemination platforms would start using Crossref DOIs, or whether Unpaywall reverts its policy and covers Datacite DOIs, which would enable us to include ArXiv preprints.
 
 #### 2.1.1.2 French Open Science Monitor in Health
 
-<br />
-
-The French Open Science Monitor also introduces a focus on the Health domain. Delimiting a clear perimeter for Health
+The current French Open Science Monitor also introduces a focus on the Health domain. Delimiting a clear perimeter for Health
 is not very easy. For now, we have simply chosen to consider in that scope **all PubMed publications, and only these**.
 The publications' data used in the French Open Science Monitor in Health is then a subset of the publications described
 above, adding the PubMed presence criterion to the other criteria (author affiliation, Crossref DOI). Note that "Health" is seen more as a domain than as a discipline. In fact, publications from a lot of disciplines are taken into account in the French Open Science Monitor in Health. A domain-specific set of disciplines is used in the French Open Science Monitor in Health, as described below.  
@@ -117,17 +112,17 @@ above, adding the PubMed presence criterion to the other criteria (author affili
 ### 2.1.2 Open access dynamic
 
 From the first edition of the French Open Science Monitor, it was clear that the open access rate was far from stable though time, so we should try to capture the opening dynamics [@jeangirard_monitoring_2019]. Indeed, the
-immediate open access has focused most attention, but we know it does not represent the totality of the open access, notably considering the various publishers mobile barriers, but also theirs and funders and national embargo policies. Therefore, for a given set of publications, say the publications published during the year Y, it is important to measure the open access rate at different points in time, for example at year Y+1, Y+2 ...
+immediate open access has focused most attention, but we know it does not represent the totality of the open access, notably considering the various publishers mobile barriers, but also theirs and funders and national embargo policies [@refLaaksoandBjork]. Therefore, for a given set of publications, say the publications published during the year Y, it is important to measure the open access rate at different points in time, for example at year Y+1, Y+2 ...
 
 To do so, it becomes necessary to historicize the database containing the open access information. So, instead of
 maintaining a database that keeps track of the opening of each publication, which is the current Unpaywall data policy, we have to make regular snapshots of the whole Unpaywall database. Each snapshot is used as an observation date to measure the open
 access rate. It is important to note that this method natively embeds the potential open access discovery errors from
-the underlying Unpaywall database. They include false negative (a publication is actually opened at that time but
-it is not detected) and false positive (wrongly seen as opened whereas it is closed). As a side note, it would also enable us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications.  
+the underlying Unpaywall database. That includes false negative (a publication is actually opened at that time but
+it is not detected as such) and false positive (wrongly seen as opened whereas it is closed). As a side note, it would also enable us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications [@refArrizabalaga].  
 
 This method of analysis therefore reveals two temporal dimensions: publication dates and observation dates. Obviously,
 the observation date must be after the publication date. To avoid that the proliferation of possible analyzes blurs the
-message, we propose to look at two elements :
+analysis, we propose to look at two elements :
 
  - A key ratio that is the **1Y Open Access rate**: it represents the open access rate of the publications published during year Y and measured (observed from the snapshot of the OA discovery database) at one point in time during year Y+1 (generally in December if the data is available).
 
@@ -135,7 +130,7 @@ message, we propose to look at two elements :
 
 ![Different shapes of Open Access curves](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/types_curve.png){ width=450 }
 
-From an observation date to another, the OA curve shape may change. This evolution of the shape gives an insight on the opening speed. Indeed, moving from an inverted-V shape, where the most recent papers are not the most open, to an increasing shape would be a strong evidence of the opening acceleration. The next figures illustrates the evolution from an inverted-V shape, to flat and then to an increasing OA curve shape.
+From an observation date to another, the OA curve shape may change. This evolution of the shape gives an insight on the opening speed evolution. Indeed, moving from an inverted-V shape, where the most recent papers are not the most open, to an increasing shape would be a strong evidence of the opening acceleration. The next figures illustrates the evolution from an inverted-V shape, to flat and then to an increasing OA curve shape.
 
 ![Open Access curve dynamics](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/curve_dynamic.png){ width=450 }
 
@@ -152,7 +147,7 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
  - **hosted on an open repository and by the publisher**: Free to read on the publisher webpage and there is a free copy in an OA repository.
 
-Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. It seems that a similar choice has been recently made to represent COKI data and sources of openness (REF ou URl)
+Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. It seems that a similar choice has been recently made to represent COKI data and its sources of openness [@refurl https://openknowledge.community/dashboards/coki-open-access-dashboard/]
 
 The next figure shows the kind of impact choosing one or the other OA type break down.
 ![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
@@ -161,7 +156,7 @@ Another graphical way to represent this distribution is to use a bubble chart. E
 
 ![Share of publications in open access hosted on an open repository vs. by the publisher](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/bubbles.png){ width=450 }
 
-The source of data used to compute these OA types is still Unpaywall, but instead of the 'oa_status' field, we use the 'oa_locations' field. For a publication which is in open access, it lists all the existing available copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the given copy, and some metadata for the location is associated, in particular the 'host_type', that can take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are always considered as repositories.
+The source of data used to compute these OA types is still Unpaywall, but instead of the 'oa_status' field, we then use the 'oa_locations' field. For a publication which is in open access, it lists all the existing available copies that Unpaywall detected, at the time of the snapshot. Each location is described, in particular with an URL that gives a link to the given copy, and some metadata for the location is associated, in particular the 'host_type', that take two possibles values, 'publisher' or 'repository'. It is important to note that, for now, preprint servers are always considered as repositories.
 
 
 
@@ -191,23 +186,23 @@ but also in the dynamics trends (Which discipline shows the strongest increase o
 
 #### 2.1.5.1 Identification of the dissemination platforms
 
-The data in the 'publisher' field of Crossref shows many inconsistencies. There are many journals, with a single ISSN, that belong to more than one publisher - whether they are different lexical forms or really different entities. Consequently, we performed a triple grouping in order to facilitate the coding of an economic entity disseminating the journal in question.
+The data in the 'publisher' field of Crossref shows many inconsistencies. There are many journals, with a single ISSN, that belong to more than one publisher - whether they are different lexical forms or refer to actual different entities. Consequently, we performed a triple grouping in order to facilitate the coding of an economic entity disseminating the journal in question.
 
  - Firstly, we have considered the diversity of lexical forms of the same publisher, existing in developed form and in the form of acronyms, including or not its economic status (LLC, Ltd.,...);
 
- - Secondly, we have taken into account the capitalist evolution of the sector, which is marked by a growing concentration, with successive takeovers (REF). The latter do not necessarily make the old group names disappear, as they are often used as a brand name (e.g. Palgrave, autres exemples);
+ - Secondly, we have taken into account the capitalist evolution of the sector, which is marked by a growing concentration, with successive takeovers [@refLariviere_etal]. The latter do not necessarily make the old group names vanish, as they are often used as a brand name of the new entity(e.g. Palgrave being a brand of the Springer Nature group);
 
- - Thirdly, we have taken into account the separation between publisher and dissemination platform, with many scholarly societies remaining the owner and publisher, but delegating the dissemination of their publications to a given publisher though multi-year contracts.
+ - Thirdly, we have taken into account the possible distinction between publisher and dissemination platform, with many scholarly societies remaining the owner and publisher, but delegating the dissemination of their publications to a given publisher/disseminator though multi-year contracts.
 
 We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher
 
 #### 2.1.5.2 Business models and open licenses
 
-As explained above, the 'oa_status' in Unpaywall data invisibilize some part of the role of open repositories. It also invisibilize Diamond open access, indifferently mixing in the same 'Gold' category all publications in an open-access journal that is indexed by the DOAJ, whether Article Process Charges (APC) are part of the business model or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories :
+As explained above, the 'oa_status' in Unpaywall data belittles the role of open repositories. It also invisibilize Diamond open access, indifferently mixing in the same 'Gold' category all publications in an open-access journal that is indexed by the DOAJ, whether Article Process Charges (APC) are part of the business model or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories :
 
- - **Diamond**: articles published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data). This category may be under-estimated as many journals have a no-APC model are not currently included in the DOAJ (@ref_OPERAS)
+ - **Diamond**: articles published in an open-access journal indexed by the DOAJ, and without APC (according to the DOAJ data). This category may be under-estimated as many journals have a no-APC model are not currently included in the DOAJ (@ref_OPERAS_Diamond)
 
- - **(Full APC) Gold**: articles published in an open-access journal (using the field 'journal_is_oa' = True from Unpaywall) and with an estimated APC, as described above
+ - **(Full APC) Gold**: articles published in an open-access journal (using the field 'journal_is_oa' = True from Unpaywall) and with an estimated APC, as described above.
 
  - **Hybrid**: publications published in a journal that is not full open access (using the field 'journal_is_oa' = False from Unpaywall) and with an estimated APC, as described above.
 
@@ -243,7 +238,7 @@ Estimating APC for each journal article remains difficult as few open sources ex
 
  - Otherwise, no estimation is made.
 
-We are aware that this estimation is far from being perfect, but it still brings some insights. On top of that, even if we focus on French publications (publications with at least one author with a French affiliation), the sum of the APC estimated is higher than the real amount of APC money spent by French institutions, as a large share of the publications are co-authored with scholars affiliated to foreign institutions. Informations on the corresponding author could be a proxy to focus on APC spent by France but for now, we do not have an open, reliable and massive source for this information.
+We are aware that this estimation is far from being perfect, but it still brings some insights. On top of that, even if we focus on French publications (publications with at least one author with a French affiliation), the sum of the APC estimated is higher than the actual amount of APC money spent by French institutions, as a large share of the publications are co-authored with scholars affiliated to foreign institutions. Informations on the corresponding author could be a proxy to focus on APC spent by France but for now, we do not have an open, reliable and massive source for this information.
 
 
 ### 2.1.6 The role of the open repositories
@@ -418,7 +413,7 @@ Thus, between 2018 and 2021, the share of publications released in 2017 that are
 
 ![Evolution of the share of publications in France made available in open access by publisher by year of observation](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_2.png){ width=450 }
 
-The dissemination of open access articles by academic journal publishers is based on various business models. Some publishers have replaced traditional subscription revenues with the payment of publication fees (APC) charged on a per-article basis to researchers, their institutions or their funders. This change of model is often done at the level of an entire journal (full APC model), but other publishers maintain the subscription while offering authors the choice to open their article in return for the payment of a publication fee (a model known as hybrid), thus establishing a particularly unreadable double payment. Some publishers do not charge publication fees but mobilize, in the context of a non-commercial activity, funding from states, public actors, universities or other non-profit organisations, in order to finance the editorial and publication activity upstream: this is the so-called diamond OA model (@refOA). Finally, other models exist, such as the one where the publisher collects subscriptions for the most recent publications while releasing them in open access after a set period of time (moving barrier).
+The dissemination of open access articles by academic journal publishers is based on various business models. Some publishers have replaced traditional subscription revenues with the payment of publication fees (APC) charged on a per-article basis to researchers, their institutions or their funders. This change of model is often done at the level of an entire journal (full APC model), but other publishers maintain the subscription while offering authors the choice to open their article in return for the payment of a publication fee (a model known as hybrid), thus establishing a particularly unreadable double payment. Some publishers do not charge publication fees but mobilize, in the context of a non-commercial activity, funding from states, public actors, universities or other non-profit organisations, in order to finance the editorial and publication activity upstream: this is the so-called diamond OA model (@ref_OPERAS_Diamond). Finally, other models exist, such as the one where the publisher collects subscriptions for the most recent publications while releasing them in open access after a set period of time (moving barrier).
 
 The next figure shows the distribution of scientific articles published in 2020 and distributed in open access by their publisher, according to the business model of the journal in which they are published. It distinguishes between four types of economic models: articles published in full open access journals that do not charge publication fees ("diamond"), articles published in full open access journals that do charge publication fees ("Gold full APC"), and articles published in hybrid journals (where only some part of the content is in open access and the other part is available through individually paid publication fees), and all other cases. The "Diamant" part is probably underestimated.
 In particular, we observe that for scientific publications in France released in 2020, diamond represents 9% of the articles disseminated in open access by their publisher.
@@ -505,7 +500,7 @@ The next figure must be read from left to right. It presents, for all clinical t
 
 ![Distribution of clinical trials by results reporting](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_2.png){ width=450 }
 
-The World Medical Association (WMA)'s Declaration of Helsinki (@ref) states that the dissemination of results from medical research involving human beings, is an ethical obligation for all those involved, whether researchers, sponsors or publishers of scientific journals. Indeed, it appears to be a necessary counterpart to the involvement of patients in such research and as a major scientific and public health issue. The dissemination of results may take the form of an article in a scientific journal (published results) or a summary in a clinical trial register (posted results). This second vector ensures that the results of negative or inconclusive clinical trials, which are difficult to value in a scientific publication, are made public and properly disseminated. They are indeed valuable scientific contributions and the trials from which they result should not be ignored or unnecessarily duplicated.
+The World Medical Association (WMA)'s Declaration of Helsinki (@ref_WMA) states that the dissemination of results from medical research involving human beings, is an ethical obligation for all those involved, whether researchers, sponsors or publishers of scientific journals. Indeed, it appears to be a necessary counterpart to the involvement of patients in such research and as a major scientific and public health issue. The dissemination of results may take the form of an article in a scientific journal (published results) or a summary in a clinical trial register (posted results). This second vector ensures that the results of negative or inconclusive clinical trials, which are difficult to value in a scientific publication, are made public and properly disseminated. They are indeed valuable scientific contributions and the trials from which they result should not be ignored or unnecessarily duplicated.
 
 ![Procedures for reporting the results of completed clinical trials](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_3.png){ width=450 }
 
@@ -513,7 +508,7 @@ Responsible sharing of individual data from clinical trials is a major challenge
 • of re-analyzes with the aim of verifying the conclusions of the trials,
 • secondary analyzes exploring new research questions based on existing data,
 • meta-analyzes on individual data which, by pooling different studies exploring the same question, make it possible to provide the most precise answer possible.
-The International Committee of Medical Journal Editors (ICMJE) has stated that the responsible sharing of clinical trial data is ethically justified (@ref): since research subjects are willing to take risks for uncertain individual benefits, they expect the best possible use of the data collected, while minimizing the risk of re-identification. The ICMJE therefore requires that a data sharing statement specifying the terms of any sharing be included in each publication from July 1, 2018, and that it be specified in advance during clinical trial registration from January 1, 2019. At this point, data sharing is recommended by the ICMJE but is not a requirement.
+The International Committee of Medical Journal Editors (ICMJE) has stated that the responsible sharing of clinical trial data is ethically justified (@REFZarin_etal): since research subjects are willing to take risks for uncertain individual benefits, they expect the best possible use of the data collected, while minimizing the risk of re-identification. The ICMJE therefore requires that a data sharing statement specifying the terms of any sharing be included in each publication from July 1, 2018, and that it be specified in advance during clinical trial registration from January 1, 2019. At this point, data sharing is recommended by the ICMJE but is not a requirement.
 
 The next figure shows the number of registered clinical trials with and without individual data sharing statements by year since 2010.
 There has been a slow increase in the use of this instrument: 4% in 2010 and 17% in 2021.
