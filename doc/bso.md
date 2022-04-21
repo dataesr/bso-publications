@@ -54,7 +54,7 @@ To support the continuation of Open Science public policy with the second Nation
 
 The main goal of the French Open Science Monitor is to produce a dynamic vision of the openness level evolution and to analyse in detail how publications are opened, developing specific indicators for open repositories on one hand and specific indicators for the dissemination platforms on the other hand.
 
-The objective of the French Open Science Monitor in Health is to report on some aspects of Open Science specific to medical research and health, in relation to the sharing of scientific knowledge that has become a paramount urgency in the context of the COVID-19 pandemic [@rori_2021]. The aim is to have indicators that will make it possible to take stock of the situation and monitor the public policies that will be implemented.
+The objective of the French Open Science Monitor in Health is to report on some aspects of Open Science specific to medical research and health, in relation to the sharing of scientific knowledge that has become a paramount urgency in the context of the COVID-19 pandemic [@waltman_ludo_scholarly_2021]. The aim is to have indicators that will make it possible to take stock of the situation and monitor the public policies that will be implemented.
 
 In addition to the open access to the publications, which is critical for all domains, the registration of clinical trials and observational studies, the publication of their results and the sharing of their data are specific dimensions in the Health domain, and more particularly in clinical research.
 
@@ -71,8 +71,6 @@ Two main ways exist to correct this bias:
  - systematic publication of study results, even when they are "negative", for example through initiatives like Registered Reports.  
 
 Regulations have been implemented to improve transparency: in the United States, the declaration of clinical trials and their results is compulsory, and in Europe, the declaration of clinical drug trials will be compulsory as of 2022. In contrast, observational studies are not subject to any regulations regarding their reporting or publication.
-
-\newpage
 
 # 2. Method
 
@@ -102,7 +100,7 @@ Identifier: as we chose to use Unpaywall data for Open Access (OA) discovery, it
 enables to snapshot the whole database, which is an asset to analyse OA dynamics.
 
 All publications types are considered (journal articles, proceedings, books, book chapters, ...) as soon as documents are
-associated to a Crossref DOI. Many types are being coded in the metadata, but for the sake of results and figure clarity, we regrouped them in the following categories, namely journal articles, proceedings, preprints, book chapters, books, the rest being gathered in an 'Others' category . It is important to note that the 'preprint' type does not appear as such in the available metadata (it is generally
+associated to a Crossref DOI. Many types are being coded in the metadata, but for the sake of results and figure clarity, we regrouped them in the following categories, namely journal articles, proceedings, preprints, book chapters, books, the rest being gathered in an 'Others' category. It is important to note that the 'preprint' type does not appear as such in the available metadata (it is generally
 declared as a journal article). Some preprint detection is based on the dissemination platform information. At the time this article is written, only the Cold Spring Harbor Laboratory platforms (BioRxiv, MedRxiv) are covered, but it will be extended as soon as other preprint dissemination platforms would start using Crossref DOIs, or whether Unpaywall reverts its policy and covers Datacite DOIs, which would enable us to include ArXiv preprints.
 
 #### 2.1.1.2 French Open Science Monitor in Health
@@ -112,6 +110,7 @@ is not very easy. For now, we have simply chosen to consider in that scope **all
 The publications' data used in the French Open Science Monitor in Health is then a subset of the publications described
 above, adding the PubMed presence criterion to the other criteria (author affiliation, Crossref DOI). Note that "Health" is seen more as a domain than as a discipline. In fact, publications from a lot of disciplines are taken into account in the French Open Science Monitor in Health. A domain-specific set of disciplines is used in the French Open Science Monitor in Health, as described below.  
 
+\newpage
 
 ### 2.1.2 Open access dynamic
 
@@ -133,6 +132,8 @@ analysis, we propose to look at two elements :
  - Also, the **shape of open access curve** (open access rate function of the publication year). For a given observation date, the open access rate can be estimated broken down by publication year. This is translated into a curve of the open access rate as a function of the publication year (at a given point in time which is the observation date). This curve may have any shape, and in particular it is not always expected to be a monotonic increasing one. Indeed, a monotonic increasing curve means that more recent publications are more and more open: that may (hopefully!) happen, but moving barriers and embargoes would actually produce another type of shape, that would be an inverted-V shape. The next figure illustrates different shapes of Open Access curves.
 
 ![Different shapes of Open Access curves](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/types_curve.png){ width=450 }
+
+\newpage
 
 From an observation date to another, the OA curve shape may change. This evolution of the shape gives an insight on the opening speed evolution. Indeed, moving from an inverted-V shape, where the most recent papers are not the most open, to an increasing shape would be a strong evidence of the opening acceleration. The next figures illustrates the evolution from an inverted-V shape, to flat and then to an increasing OA curve shape.
 
@@ -403,6 +404,8 @@ In the next figure, each discipline is represented by a bubble whose size is pro
 
 ![Positioning of disciplines according to the preferred route for opening their publications in France (publications of 2020)](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_fields_3.png){ width=450 }
 
+\newpage
+
 ### 3.1.3 Open access dynamics and publishers policies
 
 The global publishing landscape is extremely diverse. There are about 12,000 scientific publishers around the world, each with a different history. They may be commercial or not-for-profit, national or multinational publishing companies, scholarly societies, university presses with public status, etc. Some actors have chosen to publish in open access from the start, while others have more or less strongly and recently engaged in a transition towards open access, with various models. There is a shared tendency to publish more and more in open access. We are not measuring here the open access rate of French publishers, but of the publishers in which French researchers publish. Nor do we measure the gradual reduction in the duration of mobile barriers.
@@ -411,6 +414,8 @@ For each year of observation since 2018, the graph represents the share of scien
 Thus, in 2021, 44% of scientific publications in France released in 2020 were made available in open access by their publisher.
 
 ![Share of scientific publications in France made available in open access by their publisher, by year of observation, for publications published during the previous year](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_1.png){ width=450 }
+
+\newpage
 
 In the next figure, for each observation year and by publication date, the share of scientific publications in France that are made available in open access by their publisher is displayed. Each line represents the rates observed at an observation date, and the rates are expressed as a function of the volume of publications published in the year observed. It can be seen that, for publications released in a given year, the rate of open access by the publisher varies from one observation date to another. This is due, for example, to the process of releasing the most recent publications through the expiry of moving barriers.
 Thus, between 2018 and 2021, the share of publications released in 2017 that are made available in open access by their publisher has increased from 25% to 33%.
@@ -433,12 +438,16 @@ In 2016, the French law for a Digital Republic made it possible for researchers 
 
 ![Positioning of publishers and publishing platforms according to the preferred route for opening up the French publications they distribute](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_5.png){ width=450 }
 
+\newpage
+
 Open access to scientific publications implies not only the possibility to read them without having to overcome price or technical barriers, but also the possibility to reuse them by citing their author(s). The precise conditions of reuse are defined by means of licences, in particular the Creative Commons licences that are most commonly used. Thus publishers implementing an open science policy should not only release publications in open access, but also attach a free license securing the reuse of the content by readers, whether they are researchers, teachers, professionals or other social actors. The use of licences thus facilitates the dissemination of scientific knowledge above and beyond academic communities.
 
 This graph indicates, for scientific publications in France released in 2020 and distributed in open access by their publisher, what proportion is accompanied by an open licence specifying the conditions of re-use. The 'See details' button allows a more detailed view of the type of licence used, in particular for Creative Commons licences. It is possible to select a publisher or a publication platform (when several publishers use the same platform, the platform level has been preferred).
 Thus, 65% of scientific publications in France released in 2020 that are distributed in open access by their publisher are accompanied by an open licence. Within the open licences, the CC-BY licence is the most popular with 45% of the publications.
 
 ![Distribution of open scientific publications in France by type of license used](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_6.png){ width=450 }
+
+\newpage
 
 This graph indicates, for each academic publisher or publishing platform in open access in 2020, the proportion of them that are accompanied by an open licence. The 25 publishers or platforms publishing the most French scientific articles in open access are taken into consideration, in decreasing order. When several publishers use the same publication platform, the platform level was taken into consideration. Please note that without a license, the normal copyright applies.
 Thus, Elsevier put an open licence for 28% of its French open access publications published in 2020.
@@ -487,6 +496,8 @@ We see in particular that among the scientific publications in France released i
 All the above indicators are detailed for the biomedical field. We simply apply the same computations rules on the publications that are indexed in PubMed.
 
 ![Open access rate of scientific publications in France in health published during the previous year by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_health_1.png){ width=450 }
+
+\newpage
 
 ## 3.3 Clinical trials transparency in France
 
