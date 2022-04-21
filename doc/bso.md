@@ -462,6 +462,8 @@ This graph shows the distribution of scientific publications in France released 
 
 ![Distribution of scientific publications in France released in 2020 according to publication costs](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_8.png){ width=450 }
 
+\newpage
+
 ### 3.1.4 Open repositories impact on the open access dynamics
 
 The open repositories are open access platforms on which scientific publications are deposited, which can be consulted by anyone. They are most often powered by author deposit, but in some cases may be powered by the journal publishers themselves. Open archives perform different functions: they make articles published in subscription journals available in open access, they ensure the permanent preservation of scientific literature and facilitate the identification of the outputs of a laboratory or an institution. Several incentives have led to an increase in the number of French scientific publications deposited in an open archive. This is mandatory for publications from projects funded by the ANR since 2019. The barometer also counts the preprints servers among open archives, on which researchers deposit initial versions of their manuscripts to propose them for peer review, before formal submission to a journal.
@@ -470,6 +472,8 @@ For each year of observation since 2018, the graph represents the share of scien
 Thus, in 2021, 46% of scientific publications in France released in 2020 were available in an open archive.
 
 ![Rate of scientific publications in France available in an open archive by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_repo_1.png){ width=450 }
+
+\newpage
 
 This graph presents, for each observation date and by publication year, the rate of scientific publications in France that are available in an open archive. Each line represents the rates observed for an observation date and each rate is expressed as a function of the volume of publications published in the year observed. We observe that, for publications released during a given year, the availability rates in an open archive progresses from one observation year to the next. This is due to the fact that authors of publications progressively proceed to deposit them in an open archive, in particular when embargoes imposed by publishers have expired.
 Thus, between 2018 and 2021, the rate of publications published in 2017 that are available in an open archive has increased from 27% to 38%.
@@ -491,13 +495,14 @@ We see in particular that among the scientific publications in France released i
 
 ![HAL coverage rate on scientific publications in France available in an open repository](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_repo_4.png){ width=450 }
 
+\newpage
+
 ## 3.2 Open access in France in the biomedical field
 
 All the above indicators are detailed for the biomedical field. We simply apply the same computations rules on the publications that are indexed in PubMed.
 
-![Open access rate of scientific publications in France in health published during the previous year by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_health_1.png){ width=450 }
+![Open access rate of scientific publications in France in health published during the previous year by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_health_1.png){ width=350 }
 
-\newpage
 
 ## 3.3 Clinical trials transparency in France
 
