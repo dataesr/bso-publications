@@ -26,7 +26,7 @@ institute:
   - cnrs:
       name: 'CNRS, France'
 bibliography: bso.bib
-date: March 2022
+date: April 2022
 keywords:
   - clinical trials
   - journal business models
@@ -41,6 +41,10 @@ keywords:
 **Keywords**: clinical trials, journal business models,  observational studies, open access, open science, scientometrics, unpaywall.
 
 # Abstract
+
+We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall. The economic models of journals publishing French publications are analysed as well as the open access dynamics by discipline and open access route (publisher or open repository). In the context of the health crisis linked to the COVID-19 pandemic and the urgent need to open up scholarly outputs in the health field, a version of the French Open Science Monitor is presented for the biomedical field. This version studies the open access dynamics of French publications in the biomedical field. It also analyses the transparency of the results of clinical trials and observational studies conducted in France.
+The French Open Science Monitor (BSO) website [https://frenchopensciencemonitor.esr.gouv.fr/](https://frenchopensciencemonitor.esr.gouv.fr) presents the results to date (last observation date December 2021). 62% of the 170,000 French publications published in 2020 are in open access in December 2021. This rate has increased by 10 points in one year. The level of open access varies significantly from one discipline to another. Some disciplines, such as the physical sciences and mathematics, have long been committed to opening up their publications, while others, such as chemistry, are rapidly catching up. It also shows that only 57% of clinical trials completed in the last 10 years have shared their results publicly.
+
 
 # 1. Introduction
 
@@ -427,7 +431,7 @@ In 2016, the French law for a Digital Republic made it possible for researchers 
 ![Opening routes for scientific publications in France released in 2020 by the most important publishers or publishing platforms in terms of volume (top 25)](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_4.png){ width=450 }
 
 
-![Positioning of publishers and publishing platforms according to the preferred route for opening up the publications {commenstName} they distribute](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_5.png){ width=450 }
+![Positioning of publishers and publishing platforms according to the preferred route for opening up the French publications they distribute](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_5.png){ width=450 }
 
 Open access to scientific publications implies not only the possibility to read them without having to overcome price or technical barriers, but also the possibility to reuse them by citing their author(s). The precise conditions of reuse are defined by means of licences, in particular the Creative Commons licences that are most commonly used. Thus publishers implementing an open science policy should not only release publications in open access, but also attach a free license securing the reuse of the content by readers, whether they are researchers, teachers, professionals or other social actors. The use of licences thus facilitates the dissemination of scientific knowledge above and beyond academic communities.
 
@@ -539,16 +543,16 @@ A new genereration of French Open Science Monitor is being developed in order to
 
 # Software and code availability
 
-The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules for harvesting and parsing (https://github.com/dataesr/harvest-pubmed and https://github.com/dataesr/bso-parser-html), country and affiliation matching (https://github.com/dataesr/matcher), discipline inference (https://github.com/dataesr/scientific_tagger), indicators computations (https://github.com/dataesr/bso-publications and https://github.com/dataesr/bso-clinical-trials) and the web user interface (https://github.com/dataesr/bso-ui).
+The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules for harvesting and parsing [https://github.com/dataesr/harvest-pubmed](https://github.com/dataesr/harvest-pubmed) and [https://github.com/dataesr/bso-parser-html](https://github.com/dataesr/bso-parser-html), country and affiliation matching [https://github.com/dataesr/matcher](https://github.com/dataesr/matcher), discipline inference [https://github.com/dataesr/scientific_tagger](https://github.com/dataesr/scientific_tagger), indicators computations [https://github.com/dataesr/bso-publications](https://github.com/dataesr/bso-publications) and [https://github.com/dataesr/bso-clinical-trials](https://github.com/dataesr/bso-clinical-trials) and the web user interface [https://github.com/dataesr/bso-ui](https://github.com/dataesr/bso-ui).
 
 # Data availability
 
-The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/ and https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/
+The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/)
 
 # Acknowledgements
 
-First, we want to thank Florian Naudet (https://orcid.org/0000-0003-3760-3801) from University of Rennes 1, Rennes, France, who helped us a lot to analyze the issues related to the clinical trials data, as well as Nicholas DeVito (https://orcid.org/0000-0001-8286-1995).
-We also want to thank the agency WeDoData (https://wedodata.fr/) that helped us designing the new web interface for the French Open Science Monitor.
+First, we want to thank Florian Naudet [https://orcid.org/0000-0003-3760-3801](https://orcid.org/0000-0003-3760-3801) from University of Rennes 1, Rennes, France, who helped us a lot to analyze the issues related to the clinical trials data, as well as Nicholas DeVito [https://orcid.org/0000-0001-8286-1995](https://orcid.org/0000-0001-8286-1995).
+We also want to thank the agency WeDoData [https://wedodata.fr/](https://wedodata.fr/) that helped us designing the new web interface for the French Open Science Monitor.
 
 
 # References
