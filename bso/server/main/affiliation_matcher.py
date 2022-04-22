@@ -1,6 +1,7 @@
 import os
 import requests
 import time
+import timeout_decorator
 import pymongo
 import multiprocess as mp
 from bso.server.main.utils import get_hash
@@ -80,8 +81,7 @@ def get_affiliations_computed(publications, recompute_all = False):
     logger.debug(f'affiliation matching {len(todo)}/{len(publications)} todo, {len(done)}/{len(publications)} done')
     return done, todo
 
-
-@exception_handler
+@timeout_decorator.timeout(50*60)
 def get_matcher_results(publications: list, proc_num = 0, return_dict = {}) -> list:
     r = requests.post(matcher_endpoint_url, json={'publications': publications,
                                                   'queue': 'matcher_short'})
