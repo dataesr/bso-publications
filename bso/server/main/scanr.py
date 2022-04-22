@@ -7,6 +7,7 @@ import dateutil.parser
 
 from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2
+from bso.server.main.utils import clean_json
 
 logger = get_logger(__name__)
     
@@ -50,8 +51,10 @@ def to_scanr(publications):
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
-        if p.get('title'):
+        if p.get('title') and isinstance(p['title'], str) and len(p['title'])>2:
             elt['title'] = {'default': p['title']}
+        else:
+            continue
         #field abstract / abstracts 
         abstracts = []
         if isinstance(p.get('abstracts'), list):
@@ -107,11 +110,11 @@ def to_scanr(publications):
             elt['productionType'] = 'publication'
         # journal
         source = {}
-        if p.get('journal_name'):
+        if p.get('journal_name') and isinstance(p['journal_name'], str):
             source['title'] = p['journal_name']
-        if p.get('publisher_dissemination'):
+        if p.get('publisher_dissemination') and isinstance(p['publisher_dissemination'], str):
             source['publisher'] = p['publisher_dissemination']
-        if p.get('journal_issns'):
+        if p.get('journal_issns') and isinstance(p['journal_issns'], str):
             source['journalIssns'] = str(p['journal_issns']).split(',')
         # OA
         elt['isOa'] = False
@@ -125,8 +128,9 @@ def to_scanr(publications):
                 logger.debug(p['oa_details'][last_obs_date])
                 continue
             elt['isOa'] = p['oa_details'][last_obs_date].get('is_oa', False)
-            source['isOa'] = p['oa_details'][last_obs_date].get('journal_is_oa', False)
-            source['isInDoaj'] = p['oa_details'][last_obs_date].get('journal_is_in_doaj', False)
+            if source:
+                source['isOa'] = p['oa_details'][last_obs_date].get('journal_is_oa', False)
+                source['isInDoaj'] = p['oa_details'][last_obs_date].get('journal_is_in_doaj', False)
             oa_evidence = {}
             for oaloc in p['oa_details'][last_obs_date].get('oa_locations', []):
                 if oaloc.get('is_best'):
@@ -141,8 +145,9 @@ def to_scanr(publications):
                         del oa_evidence[f]
             if oa_evidence:
                 elt['oaEvidence'] = oa_evidence
-            if source:
-                elt['source'] = source      
+        
+        elt['source'] = source      
+        
         # domains
         domains = []
         if isinstance(p.get('classifications'), list):
@@ -251,7 +256,7 @@ def to_scanr(publications):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
-        elt = {f: elt[f] for f in elt if elt[f]==elt[f] }
+        elt = clean_json(elt)
         if elt:
             scanr_publications.append(elt)
     return scanr_publications

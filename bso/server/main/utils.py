@@ -5,6 +5,7 @@ import re
 import requests
 import shutil
 import hashlib
+import json
 
 from typing import Union
 from urllib import parse
@@ -15,6 +16,15 @@ from bso.server.main.utils_swift import download_object, upload_object, get_obje
 
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
+
+def clean_json(elt):
+    keys = list(elt.keys()).copy()
+    for f in keys:
+        if isinstance(elt[f], dict):
+            elt[f] = clean_json(elt[f])
+        elif not elt[f] == elt[f]:
+            del elt[f]
+    return elt
 
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
