@@ -581,6 +581,4 @@ The data resulting of this work is shared on the French Ministry of Higher Educa
 First, we want to thank Florian Naudet [https://orcid.org/0000-0003-3760-3801](https://orcid.org/0000-0003-3760-3801) from University of Rennes 1, Rennes, France, who helped us a lot to analyze the issues related to the clinical trials data, as well as Nicholas DeVito [https://orcid.org/0000-0001-8286-1995](https://orcid.org/0000-0001-8286-1995).
 We also want to thank the agency WeDoData [https://wedodata.fr/](https://wedodata.fr/) that helped us designing the new web interface for the French Open Science Monitor.
 
-
-
 # References
