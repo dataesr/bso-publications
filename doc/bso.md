@@ -1,5 +1,5 @@
 ---
-title: 'A new framework for the French Open Science Monitor (BSO)'
+title: 'Extending the open monitoring of open science. A new framework for the French Open Science Monitor (BSO)'
 author:
   - Laetitia Bracco:
       institute: université de lorraine
@@ -42,25 +42,25 @@ keywords:
 
 # Abstract
 
-We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall, and thus limited to Crossref-DOI documents. The economic models of journals publishing French publications are analysed as well as the open access dynamics by discipline and open acces route (publishers and  repositories).
+We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall, and thus limited to Crossref-DOI documents. The economic models of journals publishing French publications are analyéed as well as the open access dynamics by discipline and open access route (publishers and  repositories).
 
 The French Open Science Monitor (BSO) website: [https://frenchopensciencemonitor.esr.gouv.fr](https://frenchopensciencemonitor.esr.gouv.fr) presents the results to date (last observation date December 2021). 62% of the 170,000 French 2020 publications  are available in December 2021. This rate has increased by 10 points in one year. The level of open access varies significantly from one discipline to another. Some disciplines, such as the physical sciences and mathematics, have long been committed to opening up their publications, while others, such as chemistry, are rapidly catching up.
 
 In the context of the  COVID-19 pandemic crisis and the urgent need to open up scholarly outputs in the health field, a specific version of the French Open Science Monitor has been built: [https://frenchopensciencemonitor.esr.gouv.fr/health](https://frenchopensciencemonitor.esr.gouv.fr/health). It monitors the open access dynamics of French publications in the biomedical field. It also analyses the transparency of the results of clinical trials and observational studies conducted in France. Only 57% of clinical trials completed in the last 10 years have shared their results publicly.
 
-In contrast to other Open Science Monitoring initiatives, the source code and the data of the French Open Science Monitor are shared with an open licence. 
+In contrast to other Open Science Monitoring initiatives, the source code and the data of the French Open Science Monitor are shared with an open licence.
 The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules, in particular for indicators computations [https://github.com/dataesr/bso-publications](https://github.com/dataesr/bso-publications) and [https://github.com/dataesr/bso-clinical-trials](https://github.com/dataesr/bso-clinical-trials) and the web user interface [https://github.com/dataesr/bso-ui](https://github.com/dataesr/bso-ui).
 The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/).
 
-The originality of the French Open Science Monitor also lies in the fact that it can easily be adapted to the level of an higher education and research institution. To date, some twenty higher education and research institutions have already used it to obtain reliable and open indicators on the progress of open science in their scientific production. 
+The originality of the French Open Science Monitor also lies in the fact that it can easily be adapted to the level of an higher education and research institution. To date, some twenty higher education and research institutions have already used it to obtain reliable and open indicators on the progress of open science in their scientific production.
 
 # 1. Introduction
 
-The French Open Science Monitor was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its methodology has between described in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications, for which at least one author has a French affiliation. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data and softwares) or disciplinary.
+The French Open Science Monitor was launched in 2019 as part of the first French National Plan for Open Science [@mesri_national_2018]. Its original methodology has between described in [@jeangirard_monitoring_2019]. It currently focuses on scholarly publications, for which at least one coauthor declares a French affiliation. It measures the rate of open access for these publications. It will eventually be extended to other dimensions of Open Science, whether they are transversal (management and opening of research data and softwares) or disciplinary.
 
 To support the continuation of Open Science public policy with the second National Plan for Open Science [@mesri_2nd_2021], a new framework for the French Open Science Monitor has been produced. It introduces a monitor specific to the Health domain and also develops the features for the Open Access analysis.
 
-The main goal of the French Open Science Monitor is to produce a dynamic vision of the openness level evolution and to analyse in detail how publications are opened, developing specific indicators for open repositories on one hand and specific indicators for the dissemination platforms on the other hand.
+The main goal of the current French Open Science Monitor is to produce a dynamic vision of the openness level evolution and to analyse in detail how publications are opened, developing specific indicators for open repositories on one hand and specific indicators for the dissemination platforms on the other hand.
 
 The objective of the French Open Science Monitor in Health is to report on some aspects of Open Science specific to medical research and health, in relation to the sharing of scientific knowledge that has become a paramount urgency in the context of the COVID-19 pandemic [@waltman_ludo_scholarly_2021]. The aim is to have indicators that will make it possible to take stock of the situation and monitor the public policies that will be implemented.
 
@@ -80,6 +80,9 @@ Two main ways exist to correct this bias:
 
 Regulations have been implemented to improve transparency: in the United States, the declaration of clinical trials and their results is compulsory, and in Europe, the declaration of clinical drug trials will be compulsory as of 2022. In contrast, observational studies are not subject to any regulations regarding their reporting or publication.
 
+The launching of the first Open Science Monitor by the European Union in 2017-2018 has been met with controversies, as the chosen project had included a big publisher as a subcontractor and, consequently, the underlying data used was not open but proprietary. That is almost a constant in the current Open Access and Open Science monitoring initiatives (see literature review in @refPolonen_et_al). In contrast, the source code and the data of the French Open Science Monitor are shared with an open licence.
+The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules, in particular for indicators computations [https://github.com/dataesr/bso-publications](https://github.com/dataesr/bso-publications) and [https://github.com/dataesr/bso-clinical-trials](https://github.com/dataesr/bso-clinical-trials) and the web user interface [https://github.com/dataesr/bso-ui](https://github.com/dataesr/bso-ui). The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/).
+
 # 2. Method
 
 ## 2.1 Publications
@@ -91,20 +94,20 @@ Regulations have been implemented to improve transparency: in the United States,
 <br />
 
 The French Open Science Monitor is a tool that aims at steering the Open Science policy in France. As such, it produces
-statistics that are analyzed over time, and it has to focus on "French" productions. Also, as stated in
-[@coso_feedback_2018], we want to use only public or open datasources, contrary to other monitoring systems like the German open access monitor [https://open-access-monitor.de/open-access](https://open-access-monitor.de/open-access) which relies on partially on proprietary databases. As the monitor perimeter is not defined by these selective databases, there are only two limits to the imposed to the scope of the monitor :
+statistics that are analyzed over time, and it has to focus on "French" productions. As stated in
+[@coso_feedback_2018] and recalled in the introduction, we want to use only public or open datasources, contrary to other monitoring systems like the German open access monitor [https://open-access-monitor.de/open-access](https://open-access-monitor.de/open-access) which relies on partially on proprietary databases. As the monitor perimeter is not defined by these selective databases, there are only two limits to the imposed to the scope of the monitor:
 
  - **only publications with at least one author who has a French affiliation** are considered.  Conversely, the nationality of the
 authors does not play a role in the selection. This choice raises the issue of access to affiliation information: affiliation metadata
-are present in specific sources, like PubMed, but quite rarely appear in the whole Crossref data. To fill in the gaps, we
+are present in specific sources, like PubMed, but quite rarely appear in the whole Crossref data. Such information is the more critical as France, contrary to some Norther European countries, has not yet built a comprehensive CRIS system. To fill in the gaps, we
 proposed to crawl the affiliation information displayed publicly from the publications webpages. On top of that,
 identifying a country from an affiliation text is far from being straightforward. To take an actual example, think about an
 affiliation stating "Hôtel Dieu de France, Beirut, Lebanon": this does not refer to a French affiliation even though
 the word "France" is present in the address or institution field. We use an automatic detection algorithm, based on Elasticsearch, described in
 [@lhote_using_2021], to infer the relevant countries from the authors affiliation field.
 
- - **only the publications associated with a Crossref DOI** are considered. We wish to avoid duplicates, as counting twice (or more) a publication would add a bias to the statistics being produced. It is then crucial to use a Persistent
-Identifier: as we chose to use Unpaywall data for Open Access (OA) discovery, it only include Crossref DOI documents, which led us to adopt the same perimeter. We are aware that this is currently a bias, though less imortant than commercial databases against some disciplines, most notably Humanities and Social Sciences, and some type of research output. Unpaywall delivers open data and
+ - **only publications associated with a Crossref DOI** are considered. We wish to avoid duplicates, as counting twice (or more) a publication would add a bias to the statistics being produced. It is then crucial to use a Persistent
+Identifier: as we chose to use Unpaywall data for Open Access (OA) discovery, it only include Crossref DOI documents, which led us to adopt the same perimeter. We are aware that this is currently a bias, though less important than commercial databases against some disciplines, most notably Humanities and Social Sciences, and some type of research output. Unpaywall delivers open data and
 enables to snapshot the whole database, which is an asset to analyse OA dynamics.
 
 All publications types are considered (journal articles, proceedings, books, book chapters, ...) as soon as documents are
@@ -566,9 +569,12 @@ The main limitation of the current approach for the publications is the restrict
 Another limitation of the current approach is that we mix up preprint servers and open repositories. Both of them host open access version of articles, but they play very different roles in scholarly communication.
 Moreover, the monitor does not currently account for potential links between preprint and published article. So, an article with a preprint with a crossref DOI d1 and then published with another DOI d2 will actually counts twice in the current methodology. However, this phenomenon remains very limited as preprints represent less than 3% of the publications in the monitor database, especially because of the crossref DOI restriction. arXiv announced they will set DOI on their documents, but it will be Datacite DOI and not Crossref DOI.
 
-### 3.4.2 Future work
+### 3.4.2 Future work and local implementation
 
-A new genereration of French Open Science Monitor is being developed in order to integrate new research output to go beyond publications and clinical trials. In particular, we are working on the research data and softwares. This project is lead by the University of Lorraine, the French Ministry of Higher Education, Research and Innovation and Inria and is supported by the European Union.
+A new generation of French Open Science Monitor is being developed in order to integrate new research output to go beyond publications and clinical trials. In particular, we are working on research data and softwares. This project is led by the University of Lorraine, the French Ministry of Higher Education, Research and Innovation, and Inria and is supported by the European Union.
+
+The current national-level Open Science Monitor has already been adapted to the level of an higher education and research institutions. To date, some twenty higher education and research institutions have already used it to obtain reliable and open indicators on the progress of open science in their academic production.
+
 
 # Software and code availability
 
