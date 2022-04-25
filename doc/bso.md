@@ -1,5 +1,6 @@
 ---
-title: 'Extending the open monitoring of open science. A new framework for the French Open Science Monitor (BSO)'
+title: 'Extending the open monitoring of open science'
+subtitle: 'A new framework for the French Open Science Monitor (BSO)'
 author:
   - Laetitia Bracco:
       institute: université de lorraine
@@ -163,8 +164,6 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
 Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. It seems that a similar choice has been recently made to represent COKI data and its sources of openness [https://openknowledge.community/dashboards/coki-open-access-dashboard/](https://openknowledge.community/dashboards/coki-open-access-dashboard/)
 
-\newpage
-
 The next figure shows the kind of impact choosing one or the other OA type break down.
 
 ![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
@@ -311,11 +310,11 @@ We propose both indicators, mixing or separating results and scholarly publicati
 
 ## 2.3 'Local' Open Science Monitors
 
-The University of Lorraine was the first institution to provide a local version of the French Monitor : https://scienceouverte.univ-lorraine.fr/barometre-lorrain-de-la-science-ouverte/.
-
-The code created on this occasion is freely accessible [@bracco:hal-03450104v1].
+The University of Lorraine was the first institution to provide a local version of the French Monitor [@bracco_mesurer_2022]: [https://scienceouverte.univ-lorraine.fr/barometre-lorrain-de-la-science-ouverte](https://scienceouverte.univ-lorraine.fr/barometre-lorrain-de-la-science-ouverte).
 
 This local version, published during spring 2020, was designed with reusability in mind. For this purpose, the code has been detailed step by step in Jupyter Notebooks and includes a readme file explaining all the required actions to obtain its own Monitor.
+
+The code created on this occasion is freely accessible [@bracco:hal-03450104v1].
 
 The availability of the code was combined with numerous training sessions as well as individual assistance provided by the University of Lorraine to each institution that requested it.
 
@@ -588,6 +587,7 @@ The data resulting of this work is shared on the French Ministry of Higher Educa
 
 First, we want to thank Florian Naudet [https://orcid.org/0000-0003-3760-3801](https://orcid.org/0000-0003-3760-3801) from University of Rennes 1, Rennes, France, who helped us a lot to analyze the issues related to the clinical trials data, as well as Nicholas DeVito [https://orcid.org/0000-0001-8286-1995](https://orcid.org/0000-0001-8286-1995).
 We also want to thank the agency WeDoData [https://wedodata.fr/](https://wedodata.fr/) that helped us designing the new web interface for the French Open Science Monitor.
+
 
 
 # References
