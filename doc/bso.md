@@ -39,15 +39,15 @@ keywords:
 geometry: "left=3cm, right=3cm, top=3cm, bottom=3cm"
 ---
 
-**Keywords**: clinical trials, journal business models,  observational studies, open access, open science, scientometrics, unpaywall
+**Keywords**: clinical trials, journal business models, observational studies, open access, open science, scientometrics, unpaywall
 
 # Abstract
 
-We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall, and thus limited to Crossref-DOI documents. The economic models of journals publishing French publications are analyéed as well as the open access dynamics by discipline and open access route (publishers and  repositories).
+We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall, and thus limited to Crossref-DOI documents. The economic models of journals publishing French publications are analyéed as well as the open access dynamics by discipline and open access route (publishers and repositories).
 
-The French Open Science Monitor (BSO) website: [https://frenchopensciencemonitor.esr.gouv.fr](https://frenchopensciencemonitor.esr.gouv.fr) presents the results to date (last observation date December 2021). 62% of the 170,000 French 2020 publications  are available in December 2021. This rate has increased by 10 points in one year. The level of open access varies significantly from one discipline to another. Some disciplines, such as the physical sciences and mathematics, have long been committed to opening up their publications, while others, such as chemistry, are rapidly catching up.
+The French Open Science Monitor (BSO) website: [https://frenchopensciencemonitor.esr.gouv.fr](https://frenchopensciencemonitor.esr.gouv.fr) presents the results to date (last observation date December 2021). 62% of the 170,000 French 2020 publications are available in December 2021. This rate has increased by 10 points in one year. The level of open access varies significantly from one discipline to another. Some disciplines, such as the physical sciences and mathematics, have long been committed to opening up their publications, while others, such as chemistry, are rapidly catching up.
 
-In the context of the  COVID-19 pandemic crisis and the urgent need to open up scholarly outputs in the health field, a specific version of the French Open Science Monitor has been built: [https://frenchopensciencemonitor.esr.gouv.fr/health](https://frenchopensciencemonitor.esr.gouv.fr/health). It monitors the open access dynamics of French publications in the biomedical field. It also analyses the transparency of the results of clinical trials and observational studies conducted in France. Only 57% of clinical trials completed in the last 10 years have shared their results publicly.
+In the context of the COVID-19 pandemic crisis and the urgent need to open up scholarly outputs in the health field, a specific version of the French Open Science Monitor has been built: [https://frenchopensciencemonitor.esr.gouv.fr/health](https://frenchopensciencemonitor.esr.gouv.fr/health). It monitors the open access dynamics of French publications in the biomedical field. It also analyses the transparency of the results of clinical trials and observational studies conducted in France. Only 57% of clinical trials completed in the last 10 years have shared their results publicly.
 
 In contrast to other Open Science Monitoring initiatives, the source code and the data of the French Open Science Monitor are shared with an open licence.
 The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules, in particular for indicators computations [https://github.com/dataesr/bso-publications](https://github.com/dataesr/bso-publications) and [https://github.com/dataesr/bso-clinical-trials](https://github.com/dataesr/bso-clinical-trials) and the web user interface [https://github.com/dataesr/bso-ui](https://github.com/dataesr/bso-ui).
@@ -77,7 +77,7 @@ Two main ways exist to correct this bias:
 
  - systematic declaration of studies, before they are carried out, in dedicated registers;
 
- - systematic publication of study results, even when they are "negative", for example through initiatives like Registered Reports.  
+ - systematic publication of study results, even when they are "negative", for example through initiatives like Registered Reports.
 
 Regulations have been implemented to improve transparency: in the United States, the declaration of clinical trials and their results is compulsory, and in Europe, the declaration of clinical drug trials will be compulsory as of 2022. In contrast, observational studies are not subject to any regulations regarding their reporting or publication.
 
@@ -98,7 +98,7 @@ The French Open Science Monitor is a tool that aims at steering the Open Science
 statistics that are analyzed over time, and it has to focus on "French" productions. As stated in
 [@coso_feedback_2018] and recalled in the introduction, we want to use only public or open datasources, contrary to other monitoring systems like the German open access monitor [https://open-access-monitor.de/open-access](https://open-access-monitor.de/open-access) which relies on partially on proprietary databases. As the monitor perimeter is not defined by these selective databases, there are only two limits to the imposed to the scope of the monitor:
 
- - **only publications with at least one author who has a French affiliation** are considered.  Conversely, the nationality of the
+ - **only publications with at least one author who has a French affiliation** are considered. Conversely, the nationality of the
 authors does not play a role in the selection. This choice raises the issue of access to affiliation information: affiliation metadata
 are present in specific sources, like PubMed, but quite rarely appear in the whole Crossref data. Such information is the more critical as France, contrary to some Norther European countries, has not yet built a comprehensive CRIS system. To fill in the gaps, we
 proposed to crawl the affiliation information displayed publicly from the publications webpages. On top of that,
@@ -120,18 +120,18 @@ declared as a journal article). Some preprint detection is based on the dissemin
 The current French Open Science Monitor also introduces a focus on the Health domain. Delimiting a clear perimeter for Health
 is not very easy. For now, we have simply chosen to consider in that scope **all PubMed publications, and only these**.
 The publications' data used in the French Open Science Monitor in Health is then a subset of the publications described
-above, adding the PubMed presence criterion to the other criteria (author affiliation, Crossref DOI). Note that "Health" is seen more as a domain than as a discipline. In fact, publications from a lot of disciplines are taken into account in the French Open Science Monitor in Health. A domain-specific set of disciplines is used in the French Open Science Monitor in Health, as described below.  
+above, adding the PubMed presence criterion to the other criteria (author affiliation, Crossref DOI). Note that "Health" is seen more as a domain than as a discipline. In fact, publications from a lot of disciplines are taken into account in the French Open Science Monitor in Health. A domain-specific set of disciplines is used in the French Open Science Monitor in Health, as described below.
 
 ### 2.1.2 Open access dynamic
 
 From the first edition of the French Open Science Monitor, it was clear that the open access rate was far from stable though time, so we should try to capture the opening dynamics [@jeangirard_monitoring_2019]. Indeed, the
-immediate open access has focused most attention, but we know it does not represent the totality of the open access, notably considering the various publishers mobile barriers, but also theirs and funders and national embargo policies [@laakso_delayed_2013]. Therefore, for a given set of publications, say the publications published during the year Y, it is important to measure the open access rate at different points in time, for example at year Y+1, Y+2 ...
+immediate open access has focused most attention, but we know it does not represent the totality of the open access, notably considering the various publishers moving barriers, but also theirs and funders and national embargo policies [@laakso_delayed_2013]. Therefore, for a given set of publications, say the publications published during the year Y, it is important to measure the open access rate at different points in time, for example at year Y+1, Y+2 ...
 
 To do so, it becomes necessary to historicize the database containing the open access information. So, instead of
 maintaining a database that keeps track of the opening of each publication, which is the current Unpaywall data policy, we have to make regular snapshots of the whole Unpaywall database. Each snapshot is used as an observation date to measure the open
 access rate. It is important to note that this method natively embeds the potential open access discovery errors from
 the underlying Unpaywall database. That includes false negative (a publication is actually opened at that time but
-it is not detected as such) and false positive (wrongly seen as opened whereas it is closed). As a side note, it would also enable us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications [@arrizabalaga_open_2020].  
+it is not detected as such) and false positive (wrongly seen as opened whereas it is closed). As a side note, it would also enable us to follow “temporary open” publications, resulting from new publishers policies adopted for Covid-19 related publications [@arrizabalaga_open_2020].
 
 This method of analysis therefore reveals two temporal dimensions: publication dates and observation dates. Obviously,
 the observation date must be after the publication date. To avoid that the proliferation of possible analyzes blurs the
@@ -150,7 +150,7 @@ From an observation date to another, the OA curve shape may change. This evoluti
 
 ### 2.1.3 Open access types
 
-As Unpaywall is the Open Access discovery tool we used, we initially based our results on the OA classifications described in [@piwowar_state_2018]. It breaks down the OA types in 5 categories: 'Gold', 'Hybrid', 'Bronze', 'Green', 'Closed'. These categories are also present in the Unpaywall database (and oaDOI API) in the field 'oa_status'.  We first simply regrouped the categories 'Gold', 'Hybrid' and 'Bronze' under a 'Publisher hosted' label. However, we now propose another classification that we think more appropriate, at least for the French OA policy steering.
+As Unpaywall is the Open Access discovery tool we used, we initially based our results on the OA classifications described in [@piwowar_state_2018]. It breaks down the OA types in 5 categories: 'Gold', 'Hybrid', 'Bronze', 'Green', 'Closed'. These categories are also present in the Unpaywall database (and oaDOI API) in the field 'oa_status'. We first simply regrouped the categories 'Gold', 'Hybrid' and 'Bronze' under a 'Publisher hosted' label. However, we now propose another classification that we think more appropriate, at least for the French OA policy steering.
 
 [@piwowar_state_2018] defined 'Green' as 'Toll-access on the publisher page, but there is a free copy in an OA repository'. That implies that a publication that would be free to read on the publisher webpage and that would, at the same time, have a free copy on a repository would not be counted as 'Green'. That derives from the idea that the Version of Record (VoR), available on the publisher website, is the preferred OA version of the publication (REF à ajouter). As a consequence, the repositories contribution to OA is mechanically reduced in favor of the publishers one. This therefore blurs the picture of the extension of repositories impact. That led us to propose a first level of analysis, with 3 categories (excluding 'Closed'):
 
@@ -212,7 +212,7 @@ The data in the 'publisher' field of Crossref shows many inconsistencies. There 
 
 We historicized the last two groupings to account for the effective date of the link between these different entities. All coding is available in the open source code hosted at [https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher](https://github.com/dataesr/bso-publications/tree/main/bso/server/main/publisher).
 
-#### 2.1.5.2 Business models and open licenses
+#### 2.1.5.2 Business models and open licences
 
 As explained above, the 'oa_status' in Unpaywall data belittles the role of open repositories. It also invisibilize Diamond open access, indifferently mixing in the same 'Gold' category all publications in an open-access journal that is indexed by the DOAJ, whether Article Process Charges (APC) are part of the business model or not. That is why we introduce another level analysis, about the dissemination platform business model, with 3 categories :
 
@@ -224,17 +224,17 @@ As explained above, the 'oa_status' in Unpaywall data belittles the role of open
 
  - **Other**: all other cases, in particular publications with moving barriers, but also cases for which no information about APC has been collected. This category may be over-estimated as some journal have no APC but this information is not present in a structured database.
 
-The objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyze the open licenses associated to the OA copies, so this categorization is quite different from the Gold / Hybrid / Bronze from [@piwowar_state_2018].
+The objective of this level of analysis is to separate different business models (APC vs Diamond vs Hybrid), not to analyze the open licences associated to the OA copies, so this categorization is quite different from the Gold / Hybrid / Bronze from [@piwowar_state_2018].
 
 For that matter, a third analysis level is used that distinguishes, for open access publications:
 
- - **Creative commons** licenses (cc0, cc-by, cc-by-nc etc ...)
+ - **Creative commons** licences (cc0, cc-by, cc-by-nc etc ...)
 
- - **Other licenses** (publisher specific, country-specific ...)
+ - **Other licences** (publisher specific, country-specific ...)
 
- - **No license**
+ - **No licence**
 
-To be clear, the no license category does not mean that the publications are closed, on the contrary they are in freely available but no open license was detected, meaning the reuse conditions, beyond reading, are not defined. They are certainly not BOAI-compliant (REF), but considered as "open" in our context.
+To be clear, the no licence category does not mean that the publications are closed, on the contrary they are in freely available but no open licence was detected, meaning the reuse conditions, beyond reading, are not defined. They are certainly not BOAI-compliant (REF), but considered as "open" in our context.
 
 Again, the informations from the field 'oa_locations' comes from Unpaywall, therefore the results depend on the quality of the Unpaywall database.
 
@@ -270,7 +270,7 @@ As the affiliations information is given for each author, we can use [@lhote_usi
 
 ## 2.2 Clinical trials and observational studies
 
-The French Open Science Monitor focused only on publications. Current work is being conducted on monitoring  Research Data and Software Code. The French Open Science Monitor in Health, however, already introduces new research objects specific to the Health domains: clinical trials and observational studies.
+The French Open Science Monitor focused only on publications. Current work is being conducted on monitoring Research Data and Software Code. The French Open Science Monitor in Health, however, already introduces new research objects specific to the Health domains: clinical trials and observational studies.
 
 In the USA, reporting and publication of results is mandatory for all clinical trials. The reporting registry used is https://clinicaltrials.gov/. This website is also used by many international actors. It also welcomes reports of observational studies, though this reporting is not mandatory.
 
@@ -297,16 +297,16 @@ To distinguish clinical trials on one side and observational studies on the othe
 
 Two key types of indicators are analyzed:
 
- - The declaration of results and / or scholarly publications after a trial or study is completed. [@goldacre_compliance_2018] showed that a large fraction of trials do not report their results in the databases or publications. On top of the results declaration rate itself, we look into the results' date of registration, assessing the delay  between the end of the trial and the actual reported results date.
+ - The declaration of results and / or scholarly publications after a trial or study is completed. [@goldacre_compliance_2018] showed that a large fraction of trials do not report their results in the databases or publications. On top of the results declaration rate itself, we look into the results' date of registration, assessing the delay between the end of the trial and the actual reported results date.
 
-We propose both indicators, mixing or separating results and scholarly publications. For  publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (with PubMed for example). The open access status of these publications is also retrieved from the Unpaywall data.
+We propose both indicators, mixing or separating results and scholarly publications. For publications, it is important to note that only the metadata from the studies registries are used, without trying to link trials to DOIs using the publications metadata (with PubMed for example). The open access status of these publications is also retrieved from the Unpaywall data.
 
 
  - The delay to register the study: is the trial or study publicly registered before it actually starts, or is it done afterwards ? And how many months is the actual delay to register ? Does it evolves over time ?
 
 ### 2.2.2 Lead sponsor impact
 
-[@goldacre_compliance_2018] gives evidence that the rate of results declaration is very impacted by the type of lead sponsor, commercial sponsors having a much higher declaration rate. We therefore propose to break down most of the analysis axis with the type of lead sponsor, being either academic or industrial. This categorization has been done manually based on the lead sponsor name.  
+[@goldacre_compliance_2018] gives evidence that the rate of results declaration is very impacted by the type of lead sponsor, commercial sponsors having a much higher declaration rate. We therefore propose to break down most of the analysis axis with the type of lead sponsor, being either academic or industrial. This categorization has been done manually based on the lead sponsor name.
 
 ## 2.3 'Local' Open Science Monitors
 
@@ -362,14 +362,14 @@ The results are extracted from the French Open Science Monitor website https://f
 ### 3.1.1 General dynamics
 
 The steady increase in the open access rate observed each year since 2018 is an indicator of the impact of public policies in favour of open access. It is a proof of the evolution of researchers' publication practices, the strengthening of open access publication infrastructures and the strategies of scientific publishing actors.
-Open access to publications is an evolutionary process over time. A publication that is not available in open access at the time of its publication may become so in the following months and years, through various mechanisms: deposit by the author in an open archive after a period of embargo imposed by the publisher or the application by the publisher of a moving wall, i.e., a time limit at the end of which it itself makes the publication available in open access.
+Open access to publications is an evolutionary process over time. A publication that is not available in open access at the time of its publication may become so in the following months and years, through various mechanisms: deposit by the author in an open archive after a period of embargo imposed by the publisher or the application by the publisher of a moving barrier, i.e., a time limit at the end of which it itself makes the publication available in open access.
 
 
-The figure 7 presents, for each observation date since 2018, the open access rate of French scientific publications published during the previous year. The observations made during the current year are updated every quarter. Thus, 52% of french scientific publications published in 2019 were in open access in 2020 (observation date). And 62% of french scientific publications published in 2020 were open in 2021. The access rate has thus increased by 10 points in just one year.
+The figure 7 presents, for each observation date since 2018, the open access rate of French scientific publications published during the previous year. The observations made during the current year are updated every quarter. Thus, 52% of French scientific publications published in 2019 were in open access in 2020 (observation date). And 62% of French scientific publications published in 2020 were open in 2021. The access rate has thus increased by 10 points in just one year.
 
 ![Open access rate of scientific publications in France published during the previous year by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_1.png){ width=600 }
 
-The figure 8 presents, for each observation date, the open access rate of scientific publications in France by publication date. Each line represents the open access rates observed for an observation date, and the open access rates are expressed as a function of the publication year. For each year of publication, it is observed that the open access rate increases according to the date of observation. This is due to the process of releasing the most recent publications through the expiry of moving walls or deposits on open archives after an embargo period.
+The figure 8 presents, for each observation date, the open access rate of scientific publications in France by publication date. Each line represents the open access rates observed for an observation date, and the open access rates are expressed as a function of the publication year. For each year of publication, it is observed that the open access rate increases according to the date of observation. This is due to the process of releasing the most recent publications through the expiry of moving barriers or deposits on open archives after an embargo period.
 As a result, the open access rate of publications released in 2017 has increased from 38% in 2018 to 51% in 2021. When the open access rate is higher in the latest year of publication than in previous years, this is an indication of a shortening of the timeframe for open access provision.
 
 ![Evolution of the open access rate of scientific publications in France by year of observation](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_2.png){ width=600 }
@@ -396,7 +396,7 @@ In particular, we note in figure 12 that among publications published in 2020, t
 
 ### 3.1.2 Open access dynamics in the different scientific fields
 
-The level of openness of publications varies significantly from one discipline to another, depending on the involvment of scientific communities and the diversity of their practices. These variations can also be observed in the trajectory of the level of openness over time. Some disciplines, such as astronomy and mathematics, have a long-standing tradition of opening up publications, while others (chemistry, fundamental biology) have experienced more recent acceleration. All of them, nvertheless, are part of a dynamic of openness. There may be artefacts linked to data sources (in SSH and computer science, some of the publications are not identifiable by our methodology).
+The level of openness of publications varies significantly from one discipline to another, depending on the involvment of scientific communities and the diversity of their practices. These variations can also be observed in the trajectory of the level of openness over time. Some disciplines, such as astronomy and mathematics, have a long-standing tradition of opening up publications, while others (chemistry, fundamental biology) have experienced more recent acceleration. All of them, nevertheless, are part of a dynamic of openness. There may be artefacts linked to data sources (in SSH and computer science, some of the publications are not identifiable by our methodology).
 
 For each year of observation since 2018, the monitor estimates the open access rate of scientific publications in France published during the previous year. The figure 13 presents, for each disciplinary field, the evolution of the open access rate observed each year for the previous year's publications. This visualization makes it possible to observe and compare the opening dynamics of the different disciplines: each point on a line represents the rate observed during an observation year. Thus, the greater the distance between two consecutive points, the more the open access rate has evolved between two years of observation.
 We observe, for example, that during the last years of observation, it is the chemistry that marked the largest increase in the rate of open access publications compared to 2018, going from 28% to 64% open.
@@ -418,7 +418,7 @@ In figure 15, each discipline is represented by a bubble whose size is proportio
 
 ### 3.1.3 Open access dynamics and publishers policies
 
-The global publishing landscape is extremely diverse. There are about 12,000 scientific publishers around the world, each with a different history. They may be commercial or not-for-profit, national or multinational publishing companies, scholarly societies, university presses with public status, etc. Some actors have chosen to publish in open access from the start, while others have more or less strongly and recently engaged in a transition towards open access, with various models. There is a shared tendency to publish more and more in open access. We are not measuring here the open access rate of French publishers, but of the publishers in which French researchers publish. Nor do we measure the gradual reduction in the duration of mobile barriers.
+The global publishing landscape is extremely diverse. There are about 12,000 scientific publishers around the world, each with a different history. They may be commercial or not-for-profit, national or multinational publishing companies, scholarly societies, university presses with public status, etc. Some actors have chosen to publish in open access from the start, while others have more or less strongly and recently engaged in a transition towards open access, with various models. There is a shared tendency to publish more and more in open access. We are not measuring here the open access rate of French publishers, but of the publishers in which French researchers publish. Nor do we measure the gradual reduction in the duration of moving barriers.
 
 For each year of observation since 2018, the graph represents the share of scientific publications in France published during the previous year that are made available in open access by their publisher. Some of these publications may be simultaneously available in an open archive. On the other hand, publications that are only available via an open archive are not taken into account.
 Thus, in 2021, 44% of scientific publications in France released in 2020 were made available in open access by their publisher (figure 16).
@@ -433,14 +433,14 @@ Thus, between 2018 and 2021, the share of publications released in 2017 that are
 
 The dissemination of open access articles by academic journal publishers is based on various business models. Some publishers have replaced traditional subscription revenues with the payment of publication fees (APC) charged on a per-article basis to researchers, their institutions or their funders. This change of model is often done at the level of an entire journal (full APC model), but other publishers maintain the subscription while offering authors the choice to open their article in return for the payment of a publication fee (a model known as hybrid), thus establishing a particularly unreadable double payment. Some publishers do not charge publication fees but mobilize, in the context of a non-commercial activity, funding from states, public actors, universities or other non-profit organisations, in order to finance the editorial and publication activity upstream: this is the so-called diamond OA model (@bosman_jeroen_oa_2021). Finally, other models exist, such as the one where the publisher collects subscriptions for the most recent publications while releasing them in open access after a set period of time (moving barrier).
 
-The figure 18 shows the distribution of scientific articles published in 2020 and distributed in open access by their publisher, according to the business model of the journal in which they are published. It distinguishes between four types of economic models: articles published in full open access journals that do not charge publication fees ("diamond"), articles published in full open access journals that do charge publication fees ("Gold full APC"), and articles published in hybrid journals (where only some part of the content is in open access and the other part is available through individually paid publication fees), and all other cases. The "Diamant" part is probably underestimated.
+The figure 18 shows the distribution of scientific articles published in 2020 and distributed in open access by their publisher, according to the business model of the journal in which they are published. It distinguishes between four types of economic models: articles published in full open access journals that do not charge publication fees ("diamond"), articles published in full open access journals that do charge publication fees ("Gold full APC"), and articles published in hybrid journals (where only some part of the content is in open access and the other part is available through individually paid publication fees), and all other cases. The "Diamond" part is probably underestimated.
 In particular, we observe that for scientific publications in France released in 2020, diamond represents 9% of the articles disseminated in open access by their publisher.
 
 ![Distribution of business models for articles published in 2020 and distributed in open access by their publisher](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_3.png){ width=600 }
 
 
 
-In 2016, the French law for a Digital Republic made it possible for researchers who have published a scientific article with a publisher to deposit the accepted version of the article for publication in a open repository, subject to a time limit (embargo) that can be set by the publisher but cannot exceed 6 months for science, technology and medicine and 12 months for the humanities and social sciences. Deposit in an open archive is therefore a way to counterbalance the restrictive open access policy of some publishers and it plays a decisive role in providing access for all to French research results. Conversely, when the publisher publishes natively in open access, deposit in an open archive may appear less necessary to authors. However, it remains useful and desirable. Indeed, a deposit on the national open archive HAL guarantees the perennial conservation of the content and the control of the results of French scientific research, regardless of the hazards that affect publishers or their distribution platforms.
+In 2016, the French law for a Digital Republic made it possible for researchers who have published a scientific article with a publisher to deposit the accepted version of the article for publication in an open repository, subject to a time limit (embargo) that can be set by the publisher but cannot exceed 6 months for science, technology and medicine and 12 months for the humanities and social sciences. Deposit in an open archive is therefore a way to counterbalance the restrictive open access policy of some publishers and it plays a decisive role in providing access for all to French research results. Conversely, when the publisher publishes natively in open access, deposit in an open archive may appear less necessary to authors. However, it remains useful and desirable. Indeed, a deposit on the national open archive HAL guarantees the perennial conservation of the content and the control of the results of French scientific research, regardless of the hazards that affect publishers or their distribution platforms.
 
 ![Opening routes for scientific publications in France released in 2020 by the most important publishers or publishing platforms in terms of volume (top 25)](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_4.png){ width=600 }
 
@@ -448,20 +448,20 @@ In 2016, the French law for a Digital Republic made it possible for researchers 
 ![Positioning of publishers and publishing platforms according to the preferred route for opening up the French publications they distribute](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_5.png){ width=600 }
 
 
-Open access to scientific publications implies not only the possibility to read them without having to overcome price or technical barriers, but also the possibility to reuse them by citing their author(s). The precise conditions of reuse are defined by means of licences, in particular the Creative Commons licences that are most commonly used. Thus publishers implementing an open science policy should not only release publications in open access, but also attach a free license securing the reuse of the content by readers, whether they are researchers, teachers, professionals or other social actors. The use of licences thus facilitates the dissemination of scientific knowledge above and beyond academic communities.
+Open access to scientific publications implies not only the possibility to read them without having to overcome price or technical barriers, but also the possibility to reuse them by citing their author(s). The precise conditions of reuse are defined by means of licences, in particular the Creative Commons licences that are most commonly used. Thus publishers implementing an open science policy should not only release publications in open access, but also attach a free licence securing the reuse of the content by readers, whether they are researchers, teachers, professionals or other social actors. The use of licences thus facilitates the dissemination of scientific knowledge above and beyond academic communities.
 
 The figure 21 indicates, for scientific publications in France released in 2020 and distributed in open access by their publisher, what proportion is accompanied by an open licence specifying the conditions of re-use. The 'See details' button allows a more detailed view of the type of licence used, in particular for Creative Commons licences. It is possible to select a publisher or a publication platform (when several publishers use the same platform, the platform level has been preferred).
 Thus, 65% of scientific publications in France released in 2020 that are distributed in open access by their publisher are accompanied by an open licence. Within the open licences, the CC-BY licence is the most popular with 45% of the publications.
 
-![Distribution of open scientific publications in France by type of license used](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_6.png){ width=600 }
+![Distribution of open scientific publications in France by type of licence used](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_6.png){ width=600 }
 
 
-The figure 22 indicates, for each academic publisher or publishing platform in open access in 2020, the proportion of them that are accompanied by an open licence. The 25 publishers or platforms publishing the most French scientific articles in open access are taken into consideration, in decreasing order. When several publishers use the same publication platform, the platform level was taken into consideration. Please note that without a license, the normal copyright applies.
+The figure 22 indicates, for each academic publisher or publishing platform in open access in 2020, the proportion of them that are accompanied by an open licence. The 25 publishers or platforms publishing the most French scientific articles in open access are taken into consideration, in decreasing order. When several publishers use the same publication platform, the platform level was taken into consideration. Please note that without a licence, the normal copyright applies.
 Thus, Elsevier put an open licence for 28% of its French open access publications published in 2020.
 
 ![Rate of use of an open licence by the publishers or publishing platforms that distribute the most scientific publications in France in open access (top 25, 2020 publications)](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_publishers_7.png){ width=600 }
 
-One model for financing open access to scientific publications is based on the payment of publication fees (APC) which publishers charge per article and which are paid by researchers, their institutions or their funders. This model is mostly used by commercial publishers, would they be native OA or have transitioned from subscription models. It is very expensive and uncertain for public research institutions, especially as it is accompanied by an inflation in the number of articles published. It should be weighed against other virtuous economic models - in particular the ' diamond ' model - which allows greater cost control and equity in access to publication for researchers.
+One model for financing open access to scientific publications is based on the payment of publication fees (APC) which publishers charge per article and which are paid by researchers, their institutions or their funders. This model is mostly used by commercial publishers, would they be native OA or have transitioned from subscription models. It is very expensive and uncertain for public research institutions, especially as it is accompanied by an inflation in the number of articles published. It should be weighed against other virtuous economic models - in particular the "diamond" model - which allows greater cost control and equity in access to publication for researchers.
 
 The figure 23 shows the distribution of scientific publications in France released in 2020 and in open access by their publisher for a publication fee, according to the price applied (APC amount). Each point on a curve represents a volume of publications released for a given APC rate band. A distinction is made between the curve representing publications released in journals where all content is open access (Gold full APC) and the curve representing publications released in hybrid journals, where only part of the content is in open access while the rest is subject to subscription. It is possible to view the distribution for each publisher or publishing platform. When several publishers use the same publishing platform, the platform level has been privileged.
 
@@ -472,7 +472,7 @@ The figure 23 shows the distribution of scientific publications in France releas
 
 ### 3.1.4 Open repositories impact on the open access dynamics
 
-The open repositories are open access platforms on which scientific publications are deposited, which can be consulted by anyone. They are most often powered by author deposit, but in some cases may be powered by the journal publishers themselves. Open archives perform different functions: they make articles published in subscription journals available in open access, they ensure the permanent preservation of scientific literature and facilitate the identification of the outputs of a laboratory or an institution. Several incentives have led to an increase in the number of French scientific publications deposited in an open archive. This is mandatory for publications from projects funded by the ANR since 2019. The barometer also counts the preprints servers among open archives, on which researchers deposit initial versions of their manuscripts to propose them for peer review, before formal submission to a journal.
+The open repositories are open access platforms on which scientific publications are deposited, which can be consulted by anyone. They are most often powered by author deposit, but in some cases may be powered by the journal publishers themselves. Open archives perform different functions: they make articles published in subscription journals available in open access, they ensure the permanent preservation of scientific literature and facilitate the identification of the outputs of a laboratory or an institution. Several incentives have led to an increase in the number of French scientific publications deposited in an open archive. This is mandatory for publications from projects funded by the ANR since 2019. The monitor also counts the preprints servers among open archives, on which researchers deposit initial versions of their manuscripts to propose them for peer review, before formal submission to a journal.
 
 \newpage
 
@@ -483,7 +483,7 @@ Thus, in 2021, 46% of scientific publications in France released in 2020 were av
 
 
 In the figure 25, for each observation date and by publication year, the rate of scientific publications in France that are available in an open archive. Each line represents the rates observed for an observation date and each rate is expressed as a function of the volume of publications published in the year observed. We observe that, for publications released during a given year, the availability rates in an open archive progresses from one observation year to the next. This is due to the fact that authors of publications progressively proceed to deposit them in an open archive, in particular when embargoes imposed by publishers have expired.
-Thus, between 2018 and 2021, the rate of publications published in 2017 that are available in an open archive has increased from 27% to 38%.
+Thus, between 2018 and 2021, the rate of publications released in 2017 that are available in an open archive has increased from 27% to 38%.
 
 ![Evolution of the rate of scientific publications in France available in an open archive, by observation date](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_publications_repo_2.png){ width=600 }
 
@@ -544,7 +544,7 @@ There has been a slow increase in the use of this instrument: 4% in 2010 and 17%
 ![Distribution of registered clinical trials by presence of a data sharing statement](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/results_ct_4.png){ width=600 }
 
 Observational studies are research studies conducted on human beings that do not involve any intervention other than their usual care, for example by questionnaires, cohort studies, etc. The legislation does not make it compulsory to publish the results of observational studies. However, a prior registration and systematic publication of the results of observational studies, on the same model as clinical trials, is a good practice that we are trying to measure.
-For the current version of the barometer, we work only on observational studies registered on the ClinicalTrials.gov or EU Clinical Trial Register platforms, with a methodology comparable to the one used for the clinical trials barometer. However, our object of study is different and more difficult to capture as many observational studies are not registered on these platforms. These results shall therefore be analyzed with caution.
+For the current version of the monitor, we work only on observational studies registered on the ClinicalTrials.gov or EU Clinical Trial Register platforms, with a methodology comparable to the one used for the clinical trials monitor. However, our object of study is different and more difficult to capture as many observational studies are not registered on these platforms. These results shall therefore be analyzed with caution.
 
 As with clinical trials, the registration of studies and publication of their results is an important contribution to open science.
 
@@ -556,7 +556,7 @@ For this edition of the monitor, we estimate that 23% of observational studies p
 
 ### 3.4.1 Limitations
 
-The main limitation of the current approach for the publications is the restriction to Crossref DOI. Indeed, we know it hides a fraction of the publications, especially in the Humanities, Social sciences and Computer sciences. This limitation is due to the fact that we need, first, to use identifiers to count the lowest number of duplicates possible in the monitor. Introducing Crossref-DOI-less entities would imply to set up a proper methodology to remove potential duplicates. On top of that, we would need an exteended OA discovery tool, as Unpaywall only focuses on Crossref DOI. Ideally, we would also wish to have past snapshots of this extended tool to be able to keep on producing a dynamic analysis of the open access trends.  
+The main limitation of the current approach for the publications is the restriction to Crossref DOI. Indeed, we know it hides a fraction of the publications, especially in the Humanities, Social sciences and Computer sciences. This limitation is due to the fact that we need, first, to use identifiers to count the lowest number of duplicates possible in the monitor. Introducing Crossref-DOI-less entities would imply to set up a proper methodology to remove potential duplicates. On top of that, we would need an exteended OA discovery tool, as Unpaywall only focuses on Crossref DOI. Ideally, we would also wish to have past snapshots of this extended tool to be able to keep on producing a dynamic analysis of the open access trends.
 
 Another limitation of the current approach is that we mix up preprint servers and open repositories. Both of them host open access version of articles, but they play very different roles in scholarly communication.
 Moreover, the monitor does not currently account for potential links between preprint and published article. So, an article with a preprint with a crossref DOI d1 and then published with another DOI d2 will actually counts twice in the current methodology. However, this phenomenon remains very limited as preprints represent less than 3% of the publications in the monitor database, especially because of the crossref DOI restriction. arXiv announced they will set DOI on their documents, but it will be Datacite DOI and not Crossref DOI.
