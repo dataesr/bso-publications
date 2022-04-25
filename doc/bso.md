@@ -50,7 +50,9 @@ In the context of the  COVID-19 pandemic crisis and the urgent need to open up s
 
 In contrast to other Open Science Monitoring initiatives, the source code and the data of the French Open Science Monitor are shared with an open licence. 
 The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules, in particular for indicators computations [https://github.com/dataesr/bso-publications](https://github.com/dataesr/bso-publications) and [https://github.com/dataesr/bso-clinical-trials](https://github.com/dataesr/bso-clinical-trials) and the web user interface [https://github.com/dataesr/bso-ui](https://github.com/dataesr/bso-ui).
-The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/). 
+The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/).
+
+The originality of the French Open Science Monitor also lies in the fact that it can easily be adapted to the level of an higher education and research institution. To date, some twenty higher education and research institutions have already used it to obtain reliable and open indicators on the progress of open science in their scientific production. 
 
 # 1. Introduction
 
@@ -116,8 +118,6 @@ is not very easy. For now, we have simply chosen to consider in that scope **all
 The publications' data used in the French Open Science Monitor in Health is then a subset of the publications described
 above, adding the PubMed presence criterion to the other criteria (author affiliation, Crossref DOI). Note that "Health" is seen more as a domain than as a discipline. In fact, publications from a lot of disciplines are taken into account in the French Open Science Monitor in Health. A domain-specific set of disciplines is used in the French Open Science Monitor in Health, as described below.  
 
-\newpage
-
 ### 2.1.2 Open access dynamic
 
 From the first edition of the French Open Science Monitor, it was clear that the open access rate was far from stable though time, so we should try to capture the opening dynamics [@jeangirard_monitoring_2019]. Indeed, the
@@ -139,8 +139,6 @@ analysis, we propose to look at two elements :
 
 ![Different shapes of Open Access curves](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/types_curve.png){ width=450 }
 
-\newpage
-
 From an observation date to another, the OA curve shape may change. This evolution of the shape gives an insight on the opening speed evolution. Indeed, moving from an inverted-V shape, where the most recent papers are not the most open, to an increasing shape would be a strong evidence of the opening acceleration. The next figures illustrates the evolution from an inverted-V shape, to flat and then to an increasing OA curve shape.
 
 ![Open Access curve dynamics](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/curve_dynamic.png){ width=450 }
@@ -158,9 +156,14 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
  - **hosted on an open repository and by the publisher**: Free to read on the publisher webpage and there is a free copy in an OA repository.
 
+
+
 Obviously, this does not impact the overall Open Access rate, but this balanced division, with no preference for the VoR, gives a different picture. It seems that a similar choice has been recently made to represent COKI data and its sources of openness [https://openknowledge.community/dashboards/coki-open-access-dashboard/](https://openknowledge.community/dashboards/coki-open-access-dashboard/)
 
+\newpage
+
 The next figure shows the kind of impact choosing one or the other OA type break down.
+
 ![Open Access hosting types](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/oa_types.png){ width=450 }
 
 Another graphical way to represent this distribution is to use a bubble chart. Each bubble represents a cluster of publications (one bubble is the equivalent for each discipline, for each dissemination platform ...), its size depends on the number of publications in the cluster. The x-axis represents the share of OA publications hosted by the publisher, corresponding to the sum of publisher-only and publisher / open repository hosted publications. Conversely, the y-axis represents the share of OA publications hosted on a repository, corresponding to the sum of open repository-only and open repository / publisher hosted publications.
@@ -346,7 +349,11 @@ A similar workflow, yet simpler is set up for clinical trials.
 
 ![Global overview of the trials and studies data flows](https://raw.githubusercontent.com/dataesr/bso-publications/main/doc/flow_chart_registries.png){ width=450 }
 
+
+
 \newpage
+
+
 
 # 3. Results
 
