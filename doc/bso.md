@@ -38,13 +38,19 @@ keywords:
 
 ---
 
-**Keywords**: clinical trials, journal business models,  observational studies, open access, open science, scientometrics, unpaywall.
+**Keywords**: clinical trials, journal business models,  observational studies, open access, open science, scientometrics, unpaywall
 
 # Abstract
 
-We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall. The economic models of journals publishing French publications are analysed as well as the open access dynamics by discipline and open access route (publisher or open repository). In the context of the health crisis linked to the COVID-19 pandemic and the urgent need to open up scholarly outputs in the health field, a version of the French Open Science Monitor is presented for the biomedical field. This version studies the open access dynamics of French publications in the biomedical field. It also analyses the transparency of the results of clinical trials and observational studies conducted in France.
-The French Open Science Monitor (BSO) website [https://frenchopensciencemonitor.esr.gouv.fr/](https://frenchopensciencemonitor.esr.gouv.fr) presents the results to date (last observation date December 2021). 62% of the 170,000 French publications published in 2020 are in open access in December 2021. This rate has increased by 10 points in one year. The level of open access varies significantly from one discipline to another. Some disciplines, such as the physical sciences and mathematics, have long been committed to opening up their publications, while others, such as chemistry, are rapidly catching up. It also shows that only 57% of clinical trials completed in the last 10 years have shared their results publicly.
+We present a new Open Science Monitor framework at the country level for the case of France. We propose a fine-grained monitoring of the dynamics of the open access to publications, based on historical data from Unpaywall, and thus limited to Crossref-DOI documents. The economic models of journals publishing French publications are analysed as well as the open access dynamics by discipline and open acces route (publishers and  repositories).
 
+The French Open Science Monitor (BSO) website: [https://frenchopensciencemonitor.esr.gouv.fr](https://frenchopensciencemonitor.esr.gouv.fr) presents the results to date (last observation date December 2021). 62% of the 170,000 French 2020 publications  are available in December 2021. This rate has increased by 10 points in one year. The level of open access varies significantly from one discipline to another. Some disciplines, such as the physical sciences and mathematics, have long been committed to opening up their publications, while others, such as chemistry, are rapidly catching up.
+
+In the context of the  COVID-19 pandemic crisis and the urgent need to open up scholarly outputs in the health field, a specific version of the French Open Science Monitor has been built: [https://frenchopensciencemonitor.esr.gouv.fr/health](https://frenchopensciencemonitor.esr.gouv.fr/health). It monitors the open access dynamics of French publications in the biomedical field. It also analyses the transparency of the results of clinical trials and observational studies conducted in France. Only 57% of clinical trials completed in the last 10 years have shared their results publicly.
+
+In contrast to other Open Science Monitoring initiatives, the source code and the data of the French Open Science Monitor are shared with an open licence. 
+The source code used for the French Open Science Monitor is available on GitHub, and shared with an open licence. The code is split in modules, in particular for indicators computations [https://github.com/dataesr/bso-publications](https://github.com/dataesr/bso-publications) and [https://github.com/dataesr/bso-clinical-trials](https://github.com/dataesr/bso-clinical-trials) and the web user interface [https://github.com/dataesr/bso-ui](https://github.com/dataesr/bso-ui).
+The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/). 
 
 # 1. Introduction
 
@@ -563,7 +569,7 @@ The source code used for the French Open Science Monitor is available on GitHub,
 
 # Data availability
 
-The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/)
+The data resulting of this work is shared on the French Ministry of Higher Education, Research and Innovation open data portal: [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/open-access-monitor-france/information/) and [https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/](https://data.enseignementsup-recherche.gouv.fr/explore/dataset/barometre-sante-de-la-science-ouverte/information/).
 
 # Acknowledgements
 
