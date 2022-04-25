@@ -356,14 +356,16 @@ def delete_from_mongo(identifiers):
 
 def get_natural_id(res):
     title_first_author = ""
-    if res.get('title_first_author'):
-        title_first_author = res['title_first_author']
-    else:
-        if res.get('title'):
-            title_first_author += normalize(res.get('title'), 1).strip()
-        if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
-            if res['authors'][0].get('full_name'):
-                title_first_author += ';'+normalize(res['authors'][0].get('full_name'), 1)
+    if res.get('title'):
+        title_first_author += normalize(res.get('title'), 1).strip()
+    first_author = ""
+    if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
+        if isinstance(res['authors'][0].get('first_name'), str) and len(res['authors'][0].get('first_name'))>0 and res['authors'][0].get('last_name'):
+            first_author =  ';'+normalize(res['authors'][0].get('first_name'), 1)[0]
+            first_author += ';'+normalize(res['authors'][0].get('last_name'), 1)
+        elif res['authors'][0].get('full_name'):
+            first_author = ';'+normalize(res['authors'][0].get('full_name'), 1)
+    title_first_author += first_author
     res['title_first_author_raw'] = title_first_author
     res['title_first_author'] = get_hash(title_first_author)
     return res['title_first_author'] 
@@ -435,7 +437,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
                 if not isinstance(p[f], str):
                     p[f] = str(int(p[f]))
                 p[f] = p[f].lower().strip()
-        natural_id = get_natural_id(p)
+        p['natural_id'] = get_natural_id(p)
         p_id = get_common_id(p)
         if p_id:
             p['id'] = p_id
