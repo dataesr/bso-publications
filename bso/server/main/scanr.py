@@ -132,8 +132,9 @@ def to_scanr(publications):
                 source['isOa'] = p['oa_details'][last_obs_date].get('journal_is_oa', False)
                 source['isInDoaj'] = p['oa_details'][last_obs_date].get('journal_is_in_doaj', False)
             oa_evidence = {}
-            for oaloc in p['oa_details'][last_obs_date].get('oa_locations', []):
-                if oaloc.get('is_best'):
+            for loc_ix, oaloc in enumerate(p['oa_details'][last_obs_date].get('oa_locations', [])):
+                # is_best from UPX or first location
+                if oaloc.get('is_best') or loc_ix == 0:
                     oa_evidence['hostType'] = oaloc.get('host_type')
                     oa_evidence['version'] = oaloc.get('version')
                     oa_evidence['license'] = oaloc.get('license')
