@@ -154,7 +154,7 @@ As Unpaywall is the Open Access discovery tool we used, we initially based our r
 
 [@piwowar_state_2018] defined 'Green' as 'Toll-access on the publisher page, but there is a free copy in an OA repository'. That implies that a publication that would be free to read on the publisher webpage and that would, at the same time, have a free copy on a repository would not be counted as 'Green'. That derives from the idea that the Version of Record (VoR), available on the publisher website, is the preferred OA version of the publication (REF à ajouter). As a consequence, the repositories contribution to OA is mechanically reduced in favor of the publishers one. This therefore blurs the picture of the extension of repositories impact. That led us to propose a first level of analysis, with 3 categories (excluding 'Closed'):
 
- - **hosted only on an open repository**: Toll-access on the publisher page, but there is a free copy in an OA repository, corresponging exaclty to the 'Green' definition of [@piwowar_state_2018], that we could rather label 'Green only'
+ - **hosted only on an open repository**: Toll-access on the publisher page, but there is a free copy in an OA repository, corresponding exactly to the 'Green' definition of [@piwowar_state_2018], that we could rather label 'Green only'
 
  - **hosted only by the publisher**: Free to read on the publisher webpage, but no free copy in any OA repository harvested by Unpaywall.
 
