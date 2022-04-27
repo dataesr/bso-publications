@@ -355,20 +355,24 @@ def delete_from_mongo(identifiers):
 
 
 def get_natural_id(res):
-    title_first_author = ""
+    title_info = ""
     if res.get('title'):
-        title_first_author += normalize(res.get('title'), 1).strip()
+        title_info += normalize(res.get('title'), 1).strip()
     first_author = ""
     if isinstance(res.get('authors'), list) and len(res['authors']) > 0:
-        if isinstance(res['authors'][0].get('first_name'), str) and len(res['authors'][0].get('first_name'))>0 and res['authors'][0].get('last_name'):
-            first_author =  ';'+normalize(res['authors'][0].get('first_name'), 1)[0]
-            first_author += ';'+normalize(res['authors'][0].get('last_name'), 1)
-        elif res['authors'][0].get('full_name'):
+        if isinstance(res['authors'][0].get('first_name'), str) and isinstance(res['authors'][0].get('last_name'), str) :
+            first_name_info = normalize(res['authors'][0].get('first_name'))
+            last_name_info = normalize(res['authors'][0].get('last_name'), 1)
+            if first_name_info and last_name_info:
+                first_author =  f';{first_name_info[0]};{last_name_info}'
+        if len(first_author)==0 and res['authors'][0].get('full_name') and len(normalize(res['authors'][0].get('full_name'), 1)) > 1:
             first_author = ';'+normalize(res['authors'][0].get('full_name'), 1)
-    title_first_author += first_author
+    title_first_author = f'{title_info};{first_author}'
     res['title_first_author_raw'] = title_first_author
     res['title_first_author'] = get_hash(title_first_author)
-    return res['title_first_author'] 
+    if len(title_info)> 10 and len(str(res.get('title')).split(' '))>4 and len(first_author)>3:
+        return res['title_first_author']
+    return None
 
 def get_common_id(p):
     for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
@@ -437,7 +441,8 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
                 if not isinstance(p[f], str):
                     p[f] = str(int(p[f]))
                 p[f] = p[f].lower().strip()
-        p['natural_id'] = get_natural_id(p)
+        natural_id = get_natural_id(p)
+        p['natural_id'] = natural_id
         p_id = get_common_id(p)
         if p_id:
             p['id'] = p_id
