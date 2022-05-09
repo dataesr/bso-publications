@@ -37,7 +37,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
         jq_oa += "jq -r -c '{doi, genre, is_paratext, journal_issns, journal_issn_l, journal_name, published_date, " \
                  "publisher, title, year, z_authors}'"
     else:
-        jq_oa += "jq -r -c '{doi, is_oa, oa_locations, journal_is_oa, journal_is_in_doaj, oa_locations_embargoed}'"
+        jq_oa += "jq -r -c '{doi, is_oa, oa_locations, journal_is_oa, journal_is_in_doaj, oa_locations_embargoed, oa_status}'"
     logger.debug(jq_oa)
     os.system(f'{jq_oa} > {output_json}')
     end = datetime.datetime.now()
