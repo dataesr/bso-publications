@@ -98,7 +98,7 @@ def transform_publications(publications, index_name, observations, affiliation_m
         enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
         to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, write_mode)
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
@@ -109,14 +109,19 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         collection_name = 'publications_before_enrichment'
         drop_collection('scanr', collection_name)
 
-        extract_pubmed(bso_local_dict)
-        #extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
-
-        extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
-        extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
-        if 'scanr' in index_name:
+        if 'pubmed' in datasources:
+            extract_pubmed(bso_local_dict)
+        if 'medline' in datasources:
+            extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
+        if 'parsed_fr' in datasources:
+            extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        if 'crossref_fr' in datasources:
+            extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        if 'theses' in datasources:
             extract_container('theses', bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
+        if 'hal' in datasources:
             extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=True)
+        if 'sudoc' in datasources:
             extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
         extract_fixed_list(bso_local_dict)
         for filename in bso_local_filenames:

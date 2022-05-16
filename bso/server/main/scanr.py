@@ -100,6 +100,9 @@ def to_scanr(publications):
                 elt['year'] = int(elt['publicationDate'][0:4])
                 break
         # genre
+        for e in p.get('all_ids'):
+            if e[0:3] == 'nnt' or e[0:7]=='haltel-':
+                p['genre'] = 'thesis'
         if isinstance(p.get('genre'), str):
             elt['type'] = p['genre']
         else:
