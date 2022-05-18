@@ -577,7 +577,7 @@ def build_bso_local_dict():
     os.system(cmd)
     for filename in os.listdir(f'{MOUNTED_VOLUME}/bso_local'):
         bso_local_filenames.append(filename)
-        local_affiliations = filename.split('.')[0].split('_')
+        local_affiliations = '.'.join(filename.split('.')[:-1]).split('_')
         current_dois = get_dois_from_input(filename=filename)
         for d in current_dois:
             if d not in bso_local_dict:
