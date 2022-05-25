@@ -9,9 +9,8 @@ from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
 c = CurrencyConverter(fallback_on_missing_rate=True)
-s = requests.get('https://doaj.org/csv').content
-df_doaj = pd.read_csv(io.StringIO(s.decode('utf-8')))
 
+doaj_infos = {}
 
 def is_digit_only(x: str) -> bool:
     digits_only = True
@@ -37,59 +36,66 @@ def split_currency(x):
         return None
     return {'amount': amount, 'currency': currency}
 
-# the column stating if there are APC changes name from time to time !!
-has_apc_potential_col = [col for col in df_doaj.columns if 'apc' in col.lower()]
-has_apc_col = 'has_apc_col'
-for col in has_apc_potential_col:
-    if (len(df_doaj[col].unique().tolist())) == 2:
-        has_apc_col = col
-        break
+def init_doaj():
+    logger.debug('init DOAJ infos')
+    s = requests.get('https://doaj.org/csv').content
+    df_doaj = pd.read_csv(io.StringIO(s.decode('utf-8')))
+    # the column stating if there are APC changes name from time to time !!
+    has_apc_potential_col = [col for col in df_doaj.columns if 'apc' in col.lower()]
+    has_apc_col = 'has_apc_col'
+    for col in has_apc_potential_col:
+        if (len(df_doaj[col].unique().tolist())) == 2:
+            has_apc_col = col
+            break
 
-doaj_infos = {}
-for i, row in df_doaj.iterrows():
-    for issn_type in ['Journal ISSN (print version)', 'Journal EISSN (online version)']:
-        if issn_type in row:
-            issn = row[issn_type]
-            if not isinstance(issn, str):
-                continue
-            if len(issn) < 3:
-                continue
-            apc_amount = None
-            apc_amount_EUR = None
-            apc_currency = None
-            if not pd.isnull(row['APC amount']):
-                apc_amount = row['APC amount']
-                if 'Currency' in row:
-                    apc_currency = row['Currency']
+    global doaj_infos
+    doaj_infos = {}
+    for i, row in df_doaj.iterrows():
+        for issn_type in ['Journal ISSN (print version)', 'Journal EISSN (online version)']:
+            if issn_type in row:
+                issn = row[issn_type]
+                if not isinstance(issn, str):
+                    continue
+                if len(issn) < 3:
+                    continue
+                apc_amount = None
+                apc_amount_EUR = None
+                apc_currency = None
+                if not pd.isnull(row['APC amount']):
+                    apc_amount = row['APC amount']
+                    if 'Currency' in row:
+                        apc_currency = row['Currency']
+                    else:
+                        apc_currency = None
+
+                    if apc_currency is None:
+                        sp = split_currency(apc_amount)
+                        if sp:
+                            apc_amount = sp.get('amount')
+                            apc_currency = sp.get('currency')
+                has_apc = None
+                if has_apc_col in row:
+                    has_apc = row[has_apc_col]
                 else:
-                    apc_currency = None
-
-                if apc_currency is None:
-                    sp = split_currency(apc_amount)
-                    if sp:
-                        apc_amount = sp.get('amount')
-                        apc_currency = sp.get('currency')
-            has_apc = None
-            if has_apc_col in row:
-                has_apc = row[has_apc_col]
-            else:
-                logger.warning('Missing has_APC info in DOAJ')
-            if has_apc == 'Yes':
-                has_apc = True
-            elif has_apc == 'No':
-                has_apc = False
-                apc_amount = 0
-                apc_currency = 'EUR'
-            current_info = {
-                'has_apc': has_apc,
-                'apc_amount': apc_amount,
-                'apc_currency': apc_currency,
-                'source': 'doaj'
-            }
-            doaj_infos[issn] = current_info
+                    logger.warning('Missing has_APC info in DOAJ')
+                if has_apc == 'Yes':
+                    has_apc = True
+                elif has_apc == 'No':
+                    has_apc = False
+                    apc_amount = 0
+                    apc_currency = 'EUR'
+                current_info = {
+                    'has_apc': has_apc,
+                    'apc_amount': apc_amount,
+                    'apc_currency': apc_currency,
+                    'source': 'doaj'
+                }
+                doaj_infos[issn] = current_info
 
 
 def detect_doaj(issns: list, date_str: str) -> dict:
+    if len(doaj_infos) == 0:
+        init_doaj()
     for issn in issns:
         if issn in doaj_infos:
             # si l'ISSN du doi est dans le DOAJ, on récupère les infos du DOAJ (après une éventuelle conversion en euros si besoin)
