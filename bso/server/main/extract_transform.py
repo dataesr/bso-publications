@@ -392,6 +392,14 @@ def get_common_id(p):
 def merge_publications(current_publi, new_publi):
     change = False
     new_datasource = new_publi['datasource']
+    for grant in new_publi.get('grants', []):
+        if 'grants' not in current_publi:
+            current_publi['grants'] = []
+        if grant not in current_publi['grants']:
+            logger.debug(f"merging grant {grant} into {current_publi['id']}")
+            current_publi['grants'].append(grant)
+            current_publi['has_grant'] = True
+            change = True
     for f in new_publi:
         if 'authors' in f:
             current_publi[f+'_'+new_datasource] = new_publi[f]
@@ -612,10 +620,13 @@ def extract_one_bso_local(bso_local_filename, bso_local_dict):
     current_dois = get_dois_from_input(filename=bso_local_filename)
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
     for chunk in chunks(current_dois, 10000):
-        update_publications_infos([{'doi': d} for d in chunk], bso_local_dict, f'bso_local_{bso_local_filename}')
-
-    # alias update is done manually !
-    # update_alias(alias=alias, old_index='bso-publications-*', new_index=index)
+        new_publications = []
+        for d in chunk:
+            elt = {'doi': d}
+            if d in bso_local_dict and 'fundings' in bso_local_dict[d]:
+                elt['grants'] = bso_local_dict[d]['fundings']
+            new_publications.append(elt)
+        update_publications_infos(new_publications, bso_local_dict, f'bso_local_{bso_local_filename}')
 
 def tmp_apc_study():
     for y in range(2013, 2022):
