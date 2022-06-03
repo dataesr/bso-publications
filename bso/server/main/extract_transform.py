@@ -21,7 +21,7 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
 from bso.server.main.utils_upw import chunks, get_millesime
-from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl
+from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json
 from bso.server.main.strings import normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
 
@@ -30,6 +30,7 @@ logger = get_logger(__name__)
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
 
 def upload_sword(args):
+    logger.debug('start sword upload')
     os.system('mkdir -p  /upw_data/scanr')
     os.system('mkdir -p  /upw_data/logs')
     os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
@@ -41,6 +42,7 @@ def upload_sword(args):
     with pysftp.Connection(host, username=username, password=password, port=2222, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
         with sftp.cd('upload'):             # temporarily chdir to public
             sftp.put('/upw_data/scanr/publications.json')  # upload file to public/ on remote
+    logger.debug('end sword upload')
 
 def json_to_csv(json_file, last_oa_details):
     output_csv_file = json_file.replace('.jsonl', '.csv')
@@ -120,7 +122,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'theses' in datasources:
             extract_container('theses', bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=True)
+            extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
         if 'sudoc' in datasources:
             extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
         extract_fixed_list(bso_local_dict)
@@ -212,6 +214,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             patents = c.to_dict(orient='records')
             to_json(patents, scanr_output_file, ix)
             ix += 1
+            logger.debug(f'scanr extract patent, {ix}')
 
         drop_collection('scanr', 'publi_meta')
 
@@ -241,10 +244,11 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                 publications_cleaned.append(elt)
             to_jsonl(publications_cleaned, internal_output_file, 'a')
             ix += 1
-            logger.debug(f'scanr extract, {ix}')
+            logger.debug(f'scanr extract publi, {ix}')
         with open(scanr_output_file, 'a') as outfile:
             outfile.write(']')
-        load_scanr_publications({})
+        #load_scanr_publications({})
+        upload_sword({})
         #upload_object(container='tmp', filename=f'{scanr_output_file}')
 
 def load_scanr_publications(args):
@@ -278,7 +282,7 @@ def save_to_mongo_publi(relevant_infos):
     logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     mycol.create_index('id')
-    mycol.create_index('authors.id')
+    mycol.create_index('authors.person')
     logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
 
@@ -437,6 +441,8 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
         p['all_ids'] = []
         if p.get('doi'):
             p['doi'] = clean_doi(p['doi'])
+            if p['doi'] is None:
+                del p['doi']
         for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
             if p.get(f):
                 if not is_valid(p[f], f):
@@ -483,7 +489,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
             to_add.append(p)
     for p in to_add:
         if p.get('doi') and p['doi'] in bso_local_dict:
-            p['bso_local_affiliations'] = bso_local_dict[p['doi']]
+            p['bso_local_affiliations'] = bso_local_dict[p['doi']]['affiliations']
     if to_delete:
         delete_from_mongo(to_delete)
     to_mongo(to_add)
@@ -529,32 +535,39 @@ def download_container(container, skip_download, download_prefix):
 def get_data(local_path, batch, filter_fr, bso_local_dict, container):
     logger.debug(f'getting data from {local_path}')
     publications = []
-    for jsonfilename in os.listdir(local_path):
-        if batch:
-            publications = []
-        if jsonfilename[-3:] == '.gz':
-            with gzip.open(f'{local_path}/{jsonfilename}', 'r') as fin:
-                current_publications = json.loads(fin.read().decode('utf-8'))
-        else:
-            with open(f'{local_path}/{jsonfilename}', 'r') as fin:
-                current_publications = json.loads(fin.read())
-        if isinstance(current_publications, dict):
-            current_publications = [current_publications]
-        assert(isinstance(current_publications, list))
-        for publi in current_publications:
-            if not isinstance(publi, dict):
-                logger.debug(f"publi not a dict : {publi}")
-                continue
-            if filter_fr:
-                countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
-                countries_flat_list = list(set([item for sublist in countries for item in sublist]))
-                if 'fr' in countries_flat_list:
-                    publications.append(publi)
+    for root, dirs, files in os.walk(local_path, topdown=False):
+        for name in files:
+            jsonfilename = os.path.join(root, name)
+            if batch:
+                publications = []
+            if jsonfilename[-3:] == '.gz':
+                with gzip.open(f'{jsonfilename}', 'r') as fin:
+                    current_publications = json.loads(fin.read().decode('utf-8'))
             else:
-                publications.append(publi)
-        if batch:
-            logger.debug(f'{len(publications)} publications')
-            update_publications_infos(publications, bso_local_dict, container)
+                with open(f'{jsonfilename}', 'r') as fin:
+                    current_publications = json.loads(fin.read())
+            if isinstance(current_publications, dict):
+                current_publications = [current_publications]
+            assert(isinstance(current_publications, list))
+            for publi in current_publications:
+                if not isinstance(publi, dict):
+                    logger.debug(f"publi not a dict : {publi}")
+                    continue
+                if filter_fr:
+                    is_fr = False
+                    countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
+                    countries_flat_list = list(set([item for sublist in countries for item in sublist]))
+                    for ctry in countries_flat_list:
+                        if ctry in FRENCH_ALPHA2:
+                            is_fr = True
+                            break
+                    if is_fr:
+                        publications.append(publi)
+                else:
+                    publications.append(publi)
+            if batch:
+                logger.debug(f'{len(publications)} publications')
+                update_publications_infos(publications, bso_local_dict, container)
     if not batch:
         logger.debug(f'{len(publications)} publications')
         update_publications_infos(publications, bso_local_dict, container)
@@ -579,16 +592,19 @@ def build_bso_local_dict():
         bso_local_filenames.append(filename)
         local_affiliations = '.'.join(filename.split('.')[:-1]).split('_')
         current_dois = get_dois_from_input(filename=filename)
-        for d in current_dois:
-            if d not in bso_local_dict:
-                bso_local_dict[d] = []
+        for elt in current_dois:
+            elt_id = elt['doi']
+            if elt_id not in bso_local_dict:
+                bso_local_dict[elt_id] = {'affiliations': [], 'fundings': []}
             for local_affiliation in local_affiliations:
-                if local_affiliation not in bso_local_dict[d]:
-                    bso_local_dict[d].append(local_affiliation)
+                if local_affiliation not in bso_local_dict[elt_id]['affiliations']:
+                    bso_local_dict[elt_id]['affiliations'].append(local_affiliation)
+                if elt.get('funding'):
+                    bso_local_dict[elt_id]['fundings'].append(elt['funding'])
                 if local_affiliation not in bso_local_dict_aff:
                     bso_local_dict_aff[local_affiliation] = []
-                if d not in bso_local_dict_aff[local_affiliation]:
-                    bso_local_dict_aff[local_affiliation].append(d)
+                if elt_id not in bso_local_dict_aff[local_affiliation]:
+                    bso_local_dict_aff[local_affiliation].append(elt_id)
     return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames))
 
 def extract_one_bso_local(bso_local_filename, bso_local_dict):

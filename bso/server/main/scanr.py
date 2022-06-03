@@ -113,9 +113,9 @@ def to_scanr(publications):
             elt['productionType'] = 'publication'
         # journal
         source = {}
-        if p.get('journal_name') and isinstance(p['journal_name'], str):
+        if p.get('journal_name') and isinstance(p['journal_name'], str) and p['journal_name'] not in ['unknown']:
             source['title'] = p['journal_name']
-        if p.get('publisher_dissemination') and isinstance(p['publisher_dissemination'], str):
+        if p.get('publisher_dissemination') and isinstance(p['publisher_dissemination'], str) and p['publisher_dissemination'] not in ['unknown']:
             source['publisher'] = p['publisher_dissemination']
         if p.get('journal_issns') and isinstance(p['journal_issns'], str):
             source['journalIssns'] = str(p['journal_issns']).split(',')

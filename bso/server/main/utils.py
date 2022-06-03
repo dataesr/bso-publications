@@ -22,7 +22,7 @@ def clean_json(elt):
     for f in keys:
         if isinstance(elt[f], dict):
             elt[f] = clean_json(elt[f])
-        elif not elt[f] == elt[f]:
+        elif (not elt[f] == elt[f]) or (elt[f] is None):
             del elt[f]
     return elt
 
@@ -61,15 +61,14 @@ def is_valid(identifier, identifier_type):
                 return False
     return True
 
+DOI_PREFIX = re.compile("(10\.)(.*?)( |$)")
 def clean_doi(doi):
-    res = doi.lower().replace(' ', '').strip()
+    res = doi.lower().strip()
     res = res.replace('%2f', '/')
-    res = res.replace('doi:', '')
-    for f in [',', ';', ' ']:
-        res = res.replace(f, '')
-    if 'doi.org' in doi:
-        res = re.sub('(.*)?doi.org/', '', res)
-    return res.strip()
+    doi_match = DOI_PREFIX.search(res)
+    if doi_match:
+        return doi_match.group().strip()
+    return None
 
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
@@ -87,9 +86,27 @@ def get_dois_from_input(filename: str) -> list:
     else:
         logger.debug(f'ATTENTION !! Pas de colonne avec doi détectée pour {filename}')
         return []
-    dois = list(set([clean_doi(d) for d in df[doi_column].dropna().tolist()]))
-    logger.debug(f'doi column: {doi_column} for {filename} with {len(dois)} dois')
-    return dois
+    df['doi'] = df[doi_column]
+    filtered_columns = ['doi']
+    if 'Code décisionnel' in df.columns:
+        df['project_id'] = df['Code décisionnel']
+        df['funding_year'] = df['project_id'].apply(lambda x:'20' + x[4:6]) #ANR-17-UUU => 17
+        filtered_columns += ['project_id', 'funding_year']
+    elts = []
+    grant_ids = []
+    for row in df[filtered_columns].itertuples():
+        if isinstance(row.doi, str):
+            clean_id = clean_doi(row.doi)
+            if clean_id is None or len(clean_id)<5:
+                continue
+            elt = {'doi': clean_id}
+            if 'project_id' in filtered_columns:
+                elt['funding'] = {'grantid': row.project_id, 'agency': 'ANR', 'funding_year': row.funding_year}
+                grant_ids.append(row.project_id)
+            elts.append(elt)
+    nb_grants = len(set(grant_ids))
+    logger.debug(f'doi column: {doi_column} for {filename} with {len(elts)} dois and {nb_grants} funding')
+    return elts
 
 
 def get_filename_from_cd(cd: str) -> Union[str, None]:

@@ -70,7 +70,7 @@ def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:
         r = requests.post(parser_endpoint_url, json={'doi': publication_json['doi'], 'json': publication_json})
         task_id = r.json()['data']['task_id']
-        logger.debug(f'New task {task_id} for parser')
+        #logger.debug(f'New task {task_id} for parser')
 
 
 def create_task_enrich(args: dict) -> list:
