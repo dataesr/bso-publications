@@ -119,13 +119,16 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
         if 'crossref_fr' in datasources:
             extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+        if 'orcid' in datasources:
+            extract_fixed_list('dois_from_orcid', bso_local_dict)
         if 'theses' in datasources:
             extract_container('theses', bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
         if 'hal' in datasources:
             extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
         if 'sudoc' in datasources:
             extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
-        extract_fixed_list(bso_local_dict)
+        extract_fixed_list('dois_fr', bso_local_dict)
+        extract_fixed_list('tmp_dois_fr', bso_local_dict)
         for filename in bso_local_filenames:
             extract_one_bso_local(filename, bso_local_dict)
 
@@ -392,14 +395,20 @@ def get_common_id(p):
 def merge_publications(current_publi, new_publi):
     change = False
     new_datasource = new_publi['datasource']
-    for grant in new_publi.get('grants', []):
-        if 'grants' not in current_publi:
-            current_publi['grants'] = []
-        if grant not in current_publi['grants']:
-            logger.debug(f"merging grant {grant} into {current_publi['id']}")
-            current_publi['grants'].append(grant)
-            current_publi['has_grant'] = True
-            change = True
+    if 'grants' in current_publi and not isinstance(current_publi['grants'], list):
+        del current_publi['grants']
+    if 'grants' in new_publi and not isinstance(new_publi['grants'], list):
+        del new_publi['grants']
+    grants = new_publi.get('grants', [])
+    if isinstance(grants, list) and grants:
+        for grant in new_publi['grants']:
+            if 'grants' not in current_publi:
+                current_publi['grants'] = []
+            if grant not in current_publi['grants']:
+                logger.debug(f"merging grant {grant} into {current_publi['id']}")
+                current_publi['grants'].append(grant)
+                current_publi['has_grant'] = True
+                change = True
     for f in new_publi:
         if 'authors' in f:
             current_publi[f+'_'+new_datasource] = new_publi[f]
@@ -581,13 +590,12 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
         update_publications_infos(publications, bso_local_dict, container)
     return publications
 
-def extract_fixed_list(bso_local_dict):
-    for extra_file in ['dois_fr', 'tmp_dois_fr']:
-        download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
-        if os.path.isfile(f'{MOUNTED_VOLUME}/{extra_file}.json'):
-            fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
-            for chunk in chunks(fr_dois, 10000):
-                update_publications_infos([{'doi': d} for d in chunk], bso_local_dict, extra_file)
+def extract_fixed_list(extra_file, bso_local_dict):
+    download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
+    if os.path.isfile(f'{MOUNTED_VOLUME}/{extra_file}.json'):
+        fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
+        for chunk in chunks(fr_dois, 10000):
+            update_publications_infos([{'doi': d} for d in chunk], bso_local_dict, extra_file)
 
 def build_bso_local_dict():
     bso_local_dict = {}

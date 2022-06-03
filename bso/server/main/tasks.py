@@ -178,7 +178,7 @@ def create_task_et(args: dict) -> None:
     if len(datasources) == 0:
         datasources = ['pubmed', 'parsed_fr', 'crossref_fr']
         if 'scanr' in index_name:
-            datasources += ['theses', 'hal', 'sudoc']
+            datasources += ['orcid', 'theses', 'hal', 'sudoc']
     extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources)
 
 def create_task_etl(args: dict) -> None:
