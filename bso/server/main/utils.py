@@ -89,9 +89,19 @@ def get_dois_from_input(filename: str) -> list:
     df['doi'] = df[doi_column]
     filtered_columns = ['doi']
     if 'Code décisionnel' in df.columns:
+        logger.debug(f'ANR data detected in file {filename}')
+        df['agency']='ANR'
         df['project_id'] = df['Code décisionnel']
         df['funding_year'] = df['project_id'].apply(lambda x:'20' + x[4:6]) #ANR-17-UUU => 17
-        filtered_columns += ['project_id', 'funding_year']
+        filtered_columns += ['project_id', 'funding_year', 'agency']
+    elif 'project_id' in df.columns:
+        logger.debug(f'funding data detected in file {filename}')
+        assert('funding_year' in df.columns)
+        assert('agency' in df.columns)
+        filtered_columns += ['project_id', 'funding_year', 'agency']
+    if 'bso_country' in df.columns:
+        logger.debug(f'bso_country detected in file {filename}')
+        filtered_columns += ['bso_country']
     elts = []
     grant_ids = []
     for row in df[filtered_columns].itertuples():
@@ -101,8 +111,13 @@ def get_dois_from_input(filename: str) -> list:
                 continue
             elt = {'doi': clean_id}
             if 'project_id' in filtered_columns:
-                elt['funding'] = {'grantid': row.project_id, 'agency': 'ANR', 'funding_year': row.funding_year}
+                elt['grants'] = [{'grantid': row.project_id, 'agency': row.agency, 'funding_year': row.funding_year}]
+                elt['has_grant'] = True
                 grant_ids.append(row.project_id)
+            if 'bso_country' in filtered_columns:
+                elt['bso_country'] = row.bso_country
+            else:
+                elt['bso_country'] = 'fr'
             elts.append(elt)
     nb_grants = len(set(grant_ids))
     logger.debug(f'doi column: {doi_column} for {filename} with {len(elts)} dois and {nb_grants} funding')

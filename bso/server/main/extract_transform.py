@@ -389,7 +389,8 @@ def get_natural_id(res):
 def get_common_id(p):
     for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
         if isinstance(p.get(f), str):
-            return f.replace('_id', '')+p[f]
+            id_type = f.replace('_id', '')
+            return {'id': f'{id_type}{p[f]}', 'id_type': id_type}
 
 
 def merge_publications(current_publi, new_publi):
@@ -409,6 +410,10 @@ def merge_publications(current_publi, new_publi):
                 current_publi['grants'].append(grant)
                 current_publi['has_grant'] = True
                 change = True
+    for bso_country in new_publi['bso_country']:
+        if bso_country not in current_publi['bso_country']:
+            current_publi['bso_country'].append(bso_country)
+            change = True
     for f in new_publi:
         if 'authors' in f:
             current_publi[f+'_'+new_datasource] = new_publi[f]
@@ -473,7 +478,8 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
         p['natural_id'] = natural_id
         p_id = get_common_id(p)
         if p_id:
-            p['id'] = p_id
+            p['id'] = p_id['id']
+            p['id_type'] = p_id['id_type']
         else:
             logger.debug(f'No ID for publi {p}')
             continue
@@ -507,6 +513,9 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
     for p in to_add:
         if p.get('doi') and p['doi'] in bso_local_dict:
             p['bso_local_affiliations'] = bso_local_dict[p['doi']]['affiliations']
+            p['bso_country'] = bso_local_dict[p['doi']]['bso_country']
+        else:
+            p['bso_country'] = ['fr'] # bso_country vient seulement des 'bso-local' files, donc dans les autres cas, c'est fr par défaut
     if to_delete:
         delete_from_mongo(to_delete)
     to_mongo(to_add)
@@ -611,12 +620,14 @@ def build_bso_local_dict():
         for elt in current_dois:
             elt_id = elt['doi']
             if elt_id not in bso_local_dict:
-                bso_local_dict[elt_id] = {'affiliations': [], 'fundings': []}
+                bso_local_dict[elt_id] = {'affiliations': [], 'grants': [], 'bso_country': []}
             for local_affiliation in local_affiliations:
                 if local_affiliation not in bso_local_dict[elt_id]['affiliations']:
                     bso_local_dict[elt_id]['affiliations'].append(local_affiliation)
-                if elt.get('funding'):
-                    bso_local_dict[elt_id]['fundings'].append(elt['funding'])
+                if elt.get('grants'):
+                    bso_local_dict[elt_id]['grants'] += elt['grants']
+                if elt.get('bso_country') and elt['bso_country'] not in bso_local_dict[elt_id]['bso_country']:
+                    bso_local_dict[elt_id]['bso_country'].append(elt['bso_country'])
                 if local_affiliation not in bso_local_dict_aff:
                     bso_local_dict_aff[local_affiliation] = []
                 if elt_id not in bso_local_dict_aff[local_affiliation]:
@@ -628,13 +639,7 @@ def extract_one_bso_local(bso_local_filename, bso_local_dict):
     current_dois = get_dois_from_input(filename=bso_local_filename)
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
     for chunk in chunks(current_dois, 10000):
-        new_publications = []
-        for d in chunk:
-            elt = {'doi': d}
-            if d in bso_local_dict and 'fundings' in bso_local_dict[d]:
-                elt['grants'] = bso_local_dict[d]['fundings']
-            new_publications.append(elt)
-        update_publications_infos(new_publications, bso_local_dict, f'bso_local_{bso_local_filename}')
+        update_publications_infos(chunk, bso_local_dict, f'bso_local_{bso_local_filename}')
 
 def tmp_apc_study():
     for y in range(2013, 2022):
