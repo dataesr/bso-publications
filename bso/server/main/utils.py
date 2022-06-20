@@ -72,6 +72,7 @@ def clean_doi(doi):
 
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
+    logger.debug(f'reading {target}')
     if 'xls' in filename.lower():
         df = pd.read_excel(target, engine='openpyxl')
     else:
@@ -98,6 +99,7 @@ def get_dois_from_input(filename: str) -> list:
         logger.debug(f'funding data detected in file {filename}')
         assert('funding_year' in df.columns)
         assert('agency' in df.columns)
+        df['project_id'] = df['project_id'].astype(str)
         filtered_columns += ['project_id', 'funding_year', 'agency']
     if 'bso_country' in df.columns:
         logger.debug(f'bso_country detected in file {filename}')
@@ -111,7 +113,7 @@ def get_dois_from_input(filename: str) -> list:
                 continue
             elt = {'doi': clean_id}
             if 'project_id' in filtered_columns:
-                elt['grants'] = [{'grantid': row.project_id, 'agency': row.agency, 'funding_year': row.funding_year}]
+                elt['grants'] = [{'grantid': str(row.project_id), 'agency': row.agency, 'funding_year': row.funding_year}]
                 elt['has_grant'] = True
                 grant_ids.append(row.project_id)
             if 'bso_country' in filtered_columns:

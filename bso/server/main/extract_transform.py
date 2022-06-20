@@ -410,7 +410,7 @@ def merge_publications(current_publi, new_publi):
                 current_publi['grants'].append(grant)
                 current_publi['has_grant'] = True
                 change = True
-    for bso_country in new_publi['bso_country']:
+    for bso_country in new_publi.get('bso_country', []):
         if bso_country not in current_publi['bso_country']:
             current_publi['bso_country'].append(bso_country)
             change = True
