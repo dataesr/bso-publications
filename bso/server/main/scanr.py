@@ -102,12 +102,12 @@ def to_scanr(publications):
         # genre
         for e in p.get('all_ids'):
             if e[0:3] == 'nnt' or e[0:7]=='haltel-':
-                p['genre'] = 'thesis'
+                p['genre'] = 'these'
         if isinstance(p.get('genre'), str):
             elt['type'] = p['genre']
         else:
             elt['type'] = 'other'
-        if p.get('genre') == 'thesis':
+        if p.get('genre') == 'these':
             elt['productionType'] = 'thesis'
         else:
             elt['productionType'] = 'publication'

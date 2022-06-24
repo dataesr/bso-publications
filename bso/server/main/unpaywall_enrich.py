@@ -339,6 +339,9 @@ def merge_authors_affiliations(p):
     for f in p:
         if ('affiliations' in f) and ('bso_local_affiliations' not in f) and (isinstance(p[f], list)):
             for aff in p[f]:
+                if 'name' not in aff:
+                    logger.debug(f'from {f} ==> {aff} has no name field : it is IGNORED...')
+                    continue
                 name = aff['name']
                 if name in affiliations_name:
                     affiliations_name[name] = merge_element(affiliations_name[name], aff)
