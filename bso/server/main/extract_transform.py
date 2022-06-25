@@ -100,7 +100,7 @@ def transform_publications(publications, index_name, observations, affiliation_m
         enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
         to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, write_mode)
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, these_date):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
@@ -122,9 +122,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'orcid' in datasources:
             extract_fixed_list('dois_from_orcid', bso_local_dict)
         if 'theses' in datasources:
-            extract_container('theses', bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
+            extract_container('theses', bso_local_dict, False, download_prefix=f'{these_date}/parsed', one_by_one=True, filter_fr=False)
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix='20220325/parsed', one_by_one=True, filter_fr=False)
+            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=False)
         if 'sudoc' in datasources:
             extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
         extract_fixed_list('dois_fr', bso_local_dict)

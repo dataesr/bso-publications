@@ -179,7 +179,9 @@ def create_task_et(args: dict) -> None:
         datasources = ['medline', 'parsed_fr', 'crossref_fr']
         if 'scanr' in index_name:
             datasources += ['orcid', 'theses', 'hal', 'sudoc']
-    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources)
+    hal_date = args.get('hal_date', '20220619')
+    these_date = args.get('these_date', '20220325')
+    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, these_date)
 
 def create_task_etl(args: dict) -> None:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
