@@ -1,20 +1,24 @@
 import os
+import math
 import requests
 import time
 import timeout_decorator
 import pymongo
 import multiprocess as mp
 from bso.server.main.utils import get_hash
+from bso.server.main.utils_upw import chunks
 
 from bso.server.main.logger import get_logger
 
 
 AFFILIATION_MATCHER_SERVICE = os.getenv('AFFILIATION_MATCHER_SERVICE')
-matcher_endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/enrich_with_affiliations_id'
+matcher_endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/affiliations_list'
 
 
 logger = get_logger(__name__)
 
+def is_na(x):
+    return not(not x)
 
 def exception_handler(func):
     def inner_function(*args, **kwargs):
@@ -82,8 +86,8 @@ def get_affiliations_computed(publications, recompute_all = False):
     return done, todo
 
 @timeout_decorator.timeout(50*60)
-def get_matcher_results(publications: list, proc_num = 0, return_dict = {}) -> list:
-    r = requests.post(matcher_endpoint_url, json={'publications': publications,
+def get_matcher_results(affiliations: list, proc_num = 0, return_dict = {}) -> list:
+    r = requests.post(matcher_endpoint_url, json={'affiliations': affiliations,
                                                   'queue': 'matcher_short'})
     task_id = r.json()['data']['task_id']
     logger.debug(f'New task {task_id} for matcher')
@@ -107,14 +111,15 @@ def get_matcher_results(publications: list, proc_num = 0, return_dict = {}) -> l
             return return_dict[proc_num]
 
 @exception_handler
-def get_matcher_parallel(publi_chunks):
-    logger.debug(f'start parallel with {len(publi_chunks)} sublists')
+def get_matcher_parallel(affil_chunks):
+    # prend une liste de liste d'affiliations
+    logger.debug(f'start parallel with {len(affil_chunks)} sublists')
     
     manager = mp.Manager()
     return_dict = manager.dict()
     
     jobs = []
-    for ix, c in enumerate(publi_chunks):
+    for ix, c in enumerate(affil_chunks):
         p = mp.Process(target=get_matcher_results, args=(c, ix, return_dict))
         p.start()
         jobs.append(p)
@@ -123,3 +128,59 @@ def get_matcher_parallel(publi_chunks):
     logger.debug(f'end parallel')
     flat_list = [item for sublist in return_dict.values() for item in sublist]
     return flat_list
+
+def get_query_from_affiliation(affiliation):
+    query_elts = []
+    keys = list(affiliation.keys())
+    keys.sort()
+    for f in affiliation:
+        if f.lower() in ['name', 'ror', 'grid', 'rnsr', 'country', 'city']:
+            if isinstance(affiliation.get(f), str) and affiliation[f]:
+                query_elts.append(affiliation[f])
+    return ' '.join(query_elts)
+
+def enrich_publications_with_affiliations_id(publications: list) -> dict:
+    logger.debug(f'Matching affiliations for {len(publications)} publications')
+    # Retrieve all affiliations
+    all_affiliations = []
+    for publication in publications:
+        affiliations = publication.get('affiliations', [])
+        affiliations = [] if affiliations is None else affiliations
+        all_affiliations += [get_query_from_affiliation(affiliation) for affiliation in affiliations]
+        authors = publication.get('authors', [])
+        for author in authors:
+            affiliations = author.get('affiliations', [])
+            affiliations = [] if affiliations is None else affiliations
+            all_affiliations += [get_query_from_affiliation(affiliation) for affiliation in affiliations]
+    logger.debug(f'Found {len(all_affiliations)} affiliations in total.')
+    # Deduplicate affiliations
+    all_affiliations_list = list(filter(is_na, list(set(all_affiliations))))
+    logger.debug(f'Found {len(all_affiliations_list)} different affiliations in total.')
+    NB_PARALLEL_JOB = 10
+    nb_publis_per_group = math.ceil(len(all_affiliations_list)/NB_PARALLEL_JOB)
+    groups = list(chunks(lst=all_affiliations_list, n=nb_publis_per_group))
+    logger.debug(f'{len(groups)} groups with {nb_publis_per_group} each')
+    all_affiliations_matches = get_matcher_parallel(groups)
+    all_affiliations_dict = {}
+    for elt in all_affiliations_matches:
+        query = elt['query']
+        all_affiliations_dict[query] = elt['matches']
+    # Map countries with affiliations
+    for publication in publications:
+        affiliationsIds_by_publication = []
+        affiliations = publication.get('affiliations', [])
+        affiliations = [] if affiliations is None else affiliations
+        for affiliation in affiliations:
+            query = get_query_from_affiliation(affiliation)
+            if query in all_affiliations_dict:
+                results = all_affiliations_dict[query]
+                affiliation['ids'] = results
+        authors = publication.get('authors', [])
+        for author in authors:
+            affiliations = author.get('affiliations', [])
+            for affiliation in affiliations:
+                query = get_query_from_affiliation(affiliation)
+                if query in all_affiliations_dict:
+                    results = all_affiliations_dict[query]
+                    affiliation['ids'] = results
+    return publications

@@ -114,20 +114,20 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'pubmed' in datasources:
             extract_pubmed(bso_local_dict)
         if 'medline' in datasources:
-            extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False)
+            extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False) #always fr
         if 'parsed_fr' in datasources:
-            extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+            extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False) # always fr
         if 'crossref_fr' in datasources:
-            extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False)
+            extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False) # always fr
         if 'orcid' in datasources:
-            extract_fixed_list('dois_from_orcid', bso_local_dict)
+            extract_fixed_list('dois_from_orcid', bso_local_dict) # not to use in bso, only scanr (publications not fr)
         if 'theses' in datasources:
-            extract_container('theses', bso_local_dict, False, download_prefix=f'{these_date}/parsed', one_by_one=True, filter_fr=False)
+            extract_container('theses', bso_local_dict, False, download_prefix=f'{these_date}/parsed', one_by_one=True, filter_fr=False) #always fr
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=False)
+            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
-            extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False)
-        extract_fixed_list('dois_fr', bso_local_dict)
+            extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False) # always fr
+        extract_fixed_list('dois_fr', bso_local_dict) # always fr
         extract_fixed_list('tmp_dois_fr', bso_local_dict)
         for filename in bso_local_filenames:
             extract_one_bso_local(filename, bso_local_dict)
@@ -579,6 +579,10 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
                 if not isinstance(publi, dict):
                     logger.debug(f"publi not a dict : {publi}")
                     continue
+                for aff in publi.get('affiliations'):
+                    if isinstance(aff.get('name'), str):
+                        if aff['name'].lower() == 'access provided by':
+                            continue # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
                 if filter_fr:
                     is_fr = False
                     countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
@@ -588,9 +592,8 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
                             is_fr = True
                             break
                     if is_fr:
-                        publications.append(publi)
-                else:
-                    publications.append(publi)
+                        publi['bso_country'] = ['fr']
+                publications.append(publi) # always add even if bso_country not fr
             if batch:
                 logger.debug(f'{len(publications)} publications')
                 update_publications_infos(publications, bso_local_dict, container)

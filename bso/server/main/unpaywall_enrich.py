@@ -7,7 +7,7 @@ from typing import Union
 
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.config import MOUNTED_VOLUME
-from bso.server.main.affiliation_matcher import get_matcher_parallel, get_affiliations_computed
+from bso.server.main.affiliation_matcher import enrich_publications_with_affiliations_id, get_affiliations_computed
 from bso.server.main.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
@@ -423,15 +423,11 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
     publicationsWithAffiliations = []
     if affiliation_matching:
         done, todo = get_affiliations_computed(all_updated, recompute_all = True)
-        NB_PARALLEL_JOBS = 20
-        PUBLI_GROUP_SIZE = 80
         # TODO TO REMOVE
         if tmp:
             logger.debug(f'affiliation matching for {len(todo)} publications')
-            publis_chunks = list(chunks(lst=todo, n=PUBLI_GROUP_SIZE))
-            groups = list(chunks(lst=publis_chunks, n=NB_PARALLEL_JOBS))
             for chunk in groups:
-                publicationsWithAffiliations += get_matcher_parallel(chunk)
+                publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
             todo = publicationsWithAffiliations
         all_updated = done + todo
 
