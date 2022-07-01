@@ -6,7 +6,7 @@ $('.submit').on('click', function() {
 	    query: $('#input_query').val(),
     }
     $.ajax({
-        url: '/match_api',
+        url: '/match',
         data: JSON.stringify(input_json),
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
@@ -19,4 +19,3 @@ $('.submit').on('click', function() {
         console.log(err)
     });
 });
-
