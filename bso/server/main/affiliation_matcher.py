@@ -57,8 +57,8 @@ def get_affiliations_computed(publications, recompute_all = False):
     for p in publications:
         nb_aff_with_id = 0
         nb_aff = 0
-        for aff in p.get('affiliations'):
-            aff_name = aff.get('name')
+        for aff in p.get('affiliations', []):
+            aff_name = get_query_from_affiliation(aff)
             if not aff_name:
                 continue
             if recompute_all is False:
@@ -74,9 +74,10 @@ def get_affiliations_computed(publications, recompute_all = False):
         if isinstance(authors, list):
             for aut in authors:
                 if isinstance(aut.get('affiliations'), list):
-                    for aff in aut.get('affiliations'):
-                        if aff['name'] in affiliations:
-                            aff['ids'] = affiliations[aff['name']]
+                    for aff in aut.get('affiliations', []):
+                        aff_name = get_query_from_affiliation(aff)
+                        if aff_name in affiliations:
+                            aff['ids'] = affiliations[aff_name]
         if nb_aff_with_id == nb_aff and recompute_all is False:
             done.append(p)
         else:

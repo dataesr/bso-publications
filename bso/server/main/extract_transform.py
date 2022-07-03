@@ -49,7 +49,7 @@ def json_to_csv(json_file, last_oa_details):
     cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination," \
                  f"hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR," \
                  f"detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date," \
-                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories' > {output_csv_file}"
+                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories, funding_anr, funding_europe' > {output_csv_file}"
     logger.debug(cmd_header)
     os.system(cmd_header)
     cmd_jq = f"cat {json_file} | jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name," \
@@ -59,7 +59,10 @@ def json_to_csv(json_file, last_oa_details):
              f"[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.journal_is_in_doaj," \
              f".journal_is_oa,.observation_date,([.oa_host_type]|flatten)[0],((.oa_colors)?|join(\";\"))//null," \
              f"((.licence_publisher)?|join(\";\"))//null,((.licence_repositories)?|join(\";\"))//null," \
-             f"((.repositories)?|join(\";\"))//null]]|flatten|@csv' >> {output_csv_file}"
+             f"((.repositories)?|join(\";\"))//null]," \
+             f"[.grants[]?|select(.agency==\"ANR\")][0].grantid," \
+             f"[.grants[]?|select(.agency==\"H2020\")][0].grantid" \
+             f"]|flatten|@csv' >> {output_csv_file}"
     logger.debug(cmd_jq)
     os.system(cmd_jq)
     return output_csv_file
@@ -100,7 +103,7 @@ def transform_publications(publications, index_name, observations, affiliation_m
         enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
         to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, write_mode)
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, these_date):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
@@ -122,7 +125,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'orcid' in datasources:
             extract_fixed_list('dois_from_orcid', bso_local_dict) # not to use in bso, only scanr (publications not fr)
         if 'theses' in datasources:
-            extract_container('theses', bso_local_dict, False, download_prefix=f'{these_date}/parsed', one_by_one=True, filter_fr=False) #always fr
+            extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False) #always fr
         if 'hal' in datasources:
             extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
@@ -140,8 +143,12 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
     #enriched_output_file_full = output_file.replace('_extract.jsonl', '_full.jsonl')
     enriched_output_file_csv = enriched_output_file.replace('.jsonl', '.csv')
-    last_oa_details = get_millesime(max(observations))
-
+    last_oa_details = ''
+    for obs in observations:
+        current_millesime = get_millesime(obs)
+        if 'Q4' in current_millesime:
+            last_oa_details = current_millesime
+    logger.debug(f'using {last_oa_details} for oa_detail date in csv export')
     if transform:
         df_chunks = pd.read_json(output_file, lines=True, chunksize = chunksize)
         os.system(f'rm -rf {enriched_output_file}')
@@ -175,13 +182,11 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                     logger.debug(f'dumping {o} into {enriched_output_file}')
                     os.system(f'cat {o} >> {enriched_output_file}')
                     os.system(f'rm -rf {o}')
-        
-        # csv
-        if 'bso-publications' in index_name:
-            enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
-
 
     if load and 'bso-publications' in index_name:
+        # csv
+        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
+        
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
@@ -189,7 +194,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         logger.debug('loading bso-publications index')
         reset_index(index=index_name)
         elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 5000 " + "--transform='doc._source=Object.assign({},doc)'"
-        logger.debug(f'{elasticimport}')
+        #logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
 
@@ -514,6 +519,14 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
         if p.get('doi') and p['doi'] in bso_local_dict:
             p['bso_local_affiliations'] = bso_local_dict[p['doi']]['affiliations']
             p['bso_country'] = bso_local_dict[p['doi']]['bso_country']
+            if 'grants' in p and not isinstance(p['grants'], list):
+                del p['grants']
+            current_grants = p.get('grants', [])
+            for grant in bso_local_dict[p['doi']].get('grants', []):
+                if grant not in current_grants:
+                    current_grants.append(grant)
+            if current_grants:
+                p['grants'] = current_grants
         else:
             p['bso_country'] = ['fr'] # bso_country vient seulement des 'bso-local' files, donc dans les autres cas, c'est fr par défaut
     if to_delete:
@@ -579,10 +592,12 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
                 if not isinstance(publi, dict):
                     logger.debug(f"publi not a dict : {publi}")
                     continue
-                for aff in publi.get('affiliations'):
-                    if isinstance(aff.get('name'), str):
-                        if aff['name'].lower() == 'access provided by':
-                            continue # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
+                affiliations = publi.get('affiliations')
+                if isinstance(affiliations, list):
+                    for aff in affiliations:
+                        if isinstance(aff.get('name'), str):
+                            if aff['name'].lower() == 'access provided by':
+                                continue # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
                 if filter_fr:
                     is_fr = False
                     countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]

@@ -426,8 +426,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         # TODO TO REMOVE
         if tmp:
             logger.debug(f'affiliation matching for {len(todo)} publications')
-            for chunk in groups:
-                publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
+            publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
             todo = publicationsWithAffiliations
         all_updated = done + todo
 
