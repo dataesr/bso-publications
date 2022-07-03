@@ -35,7 +35,7 @@ def check_matcher_data_is_loaded(response: requests.Response) -> bool:
 @exception_handler
 def check_matcher_health() -> bool:
     """ Check that the matcher is available """
-    response = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match_api', json={'query': 'france', 'type': 'country'})
+    response = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match', json={'query': 'france', 'type': 'country'})
     return check_matcher_data_is_loaded(response)
 
 
@@ -62,7 +62,7 @@ def get_country(affiliation: str) -> dict:
                 ['country_all_names'],
                 ['country_subdivisions', 'country_alpha3']
         ]
-        countries = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match_api',
+        countries = requests.post(f'{AFFILIATION_MATCHER_SERVICE}/match',
                                   json={'query': affiliation, 'type': 'country', 'strategies': strategies}
                                   ).json()['results']
     return {'countries': countries, 'in_cache': in_cache}
