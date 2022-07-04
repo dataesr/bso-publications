@@ -49,7 +49,7 @@ def json_to_csv(json_file, last_oa_details):
     cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination," \
                  f"hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR," \
                  f"detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date," \
-                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories, funding_anr, funding_europe' > {output_csv_file}"
+                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories,funding_anr,funding_europe' > {output_csv_file}"
     logger.debug(cmd_header)
     os.system(cmd_header)
     cmd_jq = f"cat {json_file} | jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name," \
