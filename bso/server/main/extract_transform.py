@@ -1,14 +1,14 @@
 import datetime
+import gzip
 import json
-import pymongo
+import multiprocess as mp
 import os
 import pandas as pd
-import requests
-import gzip
-from dateutil import parser
-import multiprocess as mp
-from retry import retry
+import pymongo
 import pysftp
+
+from dateutil import parser
+from retry import retry
 
 from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
@@ -34,9 +34,9 @@ def upload_sword(args):
     os.system('mkdir -p  /upw_data/scanr')
     os.system('mkdir -p  /upw_data/logs')
     os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
-    host=os.getenv('SWORD_PREPROD_HOST')
-    username=os.getenv('SWORD_PREPROD_USERNAME')
-    password=os.getenv('SWORD_PREPROD_PASSWORD')
+    host = os.getenv('SWORD_PREPROD_HOST')
+    username = os.getenv('SWORD_PREPROD_USERNAME')
+    password = os.getenv('SWORD_PREPROD_PASSWORD')
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     with pysftp.Connection(host, username=username, password=password, port=2222, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
@@ -67,12 +67,14 @@ def json_to_csv(json_file, last_oa_details):
     os.system(cmd_jq)
     return output_csv_file
 
+
 def remove_extra_fields(res): 
-    # not exposing some fields in index
+    # Not exposing some fields in index
     for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw']:
         if f in res:
             del res[f]
     return res
+
 
 def remove_fields_bso(res): 
     # not exposing some fields in index
@@ -88,6 +90,7 @@ def remove_fields_bso(res):
                         del aff[k]
     return remove_extra_fields(res)
 
+
 def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode):
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
@@ -102,6 +105,7 @@ def transform_publications(publications, index_name, observations, affiliation_m
     else: # study APC
         enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
         to_jsonl([remove_extra_fields(p) for p in enriched_publications], enriched_output_file, write_mode)
+
 
 def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
@@ -182,19 +186,16 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                     logger.debug(f'dumping {o} into {enriched_output_file}')
                     os.system(f'cat {o} >> {enriched_output_file}')
                     os.system(f'rm -rf {o}')
-
     if load and 'bso-publications' in index_name:
         # csv
         enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
-        
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
-        
         logger.debug('loading bso-publications index')
         reset_index(index=index_name)
         elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 5000 " + "--transform='doc._source=Object.assign({},doc)'"
-        #logger.debug(f'{elasticimport}')
+        # logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
 

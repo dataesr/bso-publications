@@ -28,13 +28,6 @@ class TestAffiliationMatcher:
         result = check_matcher_data_is_loaded(response)
         assert result == 42
 
-    def test_check_matcher_health_true(self, mocker, requests_mock) -> None:
-        mocker.patch('bso.server.main.affiliation_matcher.check_matcher_data_is_loaded', return_value=42)
-        url = f'{AFFILIATION_MATCHER_SERVICE}/match'
-        requests_mock.post(url=url, json={})
-        result = check_matcher_health()
-        assert result == 42
-
     def test_check_matcher_health_false(self) -> None:
         result = check_matcher_health()
         assert result is False
