@@ -21,7 +21,7 @@ def home():
     return render_template('home.html')
 
 @main_blueprint.route('/zotero', methods=['POST'])
-def run_task_upload_sword():
+def run_task_zotero():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='zotero', default_timeout=default_timeout)

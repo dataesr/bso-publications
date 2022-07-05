@@ -46,8 +46,12 @@ def make_file_ANR(args):
     data += parse_zotero(first_data)
     for i in range(0, 10000):
         logger.debug(f'getting zotero data {i}')
-        next_data = zot.follow()
+        try:
+            next_data = zot.follow()
+        except:
+            logger.debug(f'stopping get next data from zotero at {i}')
+            break
         data += parse_zotero(next_data)
     df = pd.DataFrame(data)
     df.to_csv('ANR.csv', sep=',', index=False)
-    upload_object('bso_local', 'ANR.csv')
+    upload_object('bso-local', 'ANR.csv')
