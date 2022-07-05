@@ -7,7 +7,7 @@ class BaseConfig(object):
     """Base configuration."""
     WTF_CSRF_ENABLED = True
     REDIS_URL = 'redis://redis:6379/0'
-    QUEUES = ['bso-publications', 'unpaywall_to_crawler']
+    QUEUES = ['bso-publications', 'unpaywall_to_crawler', 'zotero']
 
 
 class DevelopmentConfig(BaseConfig):
