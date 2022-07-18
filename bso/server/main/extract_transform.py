@@ -10,6 +10,7 @@ import pysftp
 from dateutil import parser
 from retry import retry
 
+from os.path import exists
 from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.elastic import load_in_es, reset_index, get_doi_not_in_index, update_local_affiliations
@@ -98,7 +99,7 @@ def transform_publications(publications, index_name, observations, affiliation_m
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
         entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, index_name=index_name)
     if 'bso-publications' in index_name:
-        enriched_publications = [p for p in enriched_publications if isinstance(p['doi'], str) and p['oa_details']]
+        enriched_publications = [p for p in enriched_publications if p['oa_details']]
         to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, write_mode)
     elif 'scanr' in index_name:
         to_jsonl(enriched_publications, enriched_output_file, write_mode)
@@ -112,6 +113,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
     bso_local_dict, bso_local_dict_aff, bso_local_filenames = build_bso_local_dict()
+    min_year = None
+    if 'bso-' in index_name:
+        min_year = 2013
 
     # extract
     if extract:
@@ -121,21 +125,22 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'pubmed' in datasources:
             extract_pubmed(bso_local_dict)
         if 'medline' in datasources:
-            extract_container('medline', bso_local_dict, False, download_prefix='parsed/fr', one_by_one=True, filter_fr=False) #always fr
+            extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year) #always fr
         if 'parsed_fr' in datasources:
-            extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False) # always fr
+            extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None) # always fr
         if 'crossref_fr' in datasources:
-            extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False) # always fr
+            extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None) # always fr
         if 'orcid' in datasources:
-            extract_fixed_list('dois_from_orcid', bso_local_dict) # not to use in bso, only scanr (publications not fr)
+            extract_fixed_list(extra_file='orcid', bso_local_dict=bso_local_dict, bso_country='other') # not to use in bso, only scanr (publications not fr)
         if 'theses' in datasources:
-            extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False) #always fr
+            extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None) #always fr
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True) # filter_fr add bso_country fr for french publi
+            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
-            extract_container('sudoc',  bso_local_dict, False, download_prefix=f'parsed', one_by_one=False, filter_fr=False) # always fr
-        extract_fixed_list('dois_fr', bso_local_dict) # always fr
-        extract_fixed_list('tmp_dois_fr', bso_local_dict)
+            extract_container('sudoc',  bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=min_year) # always fr
+        extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr') # always fr
+        extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr')
+        extract_manual(bso_local_dict=bso_local_dict)
         for filename in bso_local_filenames:
             extract_one_bso_local(filename, bso_local_dict)
 
@@ -160,13 +165,13 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
        
         ix = -1
         for c in df_chunks:
+            logger.debug(f'chunk {ix}')
             parallel = False
 
             publications = c.to_dict(orient='records')
             ix += 1
             
             if not parallel:
-                logger.debug(f'chunk {ix}')
                 transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a')
     
             else:
@@ -187,6 +192,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                     os.system(f'cat {o} >> {enriched_output_file}')
                     os.system(f'rm -rf {o}')
     if load and 'bso-publications' in index_name:
+        if not exists(enriched_output_file):
+            download_object(container='bso_dump', filename=f"{enriched_output_file.split('/')[-1]}.gz", out=f'{enriched_output_file}.gz')
+            os.system(f'gunzip {enriched_output_file}.gz')
         # csv
         enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
         # elastic
@@ -194,7 +202,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
         logger.debug('loading bso-publications index')
         reset_index(index=index_name)
-        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 5000 " + "--transform='doc._source=Object.assign({},doc)'"
+        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 1000 " + "--transform='doc._source=Object.assign({},doc)'"
         # logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
@@ -288,11 +296,11 @@ def save_to_mongo_publi(relevant_infos):
                   f' --collection {collection_name}'
     logger.debug(f'{mongoimport}')
     os.system(mongoimport)
-    logger.debug(f'Checking indexes on collection {collection_name}')
+    #logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     mycol.create_index('id')
     mycol.create_index('authors.person')
-    logger.debug(f'Deleting {output_json}')
+    #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
@@ -329,22 +337,34 @@ def zip_upload(a_file):
 
 @retry(delay=200, tries=3)
 def to_mongo(input_list):
-    logger.debug(f'importing {len(input_list)} publications')
+    input_filtered = []
+    known_ids = set([])
+    for p in input_list:
+        if p.get('id') is None:
+            continue
+        if p['id'] in known_ids:
+            logger.debug(f"{p['id']} was in duplicate, inserted only once")
+            continue
+        input_filtered.append(p)
+        known_ids.add(p['id'])
+    if len(input_filtered) == 0:
+        return
+    logger.debug(f'importing {len(input_filtered)} publications')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}publications-current.jsonl'
     #pd.DataFrame(input_list).to_json(output_json, lines=True, orient='records')
-    to_jsonl(input_list, output_json, 'w')
+    to_jsonl(input_filtered, output_json, 'w')
     collection_name = 'publications_before_enrichment'
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
                   f' --collection {collection_name}'
     logger.debug(f'{mongoimport}')
     os.system(mongoimport)
-    logger.debug(f'Checking indexes on collection {collection_name}')
+    #logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     for f in ['id', 'doi', 'nnt_id', 'hal_id', 'pmid', 'sudoc_id', 'natural_id', 'all_ids']:
         mycol.create_index(f)
-    logger.debug(f'Deleting {output_json}')
+    #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
 
 @retry(delay=200, tries=3)
@@ -402,6 +422,57 @@ def get_common_id(p):
 def merge_publications(current_publi, new_publi):
     change = False
     new_datasource = new_publi['datasource']
+    # source
+    new_sources = new_publi.get('sources', [])
+    if not isinstance(new_sources, list):
+        new_sources = []
+    current_sources = current_publi.get('sources', [])
+    if not isinstance(current_sources, list):
+        current_sources = []
+    for s in new_sources:
+        if s not in current_sources:
+            current_sources.append(s)
+            change = True
+    if current_sources:
+        current_publi['sources'] = current_sources
+    # external ids
+    current_external = current_publi.get('external_ids', [])
+    for e in new_publi.get('external_ids', []):
+        if e not in current_external:
+            current_external.append(e)
+            change = True
+    if current_external:
+        current_publi['external_ids'] = current_external
+    # oa_details
+    current_oa_details = current_publi.get('oa_details', {})
+    new_oa_details = new_publi.get('oa_details', {})
+    for obs_date in new_oa_details:
+        if obs_date not in current_oa_details:
+            current_oa_details[obs_date] = new_oa_details[obs_date]
+            change = True
+        else:
+            if current_oa_details[obs_date]['is_oa'] is False and new_oa_details[obs_date]['is_oa'] is True:
+                current_oa_details[obs_date] = new_oa_details[obs_date]
+                change = True
+            elif current_oa_details[obs_date]['is_oa'] is True and new_oa_details[obs_date]['is_oa'] is True:
+                current_oa_details[obs_date]['repositories'] += new_oa_details[obs_date]['repositories']
+                current_oa_details[obs_date]['oa_locations'] += new_oa_details[obs_date]['oa_locations']
+                change = True
+    # abstract, keywords, classifications
+    for field in ['abstract', 'keywords', 'classifications']:
+        current_field = current_publi.get(field, [])
+        if not isinstance(current_field, list):
+            current_field = []
+        new_field = new_publi.get(field, [])
+        if not isinstance(new_field, list):
+            new_field = []
+        for k in new_field:
+            if k not in current_field:
+                current_field.append(k)
+                change = True
+        if current_field:
+            current_publi[field] = current_field
+    # merge grants
     if 'grants' in current_publi and not isinstance(current_publi['grants'], list):
         del current_publi['grants']
     if 'grants' in new_publi and not isinstance(new_publi['grants'], list):
@@ -416,10 +487,12 @@ def merge_publications(current_publi, new_publi):
                 current_publi['grants'].append(grant)
                 current_publi['has_grant'] = True
                 change = True
+    # merge bso country
     for bso_country in new_publi.get('bso_country', []):
         if bso_country not in current_publi['bso_country']:
             current_publi['bso_country'].append(bso_country)
             change = True
+    # merge authors, affiliations and ids
     for f in new_publi:
         if 'authors' in f:
             current_publi[f+'_'+new_datasource] = new_publi[f]
@@ -472,7 +545,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
             if p['doi'] is None:
                 del p['doi']
         for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
-            if p.get(f):
+            if f in p:
                 if not is_valid(p[f], f):
                     logger.debug(f'invalid {f} detected: {p[f]}')
                     del p[f]
@@ -517,6 +590,21 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
         if existing_publi is None:
             to_add.append(p)
     for p in to_add:
+        if p.get('id') is None:
+            continue
+        current_id = p['id']
+        for f in ['doi', 'nnt_id', 'hal_id']:
+            f_short = f.replace('_id', '')
+            if p.get(f) and is_valid(p[f], f):
+                if p['id_type'] == f_short:
+                    break
+                elif p['id_type'] != f_short:
+                    p['id'] = f"{f_short}{p[f]}"
+                    p['id_type'] = f_short
+                    if current_id not in to_delete:
+                        to_delete.append(current_id)
+                    logger.debug(f'replacing {current_id} with {f_short}{p[f]}')
+                    break
         if p.get('doi') and p['doi'] in bso_local_dict:
             p['bso_local_affiliations'] = bso_local_dict[p['doi']]['affiliations']
             p['bso_country'] = bso_local_dict[p['doi']]['bso_country']
@@ -528,8 +616,6 @@ def update_publications_infos(new_publications, bso_local_dict, datasource):
                     current_grants.append(grant)
             if current_grants:
                 p['grants'] = current_grants
-        else:
-            p['bso_country'] = ['fr'] # bso_country vient seulement des 'bso-local' files, donc dans les autres cas, c'est fr par défaut
     if to_delete:
         delete_from_mongo(to_delete)
     to_mongo(to_add)
@@ -554,13 +640,13 @@ def extract_pubmed(bso_local_dict) -> None:
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         update_publications_infos(publications, bso_local_dict, 'pubmed')
 
-def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr):
+def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr, min_year):
     local_path = download_container(container, skip_download, download_prefix)
     if one_by_one is False:
         for subdir in os.listdir(local_path):
-            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container)
+            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container, min_year)
     else:
-        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container)
+        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container, min_year)
 
 def download_container(container, skip_download, download_prefix):
     if skip_download is False:
@@ -572,7 +658,7 @@ def download_container(container, skip_download, download_prefix):
         return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
     return f'{MOUNTED_VOLUME}/{container}'
 
-def get_data(local_path, batch, filter_fr, bso_local_dict, container):
+def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year):
     logger.debug(f'getting data from {local_path}')
     publications = []
     for root, dirs, files in os.walk(local_path, topdown=False):
@@ -599,7 +685,9 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
                         if isinstance(aff.get('name'), str):
                             if aff['name'].lower() == 'access provided by':
                                 continue # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
+
                 if filter_fr:
+                    # si filter_fr, on ajoute bso_country fr seulement pour les fr
                     is_fr = False
                     countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
                     countries_flat_list = list(set([item for sublist in countries for item in sublist]))
@@ -609,7 +697,27 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
                             break
                     if is_fr:
                         publi['bso_country'] = ['fr']
-                publications.append(publi) # always add even if bso_country not fr
+                    else:
+                        publi['bso_country'] = ['other']
+                else:
+                    # filter_fr == False
+                    # sinon, fr par défaut
+                    publi['bso_country'] = ['fr']
+                if min_year and publi.get('genre') not in ['thesis']:
+                    year = None
+                    for f in ['year', 'publication_year', 'published_year']:
+                        try:
+                            year = int(publi.get(f))
+                        except:
+                            pass
+                        if year:
+                            break
+                    if year is None or year < min_year:
+                        continue
+                    if publi.get('title') is None:
+                        logger.debug(f'SKIP as no title for publi {publi}')
+                        continue
+                publications.append(publi)
             if batch:
                 logger.debug(f'{len(publications)} publications')
                 update_publications_infos(publications, bso_local_dict, container)
@@ -618,12 +726,30 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container):
         update_publications_infos(publications, bso_local_dict, container)
     return publications
 
-def extract_fixed_list(extra_file, bso_local_dict):
+def extract_fixed_list(extra_file, bso_local_dict, bso_country):
     download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
     if os.path.isfile(f'{MOUNTED_VOLUME}/{extra_file}.json'):
         fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
         for chunk in chunks(fr_dois, 10000):
-            update_publications_infos([{'doi': d} for d in chunk], bso_local_dict, extra_file)
+            update_publications_infos([{'doi': d, 'bso_country': [bso_country], 'sources': [extra_file]} for d in chunk], bso_local_dict, extra_file)
+
+def extract_manual(bso_local_dict):
+    url='https://docs.google.com/spreadsheet/ccc?key=1SuFzHK7OptlIYF8w42WG04WwQaNswb9qBspzW0DjTak&output=csv'
+    df_all = pd.read_csv(url, chunksize=10000)
+    for df in df_all:
+        publications_ids = set([])
+        publications = []
+        for p in df.to_dict(orient='records'):
+            e = clean_json(p)
+            elt = {'bso_country': ['other'], 'sources': ['manual_input']}
+            for f in ['doi', 'hal_id', 'nnt_id', 'sudoc_id']:
+                if e.get(f):
+                    elt[f] = e[f]
+            publi_id = get_common_id(e)['id']
+            if publi_id not in publications_ids:
+                publications_ids.add(publi_id)
+                publications.append(elt)
+        update_publications_infos(publications, bso_local_dict, 'manual_input')
 
 def build_bso_local_dict():
     bso_local_dict = {}

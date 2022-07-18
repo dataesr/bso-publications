@@ -51,6 +51,8 @@ def get_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
 def is_valid(identifier, identifier_type):
+    if not isinstance(identifier, str):
+        return False
     if identifier_type == 'doi':
         if '/' not in identifier:
             return False
@@ -59,6 +61,32 @@ def is_valid(identifier, identifier_type):
         for k in ['xxxxxx', 'nnnnnn']:
             if k in identifier.lower():
                 return False
+        return True
+    #TODO utiliser des regex
+    if identifier_type == 'hal_id':
+        if '.' in identifier:
+            return False
+        for sep in ['-', '_']:
+            if sep in identifier:
+                return True
+        return False
+    #TODO utiliser des regex
+    if identifier_type == 'nnt_id':
+        try:
+            # s54678 pour theses en cours
+            assert(identifier[0:1] == 's')
+            end = int(identifier[1:])
+            return True
+        except:
+            pass
+        year=0
+        try:
+            year = int(identifier[0:4])
+        except:
+            return False
+        if not(1900 < year < 2100):
+            return False
+        return True
     return True
 
 DOI_PREFIX = re.compile("(10\.)(.*?)( |$)")
@@ -89,13 +117,7 @@ def get_dois_from_input(filename: str) -> list:
         return []
     df['doi'] = df[doi_column]
     filtered_columns = ['doi']
-    if 'Code décisionnel' in df.columns:
-        logger.debug(f'ANR data detected in file {filename}')
-        df['agency']='ANR'
-        df['project_id'] = df['Code décisionnel']
-        df['funding_year'] = df['project_id'].apply(lambda x:'20' + x[4:6]) #ANR-17-UUU => 17
-        filtered_columns += ['project_id', 'funding_year', 'agency']
-    elif 'project_id' in df.columns:
+    if 'project_id' in df.columns:
         logger.debug(f'funding data detected in file {filename}')
         assert('funding_year' in df.columns)
         assert('agency' in df.columns)
@@ -113,13 +135,15 @@ def get_dois_from_input(filename: str) -> list:
                 continue
             elt = {'doi': clean_id}
             if 'project_id' in filtered_columns:
-                elt['grants'] = [{'grantid': str(row.project_id), 'agency': row.agency, 'funding_year': row.funding_year}]
-                elt['has_grant'] = True
-                grant_ids.append(row.project_id)
+                if isinstance(row.project_id, str):
+                    elt['grants'] = [{'grantid': str(row.project_id), 'agency': row.agency, 'funding_year': row.funding_year}]
+                    elt['has_grant'] = True
+                    grant_ids.append(row.project_id)
+            elt['bso_country'] = 'fr'
             if 'bso_country' in filtered_columns:
-                elt['bso_country'] = row.bso_country
-            else:
-                elt['bso_country'] = 'fr'
+                if isinstance(row.bso_country, str):
+                    elt['bso_country'] = row.bso_country
+            elt['sources'] = [filename]
             elts.append(elt)
     nb_grants = len(set(grant_ids))
     logger.debug(f'doi column: {doi_column} for {filename} with {len(elts)} dois and {nb_grants} funding')

@@ -135,9 +135,13 @@ def get_query_from_affiliation(affiliation):
     keys = list(affiliation.keys())
     keys.sort()
     for f in affiliation:
-        if f.lower() in ['name', 'ror', 'grid', 'rnsr', 'country', 'city']:
+        if f.lower() in ['name', 'ror', 'grid', 'rnsr', 'country', 'city', 'aliases']:
             if isinstance(affiliation.get(f), str) and affiliation[f]:
                 query_elts.append(affiliation[f])
+            if isinstance(affiliation.get(f), list):
+                for k in affiliation[f]:
+                    if isinstance(k, str) and k:
+                        query_elts.append(k)
     return ' '.join(query_elts)
 
 def enrich_publications_with_affiliations_id(publications: list) -> dict:

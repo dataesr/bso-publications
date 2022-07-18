@@ -52,6 +52,8 @@ def normalize_genre(genre, publisher) -> str:
         return 'proceedings'
     if genre in ['book', 'monograph']:
         return 'book'
+    if genre in ['thesis']:
+        return 'thesis'
     return 'other'
 
 
@@ -122,6 +124,9 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         doi = res.get('doi')
         if isinstance(doi, str) and (doi in dois_infos) and ('global' in dois_infos[doi]):
             res.update(dois_infos[doi]['global'])
+            if 'external_ids' not in res:
+                res['external_ids'] = []
+            res['external_ids'].append({'crossref': doi})
         if 'z_authors' in res and isinstance(res['z_authors'], list):
             for ix, a in enumerate(res['z_authors']):
                 full_name = ''
@@ -215,7 +220,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             res['genre_raw'] = res['genre']
             res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized'))
         # OA Details
-        if 'oa_details' not in res and isinstance(doi, str) and doi in dois_infos:
+        if isinstance(doi, str) and doi in dois_infos:
             res['observation_dates'] = []
             res['oa_details'] = {}
             last_millesime = None
@@ -256,10 +261,15 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                                 except:
                                     pass
                             if hal_id:
-                                external_ids = []
+                                if f'hal{hal_id}' not in res['all_ids']:
+                                    res['all_ids'].append(f'hal{hal_id}')
+                                external_ids = res.get('external_ids', [])
+                                if external_ids is None:
+                                    external_ids = []
                                 external_ids.append({'id_type': 'hal_id', 'id_value': hal_id})
                                 res['external_ids'] = external_ids
-                                res['hal_id'] = hal_id
+                                if 'hal_id' not in res:
+                                    res['hal_id'] = hal_id
         if 'oa_details' not in res:
             pass
             #logger.debug(f'no oa details for publi {res["id"]}')
@@ -397,20 +407,19 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             # some post-filtering
             if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
                 continue
-            if d.get('genre') == 'other' and 'scanr' not in index_name:
-                continue
+            #if d.get('genre') == 'other' and 'scanr' not in index_name:
+            #    continue
 
             year = None
             try:
                 year = int(d.get('year'))
             except:
                 year = None
-            if 'scanr' not in index_name and d.get('genre') not in ['thesis'] and year and year < 2013:
-                continue
-            if 'scanr' not in index_name and not isinstance(year, int):
-                #logger.debug(f'year is not integer for publication { d.get("doi") }')
-                continue
-
+            if 'bso-' in index_name:
+                if not isinstance(year, int):
+                    continue
+                elif year < 2013:
+                    continue
             # merge authors, z_authors etc 
             d = merge_authors_affiliations(d)
 

@@ -176,9 +176,9 @@ def create_task_et(args: dict) -> None:
     chunksize = args.get('chunksize', 5000)
     datasources = args.get('datasources', [])
     if len(datasources) == 0:
-        datasources = ['medline', 'parsed_fr', 'crossref_fr']
+        datasources = ['medline', 'parsed_fr', 'crossref_fr', 'theses', 'hal']
         if 'scanr' in index_name:
-            datasources += ['orcid', 'theses', 'hal', 'sudoc']
+            datasources += ['orcid', 'sudoc']
     hal_date = args.get('hal_date', '20220619')
     theses_date = args.get('theses_date', '20220325')
     extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date)
