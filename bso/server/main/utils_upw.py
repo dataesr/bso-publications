@@ -2,6 +2,8 @@ from bso.server.main.strings import dedup_sort
 
 
 def chunks(lst, n):
+    if len(lst) == 0:
+        return [[]]
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]

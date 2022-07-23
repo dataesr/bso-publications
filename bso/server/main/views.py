@@ -5,7 +5,7 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 from rq import Connection, Queue
 
 from bso.server.main.logger import get_logger
-from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, create_task_etl, \
+from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, \
     create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et, create_task_tmp
 from bso.server.main.utils import dump_to_object_storage
 from bso.server.main.extract_transform import load_scanr_publications, upload_sword

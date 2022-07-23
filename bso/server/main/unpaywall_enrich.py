@@ -8,11 +8,11 @@ from typing import Union
 from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.affiliation_matcher import enrich_publications_with_affiliations_id, get_affiliations_computed
-from bso.server.main.field_detect import detect_fields
+from bso.server.main.fields.field_detect import detect_fields
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.publisher.publisher_detect import detect_publisher
-from bso.server.main.strings import dedup_sort, normalize, remove_punction, get_words
+from bso.server.main.strings import dedup_sort, normalize, normalize2, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_doi_full
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
 from bso.server.main.utils_upw import chunks, format_upw_millesime
@@ -32,6 +32,7 @@ def init_model_lang() -> None:
                       upload_to_object_storage=False, destination=lid_model_name)
     lid_model = fasttext.load_model(lid_model_name)
     models['lid'] = lid_model
+    logger.debug('Init model lang done')
 
 
 def identify_language(text: str) -> Union[str, None]:
@@ -143,21 +144,40 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                     a['full_name'] = full_name
                 a['datasource'] = 'crossref'
                 a['author_position'] = ix + 1
-        # Fields detection
-        #logger.debug('fields1')
+        
+        # Normalisation des editeurs
+        published_year = None
+        if isinstance(res.get('published_date'), str):
+            published_year = res.get('published_date')[0:4]
+        publisher_raw = res.get('publisher')
+        if not publisher_raw:
+            publisher_raw = 'unknown'
+        publisher_clean = detect_publisher(publisher_raw, published_year, doi) 
+        res.update(publisher_clean)
+        
+        # Genre (dépend de publisher_normalized)
+        if isinstance(res.get('genre'), str):
+            res['genre_raw'] = res['genre']
+            res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized'))
+        else:
+            res['genre'] = 'other'
+       
+        
+        # Fields detection (dépend de genre)
         classification_types = ['bso']
         domains = res.get('domains', [])
         if not isinstance(domains, list):
             domains = []
         if 'health' in domains:
             classification_types.append('bsso')
+        if res['genre'] == 'thesis':
+            classification_types.append('thesis')
         
         # TODO TO REMOVE
         #if entity_fishing:
         #    classification_types.append('sdg')
         res = detect_fields(res, classification_types)
         
-        #logger.debug('fieldsEND')
         # APC
         published_date_for_apc = res.get('published_date')
         if not isinstance(published_date_for_apc, str):
@@ -168,6 +188,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                               published_date_for_apc, dois_infos[doi])
             res.update(info_apc)
         #logger.debug('APC_END')
+        
         # Language
         lang_mapping = {
                 'english': 'en',
@@ -193,32 +214,21 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             else:
                 pass
                 #logger.debug(f'not enough info title / abstract for doi {doi} : {publi_title_abstract}')
+        
         # Entity fishing
         if entity_fishing:
             ef_info = get_entity_fishing(res)
             if ef_info:
                 res.update(ef_info)
+        
         # Predatory info
         pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
         res.update(pred_info)
         #logger.debug('PREDA_END')
         # Language
-        # normalisation des editeurs
-        published_year = None
-        if isinstance(res.get('published_date'), str):
-            published_year = res.get('published_date')[0:4]
-        publisher_raw = res.get('publisher')
-        if not publisher_raw:
-            publisher_raw = 'unknown'
-        publisher_clean = detect_publisher(publisher_raw, published_year, doi) 
-        res.update(publisher_clean)
-        #logger.debug('PUBLISHER_END')
+        
         #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
         #    res['domains'] = ['health']
-        # Genre
-        if isinstance(res.get('genre'), str):
-            res['genre_raw'] = res['genre']
-            res['genre'] = normalize_genre(res['genre'], res.get('publisher_normalized'))
         # OA Details
         if isinstance(doi, str) and doi in dois_infos:
             res['observation_dates'] = []
@@ -314,15 +324,34 @@ def treat_affiliations_authors(res):
     res['author_useful_rank_countries'] = author_useful_rank_countries
     return res
 
+def get_author_key(a):
+    author_key = None
+    if normalize2(a.get('first_name'), remove_space=True) and normalize2(a.get('last_name'), remove_space=True):
+        author_key = normalize2(a.get('first_name'), remove_space=True)[0]+normalize2(a.get('last_name'), remove_space=True)
+    elif normalize2(a.get('full_name'), remove_space=True):
+        author_key = normalize2(a.get('full_name'), remove_space=True)
+    return author_key
 
-def check(aut1, aut2):
-    if not isinstance(aut1.get('full_name'), str):
+def check_same_authors(aut1, aut2):
+    aut_key_1 = get_author_key(aut1)
+    aut_key_2 = get_author_key(aut2)
+    if aut_key_1 is None or aut_key_2 is None:
         return False
-    if not isinstance(aut2.get('full_name'), str):
-        return False
-    fullname1 = set(normalize(aut1.get('full_name'), min_length=3).split(' '))
-    fullname2 = set(normalize(aut2.get('full_name'), min_length=3).split(' '))
-    return len(fullname1.intersection(fullname2)) > 0
+    if aut_key_1 == aut_key_2:
+        #logger.debug(f'1. assuming these two authors are the same : {aut1} and {aut2}')
+        return True
+
+    fullname1 = [w for w in normalize2(aut1.get('full_name'), min_length=3).split(' ') if w]
+    fullname1.sort()
+    fullname2 = [w for w in normalize2(aut2.get('full_name'), min_length=3).split(' ') if w]
+    fullname2.sort()
+
+    if len(fullname1) > 1 and len(fullname2) > 1:
+        if ''.join(fullname1) == ''.join(fullname2):
+            logger.debug(f'2. assuming these two authors are the same : {aut1} and {aut2}')
+            return True
+
+    return False
 
 
 def merge_element(elt1, elt2):
@@ -335,47 +364,53 @@ def merge_element(elt1, elt2):
             elt1[f] += elt2[f]
     return elt1
 
-def merge_authors_affiliations(p):
-    affiliations_name = {}
-
-    # target authors = z_authors (from unpaywall) in priority
+def merge_authors_affiliations(p, index_name):
     target_authors = []
     target_name = ''
     for f in ['authors', 'z_authors']:
+        # if z_authors in object, this is the one that is kept
         if f in p and isinstance(p[f], list):
             target_authors = p[f]
             target_name = f
+            for a in target_authors:
+                if isinstance(a.get('affiliation'), list):
+                    current_aff = a.get('affiliations', [])
+                    current_aff += a['affiliation']
+                    a['affiliations'] = current_aff
 
+    affiliations = []
     for f in p:
-        if ('affiliations' in f) and ('bso_local_affiliations' not in f) and (isinstance(p[f], list)):
-            for aff in p[f]:
-                if 'name' not in aff:
-                    logger.debug(f'from {f} ==> {aff} has no name field : it is IGNORED...')
-                    continue
-                name = aff['name']
-                if name in affiliations_name:
-                    affiliations_name[name] = merge_element(affiliations_name[name], aff)
-                else:
-                    affiliations_name[name] = aff
+        if ('affiliation' in f) and ('bso_local_affiliations' not in f) and (isinstance(p[f], list)):
+            affiliations += p[f]
 
-    for f in p:
-         if ('authors' in f) and (isinstance(p[f], list)) and f != target_name:
-            if isinstance(target_authors, list) and isinstance(p[f], list) and len(target_authors) == len(p[f]):
-                for ix, aut in enumerate(p[f]):
-                    if check(target_authors[ix], aut):
-                        for k in aut:
-                            if k not in target_authors[ix]:
-                                target_authors[ix][k] = aut[k]
-                            if aut.get('affiliations'):
-                                current_aff = target_authors[ix].get('affiliations', [])
-                                for aff in aut['affiliations']:
-                                    if aff not in current_aff:
-                                        current_aff.append(aff)
+    # for bso no need to work on authors data
+    if 'bso-' not in index_name:
+        for f in p:
+            if ('authors' in f) and (isinstance(p[f], list)) and f != target_name:
+                current_authors = p[f]
+                # if list is too long, keep manual only for perf
+                if len(target_authors) > 30 and 'manual' not in f:
+                     continue
+                if isinstance(target_authors, list) and isinstance(current_authors, list):# and len(target_authors) == len(p[f]):
+                    # no check on same length, especially to get ids from manual input
+                    for ix, aut in enumerate(current_authors):
+                        for jx, aut_target in enumerate(target_authors):
+                            if check_same_authors(aut_target, aut):
+                                for k in aut:
+                                    if k not in aut_target:
+                                        aut_target[k] = aut[k]
+                                    if aut.get('affiliations'):
+                                        current_aff = aut_target.get('affiliations', [])
+                                        for aff in aut['affiliations']:
+                                            if aff not in current_aff:
+                                                current_aff.append(aff)
+                                                aut_target['affiliations'] = current_aff
 
     if isinstance(target_authors, list) and target_authors and ('nnt' in p['id'] or len(target_authors) == 1):
-        target_authors[0]['affiliations'] = list(affiliations_name.values())
+        # if thesis or single-author publication, first author has all the affiliations
+        target_authors[0]['affiliations'] = affiliations
 
-    p['affiliations'] = list(affiliations_name.values())
+    p['affiliations'] = affiliations
     p['authors'] = target_authors
 
     return p
@@ -418,10 +453,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             if 'bso-' in index_name:
                 if not isinstance(year, int):
                     continue
-                elif year < 2013:
+                elif year < 2013 and d.get('genre') != 'thesis':
                     continue
             # merge authors, z_authors etc 
-            d = merge_authors_affiliations(d)
+            d = merge_authors_affiliations(d, index_name)
 
             d = treat_affiliations_authors(d) # useful_rank etc ...
             

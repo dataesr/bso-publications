@@ -36,7 +36,7 @@ def get_from_mongo(pid):
 
 @exception_handler
 def get_entity_fishing(publication: dict) -> dict:
-
+    #logger.debug(publication)
     pre_computed = get_from_mongo(publication['id'])
     if pre_computed:
         return pre_computed

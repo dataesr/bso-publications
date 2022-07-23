@@ -121,6 +121,8 @@ def get_matcher_parallel(affil_chunks):
     
     jobs = []
     for ix, c in enumerate(affil_chunks):
+        if len(c) == 0:
+            continue
         p = mp.Process(target=get_matcher_results, args=(c, ix, return_dict))
         p.start()
         jobs.append(p)
@@ -179,7 +181,9 @@ def enrich_publications_with_affiliations_id(publications: list) -> dict:
             query = get_query_from_affiliation(affiliation)
             if query in all_affiliations_dict:
                 results = all_affiliations_dict[query]
-                affiliation['ids'] = results
+                if 'ids' not in affiliation:
+                    affiliation['ids'] = []
+                affiliation['ids'] += results
         authors = publication.get('authors', [])
         for author in authors:
             affiliations = author.get('affiliations', [])
@@ -187,5 +191,7 @@ def enrich_publications_with_affiliations_id(publications: list) -> dict:
                 query = get_query_from_affiliation(affiliation)
                 if query in all_affiliations_dict:
                     results = all_affiliations_dict[query]
-                    affiliation['ids'] = results
+                    if 'ids' not in affiliation:
+                        affiliation['ids'] = []
+                    affiliation['ids'] += results
     return publications
