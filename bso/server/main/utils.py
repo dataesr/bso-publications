@@ -139,10 +139,10 @@ def get_dois_from_input(filename: str) -> list:
                     elt['grants'] = [{'grantid': str(row.project_id), 'agency': row.agency, 'funding_year': row.funding_year}]
                     elt['has_grant'] = True
                     grant_ids.append(row.project_id)
-            elt['bso_country'] = 'fr'
+            elt['bso_country'] = ['fr']
             if 'bso_country' in filtered_columns:
                 if isinstance(row.bso_country, str):
-                    elt['bso_country'] = row.bso_country
+                    elt['bso_country'] = [row.bso_country]
             elt['sources'] = [filename]
             elts.append(elt)
     nb_grants = len(set(grant_ids))

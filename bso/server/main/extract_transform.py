@@ -503,6 +503,8 @@ def merge_publications(current_publi, new_publi):
                 current_publi['has_grant'] = True
                 change = True
     # merge bso country
+    assert(isinstance(current_publi['bso_country'], list))
+    assert(isinstance(new_publi.get('bso_country', []), list))
     for bso_country in new_publi.get('bso_country', []):
         if bso_country not in current_publi['bso_country']:
             current_publi['bso_country'].append(bso_country)
@@ -832,8 +834,11 @@ def build_bso_local_dict():
                     bso_local_dict[elt_id]['affiliations'].append(local_affiliation)
                 if elt.get('grants'):
                     bso_local_dict[elt_id]['grants'] += elt['grants']
-                if elt.get('bso_country') and elt['bso_country'] not in bso_local_dict[elt_id]['bso_country']:
-                    bso_local_dict[elt_id]['bso_country'].append(elt['bso_country'])
+                if elt.get('bso_country'):
+                    assert(isinstance(elt['bso_country'], list))
+                    for bso_country in elt['bso_country']:
+                        if bso_country not in bso_local_dict[elt_id]['bso_country']:
+                            bso_local_dict[elt_id]['bso_country'].append(bso_country)
                 if local_affiliation not in bso_local_dict_aff:
                     bso_local_dict_aff[local_affiliation] = []
                 if elt_id not in bso_local_dict_aff[local_affiliation]:
