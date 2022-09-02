@@ -12,7 +12,7 @@ from bso.server.main.logger import get_logger
 
 
 AFFILIATION_MATCHER_SERVICE = os.getenv('AFFILIATION_MATCHER_SERVICE')
-matcher_endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/affiliations_list'
+matcher_endpoint_url = f'{AFFILIATION_MATCHER_SERVICE}/match_list'
 
 
 logger = get_logger(__name__)
@@ -30,13 +30,13 @@ def exception_handler(func):
             return None
     return inner_function
 
-def get_from_mongo(name):
+def get_affiliation_from_mongo(name):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     collection_name = 'affiliations'
     mycoll = mydb[collection_name]
-    name_md5 = get_hash(name)
-    res = mycoll.find_one({'name_md5': name_md5})
+    query_md5 = get_hash(name)
+    res = mycoll.find_one({'query_md5': query_md5})
     if res:
         return res['ids']
     return
@@ -58,12 +58,12 @@ def get_affiliations_computed(publications, recompute_all = False):
         nb_aff_with_id = 0
         nb_aff = 0
         for aff in p.get('affiliations', []):
-            aff_name = get_query_from_affiliation(aff)
+            aff_name = get_hash(get_query_from_affiliation(aff))
             if not aff_name:
                 continue
             if recompute_all is False:
                 if aff_name not in affiliations:
-                    res = get_from_mongo(aff_name)
+                    res = get_affiliation_from_mongo(aff_name)
                     if res:
                         affiliations[aff_name] = res 
                 if aff_name in affiliations:
@@ -75,7 +75,7 @@ def get_affiliations_computed(publications, recompute_all = False):
             for aut in authors:
                 if isinstance(aut.get('affiliations'), list):
                     for aff in aut.get('affiliations', []):
-                        aff_name = get_query_from_affiliation(aff)
+                        aff_name = get_hash(get_query_from_affiliation(aff))
                         if aff_name in affiliations:
                             aff['ids'] = affiliations[aff_name]
         if nb_aff_with_id == nb_aff and recompute_all is False:

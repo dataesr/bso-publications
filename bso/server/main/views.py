@@ -6,7 +6,7 @@ from rq import Connection, Queue
 
 from bso.server.main.logger import get_logger
 from bso.server.main.tasks import create_task_download_unpaywall, create_task_enrich, \
-    create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et, create_task_tmp
+    create_task_load_mongo, create_task_unpaywall_to_crawler, create_task_et, create_task_cache_affiliations
 from bso.server.main.utils import dump_to_object_storage
 from bso.server.main.extract_transform import load_scanr_publications, upload_sword
 from bso.server.main.zotero import make_file_ANR
@@ -131,13 +131,13 @@ def get_status(task_id):
     return jsonify(response_object)
 
 
-@main_blueprint.route('/etl', methods=['POST'])
-def run_task_etl():
+@main_blueprint.route('/cache', methods=['POST'])
+def run_task_cache():
     logger.debug('Starting task etl')
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
-        task = q.enqueue(create_task_etl, args)
+        task = q.enqueue(create_task_cache_affiliations, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
@@ -147,6 +147,16 @@ def run_task_et():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(create_task_et, args)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202
+
+@main_blueprint.route('/et_fast', methods=['POST'])
+def run_task_et_fast():
+    logger.debug('Starting task et')
+    args = request.get_json(force=True)
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name='bso-publications-fast', default_timeout=default_timeout)
         task = q.enqueue(create_task_et, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202

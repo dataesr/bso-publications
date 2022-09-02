@@ -260,9 +260,11 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                         if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):
                             hal_id = None
                             if isinstance(loc.get('pmh_id'), str):
-                                hal_id = loc['pmh_id'].split(':')[2].strip().lower()
-                                if hal_id[-2] == 'v': # remove version
-                                    hal_id = hal_id[:-2]
+                                loc_split = loc['pmh_id'].split(':')
+                                if len(loc_split) > 2:
+                                    hal_id = loc['pmh_id'].split(':')[2].strip().lower()
+                                    if hal_id[-2] == 'v': # remove version
+                                        hal_id = hal_id[:-2]
                             if hal_id is None and isinstance(loc.get('url_for_pdf'), str) and '/document' in loc['url_for_pdf'].lower():
                                 try:
                                     url_split = loc['url_for_pdf'].lower().split('/')[-2]
@@ -463,15 +465,12 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             all_updated.append(d)
 
     # affiliation matcher
-    tmp = True
     publicationsWithAffiliations = []
     if affiliation_matching:
-        done, todo = get_affiliations_computed(all_updated, recompute_all = True)
-        # TODO TO REMOVE
-        if tmp:
-            logger.debug(f'affiliation matching for {len(todo)} publications')
-            publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
-            todo = publicationsWithAffiliations
+        done, todo = get_affiliations_computed(all_updated, recompute_all = False)
+        logger.debug(f'affiliation matching for {len(todo)} publications')
+        publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
+        todo = publicationsWithAffiliations
         all_updated = done + todo
 
     for p in all_updated:
