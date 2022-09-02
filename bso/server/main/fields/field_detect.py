@@ -23,15 +23,15 @@ hal_bso = json.load(open('bso/server/main/fields/hal_bso.json', 'r'))
 def get_classification_hal(hal_classification):
     max_hal_depth = np.max([len(k.get('code','').split('.')) for k in hal_classification])
     hal_classification_filtered = [k for k in hal_classification if len(k.get('code','').split('.')) == max_hal_depth]
-    classif = 'unknown'
+    classif = {'hal_code': 'unknown', 'discipline': 'unknown'}
     for c in hal_bso:
         for k in hal_classification_filtered:
             if c in k.get('code'):
-                classif = hal_bso[c]
+                classif = {'hal_code': c, 'discipline': hal_bso[c]}
     return classif
 
 def get_classification_dewey(publi_codes):
-    thesis_classification = 'unknown'
+    thesis_classification = {"discipline": "unknown", "macro":"unknown"}
     for c in publi_codes:
         if c['reference'] != 'dewey':
             continue
@@ -47,8 +47,10 @@ def detect_fields(a_publication, classification_types):
     for classif_type in classification_types:
         if classif_type == 'thesis':
             a_publication['thesis_classification'] = get_classification_dewey(a_publication.get('classifications', []))
+            assert(isinstance(a_publication['thesis_classification'], dict))
         elif classif_type == 'bso' and a_publication.get('hal_classification', []):
-            a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])
+            a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])['discipline']
+            assert(isinstance(a_publication['bso_classification'], str))
         else:
             r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication],
                                                                                      'type': classif_type})
