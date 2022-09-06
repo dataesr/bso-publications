@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 from pyzotero import zotero
 library_type = 'group'
 ZOTERO_KEY = os.getenv('ZOTERO_KEY')
-ANR_LIBRARY_ID = os.getenv('ANR_LIBRARY_ID')
+#ANR_LIBRARY_ID = os.getenv('ANR_LIBRARY_ID')
 
 def parse_zotero(items, code_type, group_type):
     elts = []
@@ -76,7 +76,7 @@ def get_open_data():
 
 def make_file_ANR(args):
     code_type, group_type = get_open_data()
-    zot = zotero.Zotero(ANR_LIBRARY_ID, library_type, ZOTERO_KEY)
+    zot = zotero.Zotero(args.get('ANR_LIBRARY_ID'), library_type, ZOTERO_KEY)
     data = []
     first_data = zot.top(limit=100)
     data += parse_zotero(first_data, code_type, group_type)
