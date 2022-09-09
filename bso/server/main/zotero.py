@@ -23,14 +23,30 @@ def parse_zotero(items, code_type, group_type):
     for item in items:
         data = item['data']
         elt = {}
+        doi = None
         for f in data:
             if f.lower() == 'doi':
                 doi = clean_doi(data[f])
                 if doi:
-                    elt['doi'] = data[f].strip()
-        for tag in data.get('tags', []):
-            if tag.get('tag')[0:4]=='ANR-':
-                code_decision = tag['tag'].strip()
+                    elt['doi'] = doi
+        if not doi:
+            continue
+            #logger.debug(f'no valid doi for item {item}')
+        source = None
+        for tag_elem in data.get('tags', []):
+            tag = tag_elem['tag']
+            for k in ['hal', 'wos', 'final', 'rapport']:
+                if k in tag.lower():
+                    source = tag
+                    break
+        if source:
+            elt['datasource_anr'] = source
+        else:
+            logger.debug(f'no DATASOURCE for {item}')
+        for tag_elem in data.get('tags', []):
+            tag = tag_elem['tag']
+            if tag[0:4]=='ANR-':
+                code_decision = tag.strip()
                 elt['project_id'] = code_decision
                 funding_year = '20' + code_decision[4:6]
                 elt['funding_year'] = funding_year
