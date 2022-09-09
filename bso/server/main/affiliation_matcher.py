@@ -51,14 +51,14 @@ def clean(p):
             aut['affiliations'] = []
     return p
 
-def get_affiliations_computed(publications, recompute_all = False):
+def get_affiliations_computed(publications, recompute_all = False, compute_missing = True):
     affiliations = {}
     done, todo = [], []
     for p in publications:
         nb_aff_with_id = 0
         nb_aff = 0
         for aff in p.get('affiliations', []):
-            aff_name = get_hash(get_query_from_affiliation(aff))
+            aff_name = get_query_from_affiliation(aff)
             if not aff_name:
                 continue
             if recompute_all is False:
@@ -75,14 +75,17 @@ def get_affiliations_computed(publications, recompute_all = False):
             for aut in authors:
                 if isinstance(aut.get('affiliations'), list):
                     for aff in aut.get('affiliations', []):
-                        aff_name = get_hash(get_query_from_affiliation(aff))
+                        aff_name = get_query_from_affiliation(aff)
                         if aff_name in affiliations:
                             aff['ids'] = affiliations[aff_name]
         if nb_aff_with_id == nb_aff and recompute_all is False:
             done.append(p)
         else:
-            # remove None affiliations / authors
-            todo.append(clean(p))
+            if compute_missing:
+                # remove None affiliations / authors
+                todo.append(clean(p))
+            else:
+                done.append(p)
     logger.debug(f'affiliation matching {len(todo)}/{len(publications)} todo, {len(done)}/{len(publications)} done')
     return done, todo
 

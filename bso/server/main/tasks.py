@@ -25,7 +25,7 @@ START_YEAR = 2020
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
 def to_mongo_affiliations(input_list):
-    logger.debug(f'importing {len(input_list)} publications')
+    logger.debug(f'importing {len(input_list)} affiliations queries')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}affiliations_cache.jsonl'
@@ -53,6 +53,7 @@ def create_task_cache_affiliations(args):
     mycoll = mydb[collection_name]
     mycoll.drop()
     full = pd.read_json('/upw_data/test-scanr.jsonl', lines=True, chunksize=25000)
+    existing_hash = {}
     for df in full:
         to_save = []
         publis = df.to_dict(orient='records')
@@ -62,8 +63,9 @@ def create_task_cache_affiliations(args):
                 for aff in affiliations:
                     ids = aff.get('ids', [])
                     query = get_hash(get_query_from_affiliation(aff))
-                    if query and isinstance(ids, list):
+                    if query and query not in existing_hash and isinstance(ids, list):
                         to_save.append({'query_md5': query, 'ids': ids})
+                        existing_hash[query] = 1
         if to_save:
             to_mongo_affiliations(to_save)
 

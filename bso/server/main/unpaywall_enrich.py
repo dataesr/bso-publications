@@ -465,12 +465,16 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             all_updated.append(d)
 
     # affiliation matcher
+    compute_missing = False
+    recompute_all = False
     publicationsWithAffiliations = []
     if affiliation_matching:
-        done, todo = get_affiliations_computed(all_updated, recompute_all = False)
+        done, todo = get_affiliations_computed(all_updated, recompute_all = recompute_all, compute_missing = compute_missing)
         logger.debug(f'affiliation matching for {len(todo)} publications')
         publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
         todo = publicationsWithAffiliations
+        if compute_missing is False:
+            assert(len(todo) == 0)
         all_updated = done + todo
 
     for p in all_updated:
