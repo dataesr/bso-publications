@@ -287,9 +287,9 @@ Two dimensions will be developed:
 
 ### 2.2.1 Perimeter
 
-For now, two datasources are used to collect metadata about clinical trials and observational studies: clinicaltrials.org and EUCTR. The former one provides an API while the latter one does not; that is why the information is crawled from the website. Only the trials and studies that involves at least **one location in France** are analyzed.
+For now, two datasources are used to collect metadata about clinical trials and observational studies: clinicaltrials.gov and EUCTR. The former one provides an API while the latter one does not; that is why the information is crawled from the website. Only the trials and studies that involves at least **one location in France** are analyzed.
 
-Some trials or studies appear in both registries, the matching between the two databases being done based on the PIDs NCTId (from clinicaltrials.org) and eudraCT (from EUCTR), both registries keeping track of external PIDs. However, duplicates may still remain when no link has been established between the existing PIDs in both registries.
+Some trials or studies appear in both registries, the matching between the two databases being done based on the PIDs NCTId (from clinicaltrials.gov) and eudraCT (from EUCTR), both registries keeping track of external PIDs. However, duplicates may still remain when no link has been established between the existing PIDs in both registries.
 
 To distinguish clinical trials on one side and observational studies on the other, we use the study type field, that can be either 'Interventional' (for clinical studies) or 'Observational' (for observational studies).
 
