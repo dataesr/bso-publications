@@ -2,6 +2,7 @@ import datetime
 import ast
 import gzip
 import json
+import jsonlines
 import multiprocess as mp
 import os
 import pandas as pd
@@ -24,8 +25,9 @@ from bso.server.main.unpaywall_feed import download_daily, download_snapshot, sn
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
 from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json
-from bso.server.main.strings import normalize
+from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
+from bso.server.main.funding import normalize_grant
 
 logger = get_logger(__name__)
     
@@ -52,7 +54,7 @@ def json_to_csv(json_file, last_oa_details):
                  f"hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR," \
                  f"detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date," \
                  f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories,funding_anr,funding_europe' > {output_csv_file}"
-    logger.debug(cmd_header)
+    #logger.debug(cmd_header)
     os.system(cmd_header)
     cmd_jq = f"cat {json_file} | jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name," \
              f".publisher,.publisher_dissemination,.hal_id,.pmid,.bso_classification,((.bsso_classification.field)" \
@@ -65,7 +67,7 @@ def json_to_csv(json_file, last_oa_details):
              f"[.grants[]?|select(.agency==\"ANR\")][0].grantid," \
              f"[.grants[]?|select(.agency==\"H2020\")][0].grantid" \
              f"]|flatten|@csv' >> {output_csv_file}"
-    logger.debug(cmd_jq)
+    #logger.debug(cmd_jq)
     os.system(cmd_jq)
     return output_csv_file
 
@@ -115,13 +117,14 @@ def get_collection_name(index_name):
         collection_name = 'publications_before_enrichment_bso'
     return collection_name
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     
     bso_local_filenames = []
     bso_local_dict = {}
-    min_year = None
+    hal_struct_dict = {}
+    min_year = 2010
     if 'bso-' in index_name:
         min_year = 2013
 
@@ -131,7 +134,13 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
         drop_collection('scanr', 'publications_before_enrichment')
         drop_collection('scanr', collection_name)
-
+        
+        if 'local' in datasources:
+            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_dict = build_bso_local_dict()
+            for filename in bso_local_filenames:
+                extract_one_bso_local(filename, bso_local_dict, collection_name)
+        if 'bso3' in datasources:
+            extract_container('bso3_publications_dump', bso_local_dict, skip_download, download_prefix='final_for_bso', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name) #always fr
         if 'pubmed' in datasources:
             extract_pubmed(bso_local_dict, collection_name)
         if 'medline' in datasources:
@@ -145,18 +154,14 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'theses' in datasources:
             extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None, collection_name=collection_name) #always fr
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name) # filter_fr add bso_country fr for french publi
+            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, hal_struct_dict=hal_struct_dict) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
-            extract_container('sudoc',  bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=min_year, collection_name=collection_name) # always fr
+            extract_container('sudoc',  bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name) # always fr
         if 'fixed' in datasources:
             extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name) # always fr
             extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name)
         if 'manual' in datasources:
             extract_manual(bso_local_dict=bso_local_dict, collection_name=collection_name)
-        if 'local' in datasources:
-            bso_local_dict, bso_local_dict_aff, bso_local_filenames = build_bso_local_dict()
-            for filename in bso_local_filenames:
-                extract_one_bso_local(filename, bso_local_dict, collection_name)
 
         # export to jsonl
         dump_cmd = f'mongoexport --forceTableScan --uri mongodb://mongo:27017/scanr --collection {collection_name} --out {output_file}'
@@ -180,6 +185,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         ix = -1
         for c in df_chunks:
             ix += 1
+            if ix < start_chunk:
+                continue
             logger.debug(f'chunk {ix}')
             parallel = False
 
@@ -222,7 +229,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(elasticimport)
 
         if 'local' in datasources and len(bso_local_filenames) == 0:
-            bso_local_dict, bso_local_dict_aff, bso_local_filenames = build_bso_local_dict()
+            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_dict = build_bso_local_dict()
         dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
 
         # upload to OS
@@ -450,6 +457,24 @@ def merge_publications(current_publi, new_publi):
             change = True
     if current_sources:
         current_publi['sources'] = current_sources
+    # bso3
+    for f in ['has_availability_statement', 'softcite_details', 'datastet_details']:
+        if f in new_publi:
+            current_publi[f] = new_publi[f]
+            change = True
+    # hal
+    for f in ['hal_collection_code']:
+        if f in new_publi:
+            current_publi[f] = new_publi[f]
+            change = True
+    # domains
+    current_domains = current_publi.get('domains', [])
+    for e in new_publi.get('domains', []):
+        if e not in current_domains:
+            current_domains.append(e)
+            change = True
+    if current_domains:
+        current_publi['domains'] = current_domains
     # external ids
     current_external = current_publi.get('external_ids', [])
     for e in new_publi.get('external_ids', []):
@@ -471,10 +496,11 @@ def merge_publications(current_publi, new_publi):
                 change = True
             elif current_oa_details[obs_date]['is_oa'] is True and new_oa_details[obs_date]['is_oa'] is True:
                 current_oa_details[obs_date]['repositories'] += new_oa_details[obs_date]['repositories']
+                current_oa_details[obs_date]['repositories'] = dedup_sort(current_oa_details[obs_date]['repositories'])
                 current_oa_details[obs_date]['oa_locations'] += new_oa_details[obs_date]['oa_locations']
                 change = True
     # abstract, keywords, classifications
-    for field in ['abstract', 'keywords', 'classifications']:
+    for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references']:
         current_field = current_publi.get(field, [])
         if not isinstance(current_field, list):
             current_field = []
@@ -509,12 +535,21 @@ def merge_publications(current_publi, new_publi):
         if bso_country not in current_publi['bso_country']:
             current_publi['bso_country'].append(bso_country)
             change = True
+    # bso local affiliations
+    current_bso_local_aff = current_publi.get('bso_local_affiliations', [])
+    for aff in new_publi.get('bso_local_affiliations', []):
+        if aff not in current_bso_local_aff:
+            current_bso_local_aff.append(aff)
+    if current_bso_local_aff:
+        current_publi['bso_local_affiliations'] = current_bso_local_aff
+        change = True
+
     # merge authors, affiliations and ids
     for f in new_publi:
         if 'authors' in f:
             current_publi[f+'_'+new_datasource] = new_publi[f]
             change = True
-        if 'affiliations' in f:
+        if 'affiliations' in f and f != 'bso_local_affiliations':
             current_publi[f+'_'+new_datasource] = new_publi[f]
             change = True
         if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and f not in current_publi:
@@ -585,6 +620,14 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
             if isinstance(p.get(f), str):
                 p['all_ids'].append(f.replace('_id', '')+p[f])
             ids_to_check += p['all_ids']
+        if isinstance(p.get('grants'), list):
+            new_grants = []
+            for g in p['grants']:
+                new_grant = normalize_grant(g)
+                if new_grant:
+                    g.update(new_grant)
+                    new_grants.append(g)
+            p['grants'] = new_grants
     # on récupère les data des publis déjà en base
     ids_to_check = list(set(ids_to_check))
     existing_publis = get_from_mongo('all_ids', ids_to_check, collection_name)
@@ -623,8 +666,20 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                     logger.debug(f'replacing {current_id} with {f_short}{p[f]}')
                     break
         if p.get('doi') and p['doi'] in bso_local_dict:
-            p['bso_local_affiliations'] = bso_local_dict[p['doi']]['affiliations']
-            p['bso_country'] = bso_local_dict[p['doi']]['bso_country']
+            
+            if 'bso_local_affiliations' not in p:
+                p['bso_local_affiliations'] = []
+            for e in bso_local_dict[p['doi']]['affiliations']:
+                if e not in p['bso_local_affiliations']:
+                    p['bso_local_affiliations'].append(e)
+            
+
+            if 'bso_country' not in p:
+                p['bso_country'] = []
+            for e in bso_local_dict[p['doi']]['bso_country']:
+                if e not in p['bso_country']:
+                    p['bso_country'].append(e)
+            
             if 'grants' in p and not isinstance(p['grants'], list):
                 del p['grants']
             current_grants = p.get('grants', [])
@@ -657,13 +712,14 @@ def extract_pubmed(bso_local_dict, collection_name) -> None:
         logger.debug(f'{len(publications)} publications retrieved from object storage')
         update_publications_infos(publications, bso_local_dict, 'pubmed', collection_name)
 
-def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr, min_year, collection_name):
+# one_by_one True if no subdirectory
+def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr, min_year, collection_name, hal_struct_dict={}):
     local_path = download_container(container, skip_download, download_prefix)
     if one_by_one is False:
         for subdir in os.listdir(local_path):
-            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name)
+            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_dict)
     else:
-        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name)
+        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_dict)
 
 def download_container(container, skip_download, download_prefix):
     if skip_download is False:
@@ -675,7 +731,7 @@ def download_container(container, skip_download, download_prefix):
         return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
     return f'{MOUNTED_VOLUME}/{container}'
 
-def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, collection_name):
+def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_dict={}):
     logger.debug(f'getting data from {local_path}')
     publications = []
     for root, dirs, files in os.walk(local_path, topdown=False):
@@ -683,9 +739,15 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
             jsonfilename = os.path.join(root, name)
             if batch:
                 publications = []
+                logger.debug(f'inserting data from file {jsonfilename}')
             if jsonfilename[-3:] == '.gz':
                 with gzip.open(f'{jsonfilename}', 'r') as fin:
                     current_publications = json.loads(fin.read().decode('utf-8'))
+            elif 'jsonl' in jsonfilename:
+                current_publications = []
+                with jsonlines.open(jsonfilename, 'r') as fin:
+                    for publi in fin:
+                        current_publications.append(publi)
             else:
                 with open(f'{jsonfilename}', 'r') as fin:
                     current_publications = json.loads(fin.read())
@@ -696,17 +758,37 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 if not isinstance(publi, dict):
                     logger.debug(f"publi not a dict : {publi}")
                     continue
+                publi_id = None
+                for k in ['id', 'doi', 'uid']:
+                    if k in publi and publi[k]:
+                        publi_id = publi[k]
+                        break
+                current_fields = list(publi.keys())
+                for f in current_fields:
+                    if len(str(publi[f])) > 100000:
+                        logger.debug(f"deleting field {f} in publi {publi_id} from {jsonfilename} as too long !") 
+                        del publi[f]
                 affiliations = publi.get('affiliations')
                 if isinstance(affiliations, list):
                     for aff in affiliations:
                         if isinstance(aff.get('name'), str):
                             if aff['name'].lower() == 'access provided by':
-                                continue # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
+                                aff['name']='' # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
+                        if aff.get('hal_docid') and aff['hal_docid'] in hal_struct_dict:
+                            current_local = publi.get('bso_local_affiliations', [])
+                            new_local = hal_struct_dict[aff['hal_docid']]
+                            if new_local not in current_local:
+                                current_local.append(new_local)
+                                publi['bso_local_affiliations'] = current_local
 
                 if filter_fr:
                     # si filter_fr, on ajoute bso_country fr seulement pour les fr
                     is_fr = False
-                    countries = [a.get('detected_countries') for a in publi.get('affiliations', []) if 'detected_countries' in a]
+                    countries = []
+                    if isinstance(publi.get('affiliations'), list):
+                        for a in publi.get('affiliations', []):
+                            if isinstance(a, dict) and 'detected_countries' in a:
+                                countries.append(a['detected_countries'])
                     countries_flat_list = list(set([item for sublist in countries for item in sublist]))
                     for ctry in countries_flat_list:
                         if ctry in FRENCH_ALPHA2:
@@ -737,10 +819,12 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 publications.append(publi)
             if batch:
                 logger.debug(f'{len(publications)} publications')
-                update_publications_infos(publications, bso_local_dict, container, collection_name)
+                for chunk in chunks(publications, 5000):
+                    update_publications_infos(chunk, bso_local_dict, container, collection_name)
     if not batch:
         logger.debug(f'{len(publications)} publications')
-        update_publications_infos(publications, bso_local_dict, container, collection_name)
+        for chunk in chunks(publications, 5000):
+            update_publications_infos(chunk, bso_local_dict, container, collection_name)
     return publications
 
 def extract_fixed_list(extra_file, bso_local_dict, bso_country, collection_name):
@@ -817,6 +901,7 @@ def extract_orcid(bso_local_dict, collection_name):
 def build_bso_local_dict():
     bso_local_dict = {}
     bso_local_dict_aff = {}
+    hal_struct_dict = {}
     bso_local_filenames = []
     os.system(f'mkdir -p {MOUNTED_VOLUME}/bso_local')
     cmd =  init_cmd + f' download bso-local -D {MOUNTED_VOLUME}/bso_local --skip-identical'
@@ -824,7 +909,12 @@ def build_bso_local_dict():
     for filename in os.listdir(f'{MOUNTED_VOLUME}/bso_local'):
         bso_local_filenames.append(filename)
         local_affiliations = '.'.join(filename.split('.')[:-1]).split('_')
-        current_dois = get_dois_from_input(filename=filename)
+        data_from_input = get_dois_from_input(filename=filename)
+        current_dois = data_from_input['doi']
+        for s in data_from_input.get('hal_struct_ids', []):
+            assert(isinstance(s, str))
+            assert('.0' not in s)
+            hal_struct_dict[s] = local_affiliations[0]
         for elt in current_dois:
             elt_id = elt['doi']
             if elt_id not in bso_local_dict:
@@ -843,11 +933,11 @@ def build_bso_local_dict():
                     bso_local_dict_aff[local_affiliation] = []
                 if elt_id not in bso_local_dict_aff[local_affiliation]:
                     bso_local_dict_aff[local_affiliation].append(elt_id)
-    return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames))
+    return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames)), hal_struct_dict
 
 def extract_one_bso_local(bso_local_filename, bso_local_dict, collection_name):
     local_affiliations = bso_local_filename.split('.')[0].split('_')
-    current_dois = get_dois_from_input(filename=bso_local_filename)
+    current_dois = get_dois_from_input(filename=bso_local_filename)['doi']
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
     for chunk in chunks(current_dois, 10000):
         update_publications_infos(chunk, bso_local_dict, f'bso_local_{bso_local_filename}', collection_name)

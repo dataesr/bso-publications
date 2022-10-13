@@ -126,7 +126,7 @@ def get_dois_from_input(filename: str) -> list:
     if 'bso_country' in df.columns:
         logger.debug(f'bso_country detected in file {filename}')
         filtered_columns += ['bso_country']
-    elts = []
+    elts_with_doi = []
     grant_ids = []
     for row in df[filtered_columns].itertuples():
         if isinstance(row.doi, str):
@@ -144,10 +144,15 @@ def get_dois_from_input(filename: str) -> list:
                 if isinstance(row.bso_country, str):
                     elt['bso_country'] = [row.bso_country]
             elt['sources'] = [filename]
-            elts.append(elt)
+            elts_with_doi.append(elt)
     nb_grants = len(set(grant_ids))
-    logger.debug(f'doi column: {doi_column} for {filename} with {len(elts)} dois and {nb_grants} funding')
-    return elts
+    res = {'doi': elts_with_doi}
+    if 'hal_structId' in df.columns:
+        hal_struct_ids = [str(e).replace('.0','') for e in df['hal_structId'].dropna().tolist()]
+        res['hal_struct_ids'] = hal_struct_ids
+        logger.debug(f'{len(hal_struct_ids)} hal_struct_ids for {filename}')
+    logger.debug(f'doi column: {doi_column} for {filename} with {len(elts_with_doi)} dois and {nb_grants} funding')
+    return res
 
 
 def get_filename_from_cd(cd: str) -> Union[str, None]:

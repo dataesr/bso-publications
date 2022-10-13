@@ -15,13 +15,13 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
-from bso.server.main.utils import download_file, get_dois_from_input, get_hash
+from bso.server.main.utils import download_file, get_hash
 from bso.server.main.extract_transform import extract_all
 from bso.server.main.affiliation_matcher import get_query_from_affiliation
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
-START_YEAR = 2020
+START_YEAR = 2021
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
 def to_mongo_affiliations(input_list):
@@ -103,6 +103,7 @@ def create_task_download_unpaywall(args: dict) -> str:
 def create_task_unpaywall_to_crawler():
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
+    parser_url = HTML_PARSER_SERVICE
     weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
     weekly_files = requests.get(weekly_files_url).json()['list']
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
@@ -113,6 +114,8 @@ def create_task_unpaywall_to_crawler():
 
     chunks = pd.read_json(destination, lines=True, chunksize=5000)
     for c in chunks:
+        crawl_list = []
+        parse_list = []
         sub_df = c[c.year >= START_YEAR]
         if crawl_all:
             element_to_crawl = sub_df.doi.tolist()
@@ -129,7 +132,7 @@ def create_task_unpaywall_to_crawler():
                 title = title.strip()
                 doi = doi.strip()
                 url = f'http://doi.org/{doi}'
-                requests.post(f'{crawler_url}/tasks', json={'url': url, 'title': title})
+                crawl_list.append({'url': url, 'title': title})
             # Récupération des affiliations de crossref
             affiliations = []
             if not isinstance(row.z_authors, list):
@@ -143,12 +146,16 @@ def create_task_unpaywall_to_crawler():
                             affiliations.append(aff)
             if affiliations:
                 p = {'doi': row.doi, 'affiliations': affiliations, 'authors': row.z_authors}
-                send_to_parser(p)  # Match country and store results in crossref object storage
-        update_inventory([{
-            'doi': doi,
-            'crawl': True,
-            'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl
-        ])
+                parse_list.append({'doi': p['doi'], 'json': p})
+        logger.debug(f'posting {len(crawl_list)} elements to crawl')
+        requests.post(f'{crawler_url}/crawl', json={'list': crawl_list})
+        logger.debug(f'posting {len(parse_list)} elements to parse')
+        requests.post(f'{parser_url}/parse_list', json={'list': parse_list})
+        #update_inventory([{
+        #    'doi': doi,
+        #    'crawl': True,
+        #    'crawl_update': datetime.datetime.today().isoformat()} for doi in element_to_crawl
+        #])
 
 
 def create_task_load_mongo(args: dict) -> None:
@@ -178,10 +185,13 @@ def create_task_et(args: dict) -> None:
     skip_download = args.get('skip_download', False)
     chunksize = args.get('chunksize', 5000)
     datasources = args.get('datasources', [])
+    start_chunk = args.get('start_chunk', 0)
     if len(datasources) == 0:
         datasources = ['medline', 'parsed_fr', 'crossref_fr', 'theses', 'hal', 'fixed', 'local']
         if 'scanr' in index_name:
             datasources += ['orcid', 'sudoc', 'manual']
-    hal_date = args.get('hal_date', '20220619')
-    theses_date = args.get('theses_date', '20220325')
-    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date)
+        if 'bso' in index_name:
+            datasources += ['bso3']
+    hal_date = args.get('hal_date', '20220823')
+    theses_date = args.get('theses_date', '20220720')
+    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk)

@@ -33,7 +33,7 @@ def run_task_zotero():
 def run_task_upload_sword():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        q = Queue(name='scanr-publications', default_timeout=default_timeout)
         task = q.enqueue(upload_sword, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -42,7 +42,7 @@ def run_task_upload_sword():
 def run_task_load_scanr_publications():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        q = Queue(name='scanr-publications', default_timeout=default_timeout)
         task = q.enqueue(load_scanr_publications, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
@@ -145,8 +145,9 @@ def run_task_cache():
 def run_task_et():
     logger.debug('Starting task et')
     args = request.get_json(force=True)
+    queue = args.get('queue', 'bso-publications')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        q = Queue(name=queue, default_timeout=default_timeout)
         task = q.enqueue(create_task_et, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202

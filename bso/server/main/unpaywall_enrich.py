@@ -285,6 +285,13 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         if 'oa_details' not in res:
             pass
             #logger.debug(f'no oa details for publi {res["id"]}')
+        else:
+            for millesime in res.get('oa_details'):
+                if res['oa_details'][millesime].get('repositories'):
+                    repos = dedup_sort(res['oa_details'][millesime].get('repositories'))
+                    res['oa_details'][millesime]['repositories_concat'] = ";".join(repos)
+                else:
+                    res['oa_details'][millesime]['repositories_concat'] = 'closed'
 
         #logger.debug('HAL_END')
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',

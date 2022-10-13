@@ -193,9 +193,6 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
         res['licence_repositories'] = dedup_sort(reduce_license(licence_repositories))
     if repositories:
         res['repositories'] = dedup_sort(repositories)
-        res['repositories_concat'] = ";".join(res['repositories'])
-    else:
-        res['repositories_concat'] = 'closed'
     if repositories_url:
         res['repositories_url'] = dedup_sort(repositories_url)
     if repositories_pmh:
