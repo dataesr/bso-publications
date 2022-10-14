@@ -119,10 +119,11 @@ def get_dois_from_input(filename: str) -> list:
     filtered_columns = ['doi']
     if 'project_id' in df.columns:
         logger.debug(f'funding data detected in file {filename}')
-        assert('funding_year' in df.columns)
         assert('agency' in df.columns)
         df['project_id'] = df['project_id'].astype(str)
-        filtered_columns += ['project_id', 'funding_year', 'agency']
+        filtered_columns += ['project_id', 'agency']
+        if 'funding_year' in  df.columns:
+            filtered_columns += ['funding_year']
     if 'bso_country' in df.columns:
         logger.debug(f'bso_country detected in file {filename}')
         filtered_columns += ['bso_country']
@@ -136,7 +137,10 @@ def get_dois_from_input(filename: str) -> list:
             elt = {'doi': clean_id}
             if 'project_id' in filtered_columns:
                 if isinstance(row.project_id, str):
-                    elt['grants'] = [{'grantid': str(row.project_id), 'agency': row.agency, 'funding_year': row.funding_year}]
+                    current_grant = {'grantid': str(row.project_id), 'agency': row.agency}
+                    if 'funding_year' in filtered_columns:
+                        current_grant['funding_year'] = row.funding_year
+                    elt['grants'] = [current_grant]
                     elt['has_grant'] = True
                     grant_ids.append(row.project_id)
             elt['bso_country'] = ['fr']

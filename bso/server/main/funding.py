@@ -28,10 +28,19 @@ def get_anr_open_data():
                                         'funding_year': int('20'+code_clean.split('-')[1])
                                        }
             if 'Programme.Acronyme' in row and isinstance(row['Programme.Acronyme'], str):
-                code_details[code_clean]['program'] = row['Programme.Acronyme'].strip()
+                code_details[code_clean]['program'] = get_anr_program(row['Programme.Acronyme'].strip())
             elif 'Action.Titre.Francais' in row and isinstance(row['Action.Titre.Francais'], str):
-                code_details[code_clean]['program'] = row['Action.Titre.Francais'].strip()
+                code_details[code_clean]['program'] = get_anr_program(row['Action.Titre.Francais'].strip())
     return code_details
+
+def get_anr_program(x):
+    if 'AAPG' in x or 'générique' in x.lower():
+        return 'Appel à projets générique'
+    if 'blanc' in x.lower():
+        return 'BLANC'
+    if x in ['JC', 'JCJC']:
+        return 'JCJC'
+    return x
 
 def get_anr_details(code):
     global code_details
@@ -58,6 +67,11 @@ def normalize_grant(grant):
         new_grant = grant.copy()
         new_grant['agency'] = 'NIH HHS'
         new_grant['sub_agency'] = agency
+        return new_grant
+    if 'H2020' in agency:
+        new_grant = grant.copy()
+        new_grant['agency'] = 'H2020'
+        new_grant['sub_agency'] = 'H2020'
         return new_grant
     return None
 
