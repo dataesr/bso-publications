@@ -20,7 +20,7 @@ from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.enrich_parallel import enrich_parallel
-from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
+from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos, get_dois_meta
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
 from bso.server.main.utils_upw import chunks, get_millesime
@@ -500,6 +500,8 @@ def merge_publications(current_publi, new_publi):
                 current_oa_details[obs_date]['oa_locations'] += new_oa_details[obs_date]['oa_locations']
                 change = True
     # abstract, keywords, classifications
+    # TOFIX put hal_classification next BSO release !
+    # for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references', 'hal_classification']:
     for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references']:
         current_field = current_publi.get(field, [])
         if not isinstance(current_field, list):
@@ -588,8 +590,13 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     existing_publis_dict = {}
     to_add, to_delete = [], []
     ids_to_check = []
+    dois_to_enrich_metadata = [p['doi'] for p in new_publications if is_valid(p.get('doi'), 'doi') and ('title' not in p or 'authors' not in p)]
+    missing_metadata = get_dois_meta(dois_to_enrich_metadata)
     for p in new_publications:
         p['datasource'] = datasource
+        if p.get('doi') in missing_metadata:
+                # logger.debug(f"getting metadata from crossref for doi {p['doi']}")
+                p.update(missing_metadata[p['doi']])
         p = tag_affiliations(p, datasource)
         p['all_ids'] = []
         if p.get('doi'):

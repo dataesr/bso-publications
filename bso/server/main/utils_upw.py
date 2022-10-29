@@ -176,9 +176,10 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
                 status = 'accord_elsevier'  # accord Elsevier
             elif (has_apc is not None) and (not has_apc) and elem.get('journal_is_in_doaj'):
                 status = 'diamond'
-            elif elem.get('journal_is_oa') == 1 and (has_apc is True):
+            elif elem.get('journal_is_oa') == 1: # and (has_apc is True): 20221126
                 status = 'gold'
-            elif (has_apc is True):
+            #elif (has_apc is True): 20221026
+            elif licence != 'no license':
                 status = 'hybrid'
             else:
                 status = 'other'

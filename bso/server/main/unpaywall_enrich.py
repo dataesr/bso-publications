@@ -234,27 +234,33 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             res['observation_dates'] = []
             res['oa_details'] = {}
             last_millesime = None
+            last_observation_date = None
             for asof in dois_infos[doi]:
                 if asof == 'global':
                     continue
                 else:
                     tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'])
                     res['oa_details'].update(tmp)
-                    res['observation_dates'].append(list(tmp.keys())[0])  # getting the key that is the observation date
+                    obs_date = list(tmp.keys())[0]
+                    res['observation_dates'].append(obs_date)  # getting the key that is the observation date
                     if last_millesime:
                         last_millesime = max(last_millesime, asof)
+                        last_observation_date = max(last_observation_date, obs_date) 
                     else:
                         last_millesime = asof
+                        last_observation_date = obs_date
 
             #logger.debug('MILLESIME_END')
             # get hal_id if present in one of the last oa locations
             if last_millesime:
                 last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
-                #if 'hybrid' not in dois_infos[doi][last_millesime].get('oa_colors', []) and 'gold' not in dois_infos[doi][last_millesime].get('oa_colors', []):
-                #    # si ni gold ni hybrid '
-                #    res['amount_apc_EUR'] = 0
-                #    if res['has_apc'] == True:
-                #        res['has_apc'] = None
+                last_oa_details = res['oa_details'][last_observation_date]
+                if 'hybrid' not in last_oa_details.get('oa_colors', []) and 'gold' not in last_oa_details.get('oa_colors', []):
+                    # si ni gold ni hybrid '
+                    res['amount_apc_EUR'] = 0
+                    if res['has_apc'] == True:
+                        #logger.debug(f'{doi} should not have apc')
+                        res['has_apc'] = None
                 if isinstance(last_oa_loc, list):
                     for loc in last_oa_loc:
                         if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):

@@ -92,6 +92,29 @@ def get_doi(doi, collection_name: str) -> dict:
             res[ix] = clean(e, collection_name)
     return res
 
+def get_dois_meta(dois):
+    assert(isinstance(dois, list))
+    logger.debug(f'getting metadata title / authors for {len(dois)} dois')
+    metadatas = get_doi(dois, 'global')
+    ans = {}
+    for res in metadatas:
+        doi = res['doi']
+        final_res = {'doi': doi}
+        authors = []
+        if 'z_authors' in res and isinstance(res['z_authors'], list):
+            for a in res['z_authors']:
+                aut = {}
+                if a.get('given'):
+                    aut['first_name'] = a['given']
+                if a.get('family'):
+                    aut['last_name'] = a['family']
+                if aut:
+                    authors.append(aut)
+        if authors:
+            final_res['authors'] = authors
+        final_res['title'] = res.get('title')
+        ans[doi] = final_res
+    return ans
 
 def get_doi_full(dois: list, observations: list, last_observation_date_only: bool) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')

@@ -52,7 +52,7 @@ def detect_fields(a_publication, classification_types):
             a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])['discipline']
             assert(isinstance(a_publication['bso_classification'], str))
         else:
-            r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication],
+            r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication], 'details': True,
                                                                                      'type': classif_type})
             try:
                 a_publication = r_classif.json().get('publications')[0]

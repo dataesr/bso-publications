@@ -53,13 +53,13 @@ def init_openapc():
         if isinstance(row.get('publisher'), str) and row.get('publisher'):
             publisher_ok = detect_publisher(row['publisher'].strip(), year_ok, doi)['publisher_group']
         
-        if year_ok and publisher_ok:
-            key_publisher_year = f'PUBLISHER{publisher_ok};YEAR{year_ok}'
-            keys.append(key_publisher_year)
+        #if year_ok and publisher_ok:
+        #    key_publisher_year = f'PUBLISHER{publisher_ok};YEAR{year_ok}'
+        #    keys.append(key_publisher_year)
     
-        if publisher_ok:
-            key_publisher = f'PUBLISHER{publisher_ok}'
-            keys.append(key_publisher)
+        #if publisher_ok:
+        #    key_publisher = f'PUBLISHER{publisher_ok}'
+        #    keys.append(key_publisher)
 
         if year_ok:
             key_year = f'YEAR{year_ok}'
@@ -120,11 +120,11 @@ def detect_openapc(doi: str, issns: list, publisher: str, date_str: str) -> dict
             keys_to_try.append({'method': 'issn_year', 'key': f'ISSN{issn.strip()};YEAR{year_ok}'})
     for issn in issns:
         keys_to_try.append({'method': 'issn', 'key': f'ISSN{issn.strip()}'})
-    if isinstance(publisher, str) and publisher:
-        publisher_ok = detect_publisher(publisher.strip(), year_ok, doi)['publisher_group']
-        if year_ok:
-            keys_to_try.append({'method': 'publisher_year', 'key': f'PUBLISHER{publisher_ok};YEAR{year_ok}'})
-        keys_to_try.append({'method': 'publisher', 'key': f'PUBLISHER{publisher_ok}'})
+    #if isinstance(publisher, str) and publisher:
+    #    publisher_ok = detect_publisher(publisher.strip(), year_ok, doi)['publisher_group']
+    #    if year_ok:
+    #        keys_to_try.append({'method': 'publisher_year', 'key': f'PUBLISHER{publisher_ok};YEAR{year_ok}'})
+    #    keys_to_try.append({'method': 'publisher', 'key': f'PUBLISHER{publisher_ok}'})
     #if year_ok:
     #    keys_to_try.append({'method': 'year', 'key': f'YEAR{year_ok}'})
     #else:
