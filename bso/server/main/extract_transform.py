@@ -87,11 +87,11 @@ def remove_fields_bso(res):
             del res[f]
         if 'affiliations_' in f and (f not in ['bso_local_affiliations', 'french_affiliations_types']) :
             del res[f]
-        if f == 'affiliations' and isinstance(res['affiliations'], list):
-            for aff in res['affiliations']:
-                for k in ['name', 'datasource']:
-                    if k in aff:
-                        del aff[k]
+        #if f == 'affiliations' and isinstance(res['affiliations'], list):
+        #    for aff in res['affiliations']:
+        #        for k in ['name', 'datasource']:
+        #            if k in aff:
+        #                del aff[k]
     return remove_extra_fields(res)
 
 
@@ -235,7 +235,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         # upload to OS
         os.system(f'cp {enriched_output_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
         os.system(f'mv {enriched_output_file_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
-        zip_upload(enriched_output_file)
+        zip_upload(enriched_output_file, delete = False)
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
 
@@ -353,10 +353,11 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
 
-def zip_upload(a_file):
+def zip_upload(a_file, delete=True):
     os.system(f'gzip {a_file}')
     upload_object(container='bso_dump', filename=f'{a_file}.gz')
-    os.system(f'rm -rf {a_file}.gz')
+    if delete:
+        os.system(f'rm -rf {a_file}.gz')
 
 @retry(delay=200, tries=3)
 def to_mongo(input_list, collection_name):
