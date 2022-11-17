@@ -6,6 +6,7 @@ import requests
 import shutil
 import hashlib
 import json
+import string
 
 from typing import Union
 from urllib import parse
@@ -46,6 +47,19 @@ def to_json(input_list, output_file, ix):
                 outfile.write(',\n')
             entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
             json.dump(entry, outfile)
+
+def get_code_etab_nnt(x):
+    if x[0:3] != 'nnt':
+        return None
+    etab=''
+    for e in x[7:].lower():
+        if e in string.ascii_letters:
+            etab += e
+        else:
+            break
+    return etab
+
+
 
 def get_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
@@ -151,10 +165,11 @@ def get_dois_from_input(filename: str) -> list:
             elts_with_doi.append(elt)
     nb_grants = len(set(grant_ids))
     res = {'doi': elts_with_doi}
-    if 'hal_structId' in df.columns:
-        hal_struct_ids = [str(e).replace('.0','') for e in df['hal_structId'].dropna().tolist()]
-        res['hal_struct_ids'] = hal_struct_ids
-        logger.debug(f'{len(hal_struct_ids)} hal_struct_ids for {filename}')
+    for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt', 'hal_id']:
+        if f in df.columns:
+            data_column = [str(e).replace('.0','').strip().lower() for e in df[f].dropna().tolist()]
+            res[f] = data_column
+            logger.debug(f'{len(data_column)} {f} for {filename}')
     logger.debug(f'doi column: {doi_column} for {filename} with {len(elts_with_doi)} dois and {nb_grants} funding')
     return res
 

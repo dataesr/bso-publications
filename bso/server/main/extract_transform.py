@@ -24,7 +24,7 @@ from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
 from bso.server.main.utils_upw import chunks, get_millesime
-from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json
+from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
 from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
 from bso.server.main.funding import normalize_grant
@@ -38,14 +38,27 @@ def upload_sword(args):
     os.system('mkdir -p  /upw_data/scanr')
     os.system('mkdir -p  /upw_data/logs')
     os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
+    
     host = os.getenv('SWORD_PREPROD_HOST')
     username = os.getenv('SWORD_PREPROD_USERNAME')
     password = os.getenv('SWORD_PREPROD_PASSWORD')
+    port = int(os.getenv('SWORD_PREPROD_PORT'))
+    FTP_PATH = 'upload'
+    
+    host = os.getenv('SWORD_PROD_HOST')
+    username = os.getenv('SWORD_PROD_USERNAME')
+    password = os.getenv('SWORD_PROD_PASSWORD')
+    port = int(os.getenv('SWORD_PROD_PORT'))
+    FTP_PATH = 'upload/preprod'
+
+    # cat publications.json | sed -e "s/,$//" | sed -e "s/^\[//" | sed -e "s/\]$//"
+
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
-    with pysftp.Connection(host, username=username, password=password, port=2222, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
-        with sftp.cd('upload'):             # temporarily chdir to public
+    with pysftp.Connection(host, username=username, password=password, port=port, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
+        with sftp.cd(FTP_PATH):             # temporarily chdir to public
             sftp.put('/upw_data/scanr/publications.json')  # upload file to public/ on remote
+            sftp.put('/upw_data/scanr/persons.json')  # upload file to public/ on remote
     logger.debug('end sword upload')
 
 def json_to_csv(json_file, last_oa_details):
@@ -123,7 +136,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
     
     bso_local_filenames = []
     bso_local_dict = {}
-    hal_struct_dict = {}
+    hal_struct_id_dict = {}
     min_year = 2010
     if 'bso-' in index_name:
         min_year = 2013
@@ -136,7 +149,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         drop_collection('scanr', collection_name)
         
         if 'local' in datasources:
-            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_dict = build_bso_local_dict()
+            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
             for filename in bso_local_filenames:
                 extract_one_bso_local(filename, bso_local_dict, collection_name)
         if 'bso3' in datasources:
@@ -152,9 +165,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'orcid' in datasources:
             extract_orcid(bso_local_dict=bso_local_dict, collection_name=collection_name)
         if 'theses' in datasources:
-            extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None, collection_name=collection_name) #always fr
+            extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict) #always fr
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, hal_struct_dict=hal_struct_dict) # filter_fr add bso_country fr for french publi
+            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
             extract_container('sudoc',  bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name) # always fr
         if 'fixed' in datasources:
@@ -229,7 +242,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(elasticimport)
 
         if 'local' in datasources and len(bso_local_filenames) == 0:
-            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_dict = build_bso_local_dict()
+            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
         dump_bso_local(index_name, bso_local_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details)
 
         # upload to OS
@@ -270,7 +283,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                     if p.get(f):
                         new_elt[f] = p[f]
                 relevant_infos.append(new_elt)
-            #save_to_mongo_publi(relevant_infos)
+            save_to_mongo_publi(relevant_infos)
             publications_cleaned = []
             for elt in publications:
                 if isinstance(elt.get('classifications'), list):
@@ -721,13 +734,13 @@ def extract_pubmed(bso_local_dict, collection_name) -> None:
         update_publications_infos(publications, bso_local_dict, 'pubmed', collection_name)
 
 # one_by_one True if no subdirectory
-def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr, min_year, collection_name, hal_struct_dict={}):
+def extract_container(container, bso_local_dict, skip_download, download_prefix, one_by_one, filter_fr, min_year, collection_name, hal_struct_id_dict={}, hal_coll_code_dict={}, nnt_etab_dict={}):
     local_path = download_container(container, skip_download, download_prefix)
     if one_by_one is False:
         for subdir in os.listdir(local_path):
-            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_dict)
+            get_data(f'{local_path}/{subdir}', one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
     else:
-        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_dict)
+        get_data(local_path, one_by_one, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
 
 def download_container(container, skip_download, download_prefix):
     if skip_download is False:
@@ -739,7 +752,7 @@ def download_container(container, skip_download, download_prefix):
         return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
     return f'{MOUNTED_VOLUME}/{container}'
 
-def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_dict={}):
+def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, collection_name, hal_struct_id_dict={}, hal_coll_code_dict={}, nnt_etab_dict={}):
     logger.debug(f'getting data from {local_path}')
     publications = []
     for root, dirs, files in os.walk(local_path, topdown=False):
@@ -776,15 +789,30 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     if len(str(publi[f])) > 100000:
                         logger.debug(f"deleting field {f} in publi {publi_id} from {jsonfilename} as too long !") 
                         del publi[f]
+                # code etab NNT
+                if get_code_etab_nnt(publi_id) in nnt_etab_dict:
+                    current_local = publi.get('bso_local_affiliations', [])
+                    new_local = nnt_etab_dict[get_code_etab_nnt(publi_id)]
+                    if new_local not in current_local:
+                        current_local.append(new_local)
+                        publi['bso_local_affiliations'] = current_local
+                # code collection HAL
+                if publi.get('hal_collection_code') in hal_coll_code_dict:
+                    current_local = publi.get('bso_local_affiliations', [])
+                    new_local = hal_coll_code_dict[publi.get('hal_collection_code')]
+                    if new_local not in current_local:
+                        current_local.append(new_local)
+                        publi['bso_local_affiliations'] = current_local
+                # code structId HAL
                 affiliations = publi.get('affiliations')
                 if isinstance(affiliations, list):
                     for aff in affiliations:
                         if isinstance(aff.get('name'), str):
                             if aff['name'].lower() == 'access provided by':
                                 aff['name']='' # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
-                        if aff.get('hal_docid') and aff['hal_docid'] in hal_struct_dict:
+                        if aff.get('hal_docid') and aff['hal_docid'] in hal_struct_id_dict:
                             current_local = publi.get('bso_local_affiliations', [])
-                            new_local = hal_struct_dict[aff['hal_docid']]
+                            new_local = hal_struct_id_dict[aff['hal_docid']]
                             if new_local not in current_local:
                                 current_local.append(new_local)
                                 publi['bso_local_affiliations'] = current_local
@@ -909,7 +937,7 @@ def extract_orcid(bso_local_dict, collection_name):
 def build_bso_local_dict():
     bso_local_dict = {}
     bso_local_dict_aff = {}
-    hal_struct_dict = {}
+    hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = {}, {}
     bso_local_filenames = []
     os.system(f'mkdir -p {MOUNTED_VOLUME}/bso_local')
     cmd =  init_cmd + f' download bso-local -D {MOUNTED_VOLUME}/bso_local --skip-identical'
@@ -919,10 +947,18 @@ def build_bso_local_dict():
         local_affiliations = '.'.join(filename.split('.')[:-1]).split('_')
         data_from_input = get_dois_from_input(filename=filename)
         current_dois = data_from_input['doi']
-        for s in data_from_input.get('hal_struct_ids', []):
+        for s in data_from_input.get('hal_struct_id', []):
             assert(isinstance(s, str))
             assert('.0' not in s)
-            hal_struct_dict[s] = local_affiliations[0]
+            hal_struct_id_dict[s] = local_affiliations[0]
+        for s in data_from_input.get('hal_coll_code', []):
+            assert(isinstance(s, str))
+            assert('.0' not in s)
+            hal_coll_code_dict[s] = local_affiliations[0]
+        for s in data_from_input.get('nnt_etab', []):
+            assert(isinstance(s, str))
+            assert('.0' not in s)
+            nnt_etab[s] = local_affiliations[0]
         for elt in current_dois:
             elt_id = elt['doi']
             if elt_id not in bso_local_dict:
@@ -941,7 +977,7 @@ def build_bso_local_dict():
                     bso_local_dict_aff[local_affiliation] = []
                 if elt_id not in bso_local_dict_aff[local_affiliation]:
                     bso_local_dict_aff[local_affiliation].append(elt_id)
-    return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames)), hal_struct_dict
+    return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames)), hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict
 
 def extract_one_bso_local(bso_local_filename, bso_local_dict, collection_name):
     local_affiliations = bso_local_filename.split('.')[0].split('_')
