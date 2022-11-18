@@ -49,6 +49,8 @@ def to_json(input_list, output_file, ix):
             json.dump(entry, outfile)
 
 def get_code_etab_nnt(x):
+    if not isinstance(x, str):
+        return None
     if x[0:3] != 'nnt':
         return None
     etab=''

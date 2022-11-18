@@ -479,7 +479,10 @@ def merge_publications(current_publi, new_publi):
     # hal
     for f in ['hal_collection_code']:
         if f in new_publi:
-            current_publi[f] = new_publi[f]
+            existing_list = current_publi.get(f)
+            if not isinstance(existing_list, list):
+                existing_list = []
+            current_publi[f] = list(set(existing_list + new_publi[f]))
             change = True
     # domains
     current_domains = current_publi.get('domains', [])
@@ -514,9 +517,9 @@ def merge_publications(current_publi, new_publi):
                 current_oa_details[obs_date]['oa_locations'] += new_oa_details[obs_date]['oa_locations']
                 change = True
     # abstract, keywords, classifications
-    # TOFIX put hal_classification next BSO release !
-    # for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references', 'hal_classification']:
-    for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references']:
+    # hal_classif to use for bso_classif
+    for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references', 'hal_classification']:
+    #for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references']:
         current_field = current_publi.get(field, [])
         if not isinstance(current_field, list):
             current_field = []
@@ -790,19 +793,21 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                         logger.debug(f"deleting field {f} in publi {publi_id} from {jsonfilename} as too long !") 
                         del publi[f]
                 # code etab NNT
-                if get_code_etab_nnt(publi_id) in nnt_etab_dict:
+                nnt_id = publi.get('nnt_id')
+                if nnt_id and get_code_etab_nnt(nnt_id) in nnt_etab_dict:
                     current_local = publi.get('bso_local_affiliations', [])
-                    new_local = nnt_etab_dict[get_code_etab_nnt(publi_id)]
+                    new_local = nnt_etab_dict[get_code_etab_nnt(nnt_id)]
                     if new_local not in current_local:
                         current_local.append(new_local)
                         publi['bso_local_affiliations'] = current_local
                 # code collection HAL
-                if publi.get('hal_collection_code') in hal_coll_code_dict:
-                    current_local = publi.get('bso_local_affiliations', [])
-                    new_local = hal_coll_code_dict[publi.get('hal_collection_code')]
-                    if new_local not in current_local:
-                        current_local.append(new_local)
-                        publi['bso_local_affiliations'] = current_local
+                for coll_code in publi.get('hal_collection_code'):
+                    if coll_code in hal_coll_code_dict:
+                        current_local = publi.get('bso_local_affiliations', [])
+                        new_local = hal_coll_code_dict[coll_code]
+                        if new_local not in current_local:
+                            current_local.append(new_local)
+                            publi['bso_local_affiliations'] = current_local
                 # code structId HAL
                 affiliations = publi.get('affiliations')
                 if isinstance(affiliations, list):
@@ -937,7 +942,7 @@ def extract_orcid(bso_local_dict, collection_name):
 def build_bso_local_dict():
     bso_local_dict = {}
     bso_local_dict_aff = {}
-    hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = {}, {}
+    hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = {}, {}, {}
     bso_local_filenames = []
     os.system(f'mkdir -p {MOUNTED_VOLUME}/bso_local')
     cmd =  init_cmd + f' download bso-local -D {MOUNTED_VOLUME}/bso_local --skip-identical'
@@ -958,7 +963,7 @@ def build_bso_local_dict():
         for s in data_from_input.get('nnt_etab', []):
             assert(isinstance(s, str))
             assert('.0' not in s)
-            nnt_etab[s] = local_affiliations[0]
+            nnt_etab_dict[s] = local_affiliations[0]
         for elt in current_dois:
             elt_id = elt['doi']
             if elt_id not in bso_local_dict:
