@@ -112,7 +112,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
         else:
             res[f] = False
     if res['is_oa'] is False:
-        res['oa_host_type'] = ['closed']
+        res['oa_host_type'] = 'closed'
         res['oa_colors'] = ['closed']
         res['oa_colors_with_priority_to_publisher'] = ['closed']
         return {millesime: res}

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import ast
 import json
+from retry import retry
 
 from bso.server.main.logger import get_logger
 
@@ -43,6 +44,12 @@ def get_classification_dewey(publi_codes):
             break
     return thesis_classification
 
+@retry(delay=2, tries=50)
+def call_classifier(a_publication, classif_type):
+    r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication], 'details': True,
+                                                                                     'type': classif_type})
+    return r_classif
+
 def detect_fields(a_publication, classification_types):
     for classif_type in classification_types:
         if classif_type == 'thesis':
@@ -52,10 +59,9 @@ def detect_fields(a_publication, classification_types):
             a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])['discipline']
             assert(isinstance(a_publication['bso_classification'], str))
         else:
-            r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication], 'details': True,
-                                                                                     'type': classif_type})
             try:
+                r_classif = call_classifier(a_publication, classif_type)
                 a_publication = r_classif.json().get('publications')[0]
             except:
-                logger.debug(f'Error in classif {classif_type} : {r_classif.text}')
+                logger.debug(f'Error in classif {classif_type} for {a_publication}')
     return a_publication

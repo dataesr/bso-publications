@@ -49,16 +49,13 @@ def to_json(input_list, output_file, ix):
             json.dump(entry, outfile)
 
 def get_code_etab_nnt(x):
+    #format nnt YYYY ETAB ABCD
+    # cf https://documentation.abes.fr/sudoc/regles/CodesUnivEtab.htm
     if not isinstance(x, str):
         return None
     if x[0:3] != 'nnt':
         return None
-    etab=''
-    for e in x[7:].lower():
-        if e in string.ascii_letters:
-            etab += e
-        else:
-            break
+    etab=x[7:11].lower()
     return etab
 
 

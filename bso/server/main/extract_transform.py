@@ -28,6 +28,8 @@ from bso.server.main.utils import download_file, get_dois_from_input, dump_to_ob
 from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
 from bso.server.main.funding import normalize_grant
+from bso.server.main.bso_utils import json_to_csv
+
 
 logger = get_logger(__name__)
     
@@ -61,30 +63,7 @@ def upload_sword(args):
             sftp.put('/upw_data/scanr/persons.json')  # upload file to public/ on remote
     logger.debug('end sword upload')
 
-def json_to_csv(json_file, last_oa_details):
-    output_csv_file = json_file.replace('.jsonl', '.csv')
-    cmd_header = f"echo 'doi,year,title,journal_issns,journal_issn_l,journal_name,publisher,publisher_dissemination," \
-                 f"hal_id,pmid,bso_classification,bsso_classification,domains,lang,genre,amount_apc_EUR," \
-                 f"detected_countries,bso_local_affiliations,is_oa,journal_is_in_doaj,journal_is_oa,observation_date," \
-                 f"oa_host_type,oa_colors,licence_publisher,licence_repositories,repositories,funding_anr,funding_europe' > {output_csv_file}"
-    #logger.debug(cmd_header)
-    os.system(cmd_header)
-    cmd_jq = f"cat {json_file} | jq -rc '[.doi,.year,.title,.journal_issns,.journal_issn_l,.journal_name," \
-             f".publisher,.publisher_dissemination,.hal_id,.pmid,.bso_classification,((.bsso_classification.field)" \
-             f"?|join(\";\"))//null,((.domains)?|join(\";\"))//null,.lang,.genre,.amount_apc_EUR," \
-             f"((.detected_countries)?|join(\";\"))//null,((.bso_local_affiliations)?|join(\";\"))//null," \
-             f"[.oa_details[]|select(.observation_date==\"{last_oa_details}\")|.is_oa,.journal_is_in_doaj," \
-             f".journal_is_oa,.observation_date,([.oa_host_type]|flatten)[0],((.oa_colors)?|join(\";\"))//null," \
-             f"((.licence_publisher)?|join(\";\"))//null,((.licence_repositories)?|join(\";\"))//null," \
-             f"((.repositories)?|join(\";\"))//null]," \
-             f"[.grants[]?|select(.agency==\"ANR\")][0].grantid," \
-             f"[.grants[]?|select(.agency==\"H2020\")][0].grantid" \
-             f"]|flatten|@csv' >> {output_csv_file}"
-    #logger.debug(cmd_jq)
-    os.system(cmd_jq)
-    return output_csv_file
-
-
+            
 def remove_extra_fields(res): 
     # Not exposing some fields in index
     for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw']:
@@ -230,7 +209,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             download_object(container='bso_dump', filename=f"{enriched_output_file.split('/')[-1]}.gz", out=f'{enriched_output_file}.gz')
             os.system(f'gunzip {enriched_output_file}.gz')
         # csv
-        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details)
+        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details, split_year=True)
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
