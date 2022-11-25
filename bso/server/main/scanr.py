@@ -10,7 +10,8 @@ from bso.server.main.strings import normalize2
 from bso.server.main.utils import clean_json
 
 logger = get_logger(__name__)
-    
+
+NB_MAX_AUTHORS = 50
 
 def get_matches_for_publication(publi_ids):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -216,10 +217,13 @@ def to_scanr(publications):
                         if x.get('id'):
                             affiliations.append(x['id'])
                 #data scraped
-                if isinstance(aff.get('grid'), list):
-                    for x in aff['grid']:
-                        if x not in affiliations:
-                            affiliations.append(x)
+                for t in ['grid', 'rnsr', 'ror']:
+                    if isinstance(aff.get(t), list):
+                        for x in aff[t]:
+                            if x not in affiliations:
+                                affiliations.append(x)
+                    if isinstance(aff.get(t), str) and aff[t] not in affiliations:
+                        affiliations.append(aff[t])
         #data from local bso
         if isinstance(p.get('bso_local_affiliations'), list):
             for aff in p['bso_local_affiliations']:
@@ -230,7 +234,11 @@ def to_scanr(publications):
         ## authors
         authors=[]
         if isinstance(p.get('authors'), list):
-            for a in p['authors']:
+            nb_authors = len([a for a in p['authors'] if a.get('role', 'author')[0:3] == 'aut'])
+            for ix_aut, a in enumerate(p['authors']):
+                # max auteurs
+                if ix_aut > NB_MAX_AUTHORS:
+                    continue
                 author = {}
                 if a.get('first_name'):
                     author['firstName'] = a['first_name']
@@ -247,13 +255,21 @@ def to_scanr(publications):
                             for x in aff['ids']:
                                 if x.get('id'):
                                     affiliations.append(x['id'])
-                if isinstance(a.get('grid'), list):
-                    for x in a['grid']:
-                        if x not in affiliations:
-                            affiliations.append(x)
+                        for t in ['grid', 'ror', 'rnsr']:
+                            if isinstance(a.get(t), list):
+                                for x in a[t]:
+                                    if x not in affiliations:
+                                        affiliations.append(x)
+                            if isinstance(a.get(t), str) and a[t] not in affiliations:
+                                affiliations.append(a[t])
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
+                    # si monoauteur => affiliations publi = affiliation auteur
+                    if nb_authors == 1:
+                        for x in elt.get('affiliations', []):
+                            if x not in affiliations:
+                                affiliations.append(x)
                 if affiliations:
                     author['affiliations'] = affiliations
                 if author:
