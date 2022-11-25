@@ -773,20 +773,21 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                         del publi[f]
                 # code etab NNT
                 nnt_id = publi.get('nnt_id')
-                if nnt_id and get_code_etab_nnt(nnt_id) in nnt_etab_dict:
+                if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id) in nnt_etab_dict:
                     current_local = publi.get('bso_local_affiliations', [])
                     new_local = nnt_etab_dict[get_code_etab_nnt(nnt_id)]
                     if new_local not in current_local:
                         current_local.append(new_local)
                         publi['bso_local_affiliations'] = current_local
                 # code collection HAL
-                for coll_code in publi.get('hal_collection_code'):
-                    if coll_code in hal_coll_code_dict:
-                        current_local = publi.get('bso_local_affiliations', [])
-                        new_local = hal_coll_code_dict[coll_code]
-                        if new_local not in current_local:
-                            current_local.append(new_local)
-                            publi['bso_local_affiliations'] = current_local
+                if isinstance(publi.get('hal_collection_code'), list):
+                    for coll_code in publi.get('hal_collection_code'):
+                        if coll_code in hal_coll_code_dict:
+                            current_local = publi.get('bso_local_affiliations', [])
+                            new_local = hal_coll_code_dict[coll_code]
+                            if new_local not in current_local:
+                                current_local.append(new_local)
+                                publi['bso_local_affiliations'] = current_local
                 # code structId HAL
                 affiliations = publi.get('affiliations')
                 if isinstance(affiliations, list):
