@@ -4,6 +4,7 @@ import os
 import pandas as pd
 
 import dateutil.parser
+from retry import retry
 
 from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2
@@ -13,6 +14,7 @@ logger = get_logger(__name__)
 
 NB_MAX_AUTHORS = 50
 
+@retry(delay=200, tries=3)
 def get_matches_for_publication(publi_ids):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']

@@ -9,7 +9,7 @@ class BaseConfig(object):
     REDIS_URL = 'redis://redis:6379/0'
     # QUEUES = ['bso-publications', 'unpaywall_to_crawler', 'zotero', 'scanr-publications']
     QUEUES = ['bso-publications', 'unpaywall_to_crawler', 'zotero']
-    # QUEUES = ['scanr-publications', 'unpaywall_to_crawler', 'zotero']
+    #QUEUES = ['scanr-publications', 'unpaywall_to_crawler', 'zotero']
 
 
 class DevelopmentConfig(BaseConfig):
