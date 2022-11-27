@@ -15,6 +15,7 @@ def json_to_csv(json_file, observation_date, split_year = False):
             write_header = False
         pandas_to_csv(c, observation_date, output_csv_file, write_header, split_year)
         ix += 1
+    return output_csv_file
 
 
 def pandas_to_csv(df, observation_date, filename, write_header=True, split_year = False):
