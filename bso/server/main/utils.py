@@ -53,9 +53,9 @@ def get_code_etab_nnt(x):
     # cf https://documentation.abes.fr/sudoc/regles/CodesUnivEtab.htm
     if not isinstance(x, str):
         return None
-    if x[0:3] != 'nnt':
-        return None
-    etab=x[7:11].lower()
+    #if x[0:3] != 'nnt':
+    #    return None
+    etab=x[4:8].lower()
     return etab
 
 
