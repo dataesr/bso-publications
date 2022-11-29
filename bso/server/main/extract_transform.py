@@ -254,7 +254,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             publications = c.to_dict(orient='records')
             publications = get_person_ids(publications)
             publications_scanr = to_scanr(publications)
-            to_json(to_scanr(publications), scanr_output_file, ix)
+            to_json(publications_scanr, scanr_output_file, ix)
             relevant_infos = []
             for p in publications_scanr:
                 new_elt = {'id': p['id']}

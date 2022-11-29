@@ -163,12 +163,14 @@ def to_scanr(publications):
                     domain = {'label': {'default': c['label']}}
                     domain['code'] = str(c.get('code'))
                     domain['type'] = c.get('reference')
-                    domains.append(domain)
+                    if domain['type'] in ['wikidata', 'sudoc']:
+                        domains.append(domain)
                 if c.get('label_fr'):
                     domain = {'label': {'default': c['label_fr']}}
                     domain['code'] = str(c.get('code'))
                     domain['type'] = c.get('reference')
-                    domains.append(domain)
+                    if domain['type'] in ['wikidata', 'sudoc']:
+                        domains.append(domain)
         if isinstance(p.get('hal_classifications'), list):
             for c in p['hal_classifications']:
                 if c.get('label'):
@@ -219,7 +221,7 @@ def to_scanr(publications):
                         if x.get('id'):
                             affiliations.append(x['id'])
                 #data scraped
-                for t in ['grid', 'rnsr', 'ror']:
+                for t in ['grid', 'rnsr', 'ror', 'sirene', 'siren', 'siret']:
                     if isinstance(aff.get(t), list):
                         for x in aff[t]:
                             if x not in affiliations:
@@ -257,13 +259,13 @@ def to_scanr(publications):
                             for x in aff['ids']:
                                 if x.get('id'):
                                     affiliations.append(x['id'])
-                        for t in ['grid', 'ror', 'rnsr']:
-                            if isinstance(a.get(t), list):
-                                for x in a[t]:
+                        for t in ['grid', 'ror', 'rnsr', 'sirene', 'siren', 'siret']:
+                            if isinstance(aff.get(t), list):
+                                for x in aff[t]:
                                     if x not in affiliations:
                                         affiliations.append(x)
-                            if isinstance(a.get(t), str) and a[t] not in affiliations:
-                                affiliations.append(a[t])
+                            if isinstance(aff.get(t), str) and aff[t] not in affiliations:
+                                affiliations.append(aff[t])
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
