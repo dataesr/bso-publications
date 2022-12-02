@@ -21,7 +21,7 @@ from bso.server.main.affiliation_matcher import get_query_from_affiliation
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
-START_YEAR = 2021
+START_YEAR = 2022
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
 def to_mongo_affiliations(input_list):

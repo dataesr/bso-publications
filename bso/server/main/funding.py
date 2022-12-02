@@ -11,7 +11,7 @@ def get_anr_open_data():
     urls = [
         {'url': 'https://www.data.gouv.fr/fr/datasets/r/87d29a24-392e-4a29-a009-83eddcff3e66', 'type': 'DOS'},
         {'url': 'https://www.data.gouv.fr/fr/datasets/r/74a59cc0-ef79-458a-83e0-f181f9da459f', 'type': 'DOS'},
-        {'url': 'https://www.data.gouv.fr/fr/datasets/r/aca6972b-577c-496a-aa26-009f81256dcb', 'type': 'DGPIE'}
+        {'url': 'https://www.data.gouv.fr/fr/datasets/r/aca6972b-577c-496a-aa26-009f81256dcb', 'type': 'PIA'}
     ]
     for elt in urls:
         anr_type = 'ANR '+elt['type']

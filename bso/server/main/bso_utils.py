@@ -32,7 +32,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         id_elem = elem['id']
         for f in simple_fields:
             if f in elem:
-                new_elem[f] = elem[f]
+                new_elem[f] = elem[f].replace('\u2028',' ')
             else:
                 new_elem[f] = None
 
@@ -75,6 +75,27 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
             for f in ['is_oa', 'oa_host_type', 'journal_is_in_doaj', 'journal_is_oa', 'unpaywall_oa_status',
                      'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
                 new_elem[f] = None
+
+        new_elem['software_mentions'] = []
+        new_elem['data_mentions'] = []
+        for g in ['software', 'data']:
+            for t in ['used', 'shared', 'created']:
+                new_elem[f'{g}_{t}'] = None
+
+        if isinstance(elem.get('softcite_details'), dict):
+            new_elem['software_used'] = elem['softcite_details'].get('has_used')
+            new_elem['software_shared'] = elem['softcite_details'].get('has_shared')
+            new_elem['software_created'] = elem['softcite_details'].get('has_created')
+            mentions = elem['softcite_details'].get('mentions')
+            if isinstance(mentions, list):
+                new_elem['software_mentions'] = ";".join(mentions)
+        if isinstance(elem.get('datastet_details'), dict):
+            new_elem['data_used'] = elem['datastet_details'].get('has_used')
+            new_elem['data_shared'] = elem['datastet_details'].get('has_shared')
+            new_elem['data_created'] = elem['datastet_details'].get('has_created')
+            mentions = elem['datastet_details'].get('mentions')
+            if isinstance(mentions, list):
+                new_elem['data_mentions'] = ";".join(mentions)
 
         flatten_data.append(new_elem)
     final_cols = ['observation_date', 'id', 'doi', 'pmid', 'hal_id', 'year', 'title',

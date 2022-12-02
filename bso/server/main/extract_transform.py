@@ -209,7 +209,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             download_object(container='bso_dump', filename=f"{enriched_output_file.split('/')[-1]}.gz", out=f'{enriched_output_file}.gz')
             os.system(f'gunzip {enriched_output_file}.gz')
         # csv
-        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details, split_year=True)
+        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details, split_year=False)
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
@@ -782,12 +782,15 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 # code collection HAL
                 if isinstance(publi.get('hal_collection_code'), list):
                     for coll_code in publi.get('hal_collection_code'):
+                        current_local = publi.get('bso_local_affiliations', [])
+                        # adding coll code into bso_local_affiliation
+                        current_local.append(coll_code.lower())
+                        publi['bso_local_affiliations'] = list(set(current_local))
                         if coll_code in hal_coll_code_dict:
-                            current_local = publi.get('bso_local_affiliations', [])
                             new_local = hal_coll_code_dict[coll_code]
                             if new_local not in current_local:
                                 current_local.append(new_local)
-                                publi['bso_local_affiliations'] = current_local
+                                publi['bso_local_affiliations'] = list(set(current_local))
                 # code structId HAL
                 affiliations = publi.get('affiliations')
                 if isinstance(affiliations, list):
@@ -795,12 +798,16 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                         if isinstance(aff.get('name'), str):
                             if aff['name'].lower() == 'access provided by':
                                 aff['name']='' # some publications are wrongly detected fr and parsed affiliation is 'Access provided by' ...
-                        if aff.get('hal_docid') and aff['hal_docid'] in hal_struct_id_dict:
-                            current_local = publi.get('bso_local_affiliations', [])
-                            new_local = hal_struct_id_dict[aff['hal_docid']]
-                            if new_local not in current_local:
-                                current_local.append(new_local)
-                                publi['bso_local_affiliations'] = current_local
+                        current_local = publi.get('bso_local_affiliations', [])
+                        if aff.get('hal_docid'):
+                            # adding hal_struct_id into bso_local_affiliation
+                            current_local.append(str(int(aff.get('hal_docid')))
+                            publi['bso_local_affiliations'] = list(set(current_local))
+                            if aff['hal_docid'] in hal_struct_id_dict:
+                                new_local = hal_struct_id_dict[aff['hal_docid']]
+                                if new_local not in current_local:
+                                    current_local.append(new_local)
+                                    publi['bso_local_affiliations'] = list(set(current_local))
 
                 if filter_fr:
                     # si filter_fr, on ajoute bso_country fr seulement pour les fr
