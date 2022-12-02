@@ -1,14 +1,23 @@
-name: Build
+name: Publish Docker image
+
 on:
   push:
     tags:
       - '*'
+
+env:
+  MM_NOTIFICATION_CHANNEL: 'bso-bot'
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: 🏁 Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: 🏷️ Get Tag
+        id: version
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: 🐋 Build docker image
         run: make docker-build
@@ -19,15 +28,13 @@ jobs:
       - name: 📦 Push docker image
         run: make docker-push
 
-  slack:
-    needs:
-      - build
+  notify:
+    needs: deploy
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: dataesr/slack-notifier-action@v1
+      - uses: dataesr/mm-notifier-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN}}
-          slack_token: ${{ secrets.SLACK_TOKEN }}
-          slack_channel: '#bsso_bso2'
+          mattermost_webhook_url: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          mattermost_channel: ${{ env.MM_NOTIFICATION_CHANNEL}}
