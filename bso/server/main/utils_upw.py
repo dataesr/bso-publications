@@ -101,7 +101,7 @@ def get_millesime(x: str) -> str:
     return 'unk'
 
 
-def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -> dict:
+def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, genre: str) -> dict:
     res = {'snapshot_date': asof}
     millesime = get_millesime(asof)
     res['observation_date'] = millesime
@@ -129,6 +129,9 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str) -
     res['unpaywall_oa_status'] = elem.get('oa_status')
     for loc in oa_loc:
         if loc is None:
+            continue
+        if (publisher == 'Springer-Nature') and (genre == 'book') and ('aleph.bib-bvb.de' in loc.get('pmh_id')):
+            # to fix false positive detection by unpaywall
             continue
         if isinstance(loc.get('url'), str):
             loc['url'] = loc['url'].lower().strip()

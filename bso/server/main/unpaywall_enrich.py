@@ -239,7 +239,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 if asof == 'global':
                     continue
                 else:
-                    tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'])
+                    tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'], res['genre'])
                     res['oa_details'].update(tmp)
                     obs_date = list(tmp.keys())[0]
                     res['observation_dates'].append(obs_date)  # getting the key that is the observation date

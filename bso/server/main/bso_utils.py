@@ -31,8 +31,10 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         new_elem = {'observation_date': observation_date}
         id_elem = elem['id']
         for f in simple_fields:
-            if f in elem:
+            if isinstance(elem.get(f), str):
                 new_elem[f] = elem[f].replace('\u2028',' ')
+            elif elem.get(f):
+                new_elem[f] = elem[f]
             else:
                 new_elem[f] = None
 
@@ -76,8 +78,8 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
                      'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
                 new_elem[f] = None
 
-        new_elem['software_mentions'] = []
-        new_elem['data_mentions'] = []
+        new_elem['software_mentions'] = None
+        new_elem['data_mentions'] = None
         for g in ['software', 'data']:
             for t in ['used', 'shared', 'created']:
                 new_elem[f'{g}_{t}'] = None
@@ -88,14 +90,14 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
             new_elem['software_created'] = elem['softcite_details'].get('has_created')
             mentions = elem['softcite_details'].get('mentions')
             if isinstance(mentions, list):
-                new_elem['software_mentions'] = ";".join(mentions)
+                new_elem['software_mentions'] = ";".join(list(set([k['name'] for k in mentions if 'name' in k])))
         if isinstance(elem.get('datastet_details'), dict):
             new_elem['data_used'] = elem['datastet_details'].get('has_used')
             new_elem['data_shared'] = elem['datastet_details'].get('has_shared')
             new_elem['data_created'] = elem['datastet_details'].get('has_created')
             mentions = elem['datastet_details'].get('mentions')
             if isinstance(mentions, list):
-                new_elem['data_mentions'] = ";".join(mentions)
+                new_elem['data_mentions'] = ";".join(list(set([k['name'] for k in mentions if 'name' in k])))
 
         flatten_data.append(new_elem)
     final_cols = ['observation_date', 'id', 'doi', 'pmid', 'hal_id', 'year', 'title',
@@ -105,7 +107,11 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
        'bso_local_affiliations', 'funding_anr', 'funding_europe',
        'bsso_classification', 'is_oa', 'oa_host_type', 'journal_is_in_doaj',
        'journal_is_oa', 'unpaywall_oa_status', 'oa_colors',
-       'licence_publisher', 'licence_repositories', 'repositories']
+       'licence_publisher', 'licence_repositories', 'repositories',
+       'software_mentions', 'data_mentions',
+       'software_used', 'software_created', 'software_shared',
+       'data_used', 'data_created', 'data_shared'
+       ]
     df_flatten = pd.DataFrame(flatten_data)[final_cols]
 
     if write_header:

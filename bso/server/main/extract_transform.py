@@ -39,24 +39,30 @@ def upload_sword(args):
     logger.debug('start sword upload')
     os.system('mkdir -p  /upw_data/scanr')
     os.system('mkdir -p  /upw_data/logs')
-    os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
-    
+    try:
+        os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
+    except:
+        logger.debug('erreur dans mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
     host = os.getenv('SWORD_PREPROD_HOST')
     username = os.getenv('SWORD_PREPROD_USERNAME')
     password = os.getenv('SWORD_PREPROD_PASSWORD')
     port = int(os.getenv('SWORD_PREPROD_PORT'))
     FTP_PATH = 'upload'
-    
+    # TOREMOVE if sword OK
     host = os.getenv('SWORD_PROD_HOST')
     username = os.getenv('SWORD_PROD_USERNAME')
     password = os.getenv('SWORD_PROD_PASSWORD')
     port = int(os.getenv('SWORD_PROD_PORT'))
     FTP_PATH = 'upload/preprod'
-
-    # cat publications.json | sed -e "s/,$//" | sed -e "s/^\[//" | sed -e "s/\]$//"
-
+    # cat publications.json | sed -e "s/,$//" | sed -e "s/^\[//" | sed -e "s/\]$//i"
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
+    with pysftp.Connection(host, username=username, password=password, port=port, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
+        try:
+            sftp.chdir(FTP_PATH)  # Test if remote_path exists
+        except IOError:
+            sftp.mkdir(FTP_PATH)  # Create remote_path
+            sftp.chdir(FTP_PATH)
     with pysftp.Connection(host, username=username, password=password, port=port, cnopts=cnopts, log='/upw_data/logs/logs.log') as sftp:
         with sftp.cd(FTP_PATH):             # temporarily chdir to public
             sftp.put('/upw_data/scanr/publications.json')  # upload file to public/ on remote
@@ -132,7 +138,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             for filename in bso_local_filenames:
                 extract_one_bso_local(filename, bso_local_dict, collection_name)
         if 'bso3' in datasources:
-            extract_container('bso3_publications_dump', bso_local_dict, skip_download, download_prefix='final_for_bso', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name) #always fr
+            extract_container('bso3_publications_dump', bso_local_dict, skip_download=False, download_prefix='final_for_bso', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name) #always fr
         if 'pubmed' in datasources:
             extract_pubmed(bso_local_dict, collection_name)
         if 'medline' in datasources:
@@ -244,6 +250,17 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         df_patents = pd.read_json(f'{MOUNTED_VOLUME}/fam_final_json.jsonl', lines=True, chunksize=10000)
         for c in df_patents:
             patents = c.to_dict(orient='records')
+            for i_p, patent in enumerate(patents):
+                for field_to_fix in ['title', 'summary']:
+                    if isinstance(patent.get(field_to_fix), list) and patent[field_to_fix]:
+                        patents[i_p][field_to_fix] = patent[field_to_fix][0]
+                subpatents = patent.get('patents')
+                if isinstance(subpatents, list):
+                    for j_p, subpatent in enumerate(subpatents):
+                        if 'pulicationDate' in subpatent:
+                            subpatents[j_p]['publicationDate'] = subpatent['pulicationDate']
+                            del subpatents[j_p]['pulicationDate']
+                    patents[i_p]['patents'] = subpatents
             to_json(patents, scanr_output_file, ix)
             ix += 1
             logger.debug(f'scanr extract patent, {ix}')
@@ -325,7 +342,7 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         local_filename = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched'
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
-    
+    local_bso_lower = set([k.split('.')[0].lower() for k in local_bso_filenames])
     df = pd.read_json(enriched_output_file, lines=True, chunksize=20000)
     ix = 0
     for c in df:
@@ -333,17 +350,22 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
         for p in publications:
             for local_affiliation in p.get('bso_local_affiliations', []):
-                to_jsonl([p], f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl', 'a')
+                if local_affiliation.lower() in local_bso_lower:
+                    to_jsonl([p], f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl', 'a')
         ix += 1
     
     for local_affiliation in local_bso_filenames:
+        logger.debug(f'files creation for {local_affiliation}')
         local_affiliation = local_affiliation.split('.')[0]
         local_filename_json = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl'
-        local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
-        os.system(f'mv {local_filename_json} {MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
-        os.system(f'mv {local_filename_csv} {MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
-        zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
-        zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
+        try:
+            local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
+            os.system(f'mv {local_filename_csv} {MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
+            zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.csv')
+            os.system(f'mv {local_filename_json} {MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
+            zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_{local_affiliation}_enriched.jsonl')
+        except:
+            logger.debug(f'ERROR in file creation for {local_filename_json}')
 
 def zip_upload(a_file, delete=True):
     os.system(f'gzip {a_file}')
@@ -801,7 +823,7 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                         current_local = publi.get('bso_local_affiliations', [])
                         if aff.get('hal_docid'):
                             # adding hal_struct_id into bso_local_affiliation
-                            current_local.append(str(int(aff.get('hal_docid')))
+                            current_local.append(str(int(float(aff.get('hal_docid')))))
                             publi['bso_local_affiliations'] = list(set(current_local))
                             if aff['hal_docid'] in hal_struct_id_dict:
                                 new_local = hal_struct_id_dict[aff['hal_docid']]

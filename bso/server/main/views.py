@@ -152,6 +152,17 @@ def run_task_et():
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
+@main_blueprint.route('/et_scanr', methods=['POST'])
+def run_task_et_scanr():
+    logger.debug('Starting task et scanr')
+    args = request.get_json(force=True)
+    queue = args.get('queue', 'scanr-publications')
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name=queue, default_timeout=default_timeout)
+        task = q.enqueue(create_task_et, args)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202
+
 @main_blueprint.route('/et_fast', methods=['POST'])
 def run_task_et_fast():
     logger.debug('Starting task et')
