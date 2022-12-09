@@ -293,6 +293,9 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             #logger.debug(f'no oa details for publi {res["id"]}')
         else:
             for millesime in res.get('oa_details'):
+                if isinstance(res['oa_details'][millesime].get('oa_colors'), str):
+                    current_color = res['oa_details'][millesime].get('oa_colors')
+                    res['oa_details'][millesime]['oa_colors'] = [current_color]
                 if res['oa_details'][millesime].get('repositories'):
                     repos = dedup_sort(res['oa_details'][millesime].get('repositories'))
                     res['oa_details'][millesime]['repositories_concat'] = ";".join(repos)
