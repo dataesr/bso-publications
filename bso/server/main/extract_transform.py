@@ -35,14 +35,14 @@ logger = get_logger(__name__)
     
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
 
-def upload_sword(args):
+def upload_sword(index_name):
     logger.debug('start sword upload')
     os.system('mkdir -p  /upw_data/scanr')
     os.system('mkdir -p  /upw_data/logs')
     try:
-        os.system('mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
+        os.system(f'mv /upw_data/{index_name}_export_scanr.json /upw_data/scanr/publications.json')
     except:
-        logger.debug('erreur dans mv /upw_data/test-scanr_export_scanr.json /upw_data/scanr/publications.json')
+        logger.debug(f'erreur dans mv /upw_data/{index_name}_export_scanr.json /upw_data/scanr/publications.json')
     host = os.getenv('SWORD_PREPROD_HOST')
     username = os.getenv('SWORD_PREPROD_USERNAME')
     password = os.getenv('SWORD_PREPROD_PASSWORD')
@@ -167,6 +167,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
     # enrichment
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
+    logger.debug(f'enriched_output_file: {enriched_output_file}')
     #enriched_output_file_full = output_file.replace('_extract.jsonl', '_full.jsonl')
     enriched_output_file_csv = enriched_output_file.replace('.jsonl', '.csv')
     last_oa_details = ''
@@ -297,11 +298,12 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         with open(scanr_output_file, 'a') as outfile:
             outfile.write(']')
         #load_scanr_publications({})
-        upload_sword({})
+        upload_sword(index_name)
         #upload_object(container='tmp', filename=f'{scanr_output_file}')
 
 def load_scanr_publications(args):
-    internal_output_file=f'{MOUNTED_VOLUME}test-scanr_export_internal.jsonl'
+    index_name = args.get('index')
+    internal_output_file=f'{MOUNTED_VOLUME}{index_name}_export_internal.jsonl'
     es_url_without_http = ES_URL.replace('https://','').replace('http://','')
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
     index_name='scanr-publications'
@@ -690,25 +692,24 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                         to_delete.append(current_id)
                     logger.debug(f'replacing {current_id} with {f_short}{p[f]}')
                     break
-        if p.get('doi') and p['doi'] in bso_local_dict:
-            
+        if p.get('id') and p['id'] in bso_local_dict:
             if 'bso_local_affiliations' not in p:
                 p['bso_local_affiliations'] = []
-            for e in bso_local_dict[p['doi']]['affiliations']:
+            for e in bso_local_dict[p['id']]['affiliations']:
                 if e not in p['bso_local_affiliations']:
                     p['bso_local_affiliations'].append(e)
             
 
             if 'bso_country' not in p:
                 p['bso_country'] = []
-            for e in bso_local_dict[p['doi']]['bso_country']:
+            for e in bso_local_dict[p['id']]['bso_country']:
                 if e not in p['bso_country']:
                     p['bso_country'].append(e)
             
             if 'grants' in p and not isinstance(p['grants'], list):
                 del p['grants']
             current_grants = p.get('grants', [])
-            for grant in bso_local_dict[p['doi']].get('grants', []):
+            for grant in bso_local_dict[p['id']].get('grants', []):
                 if grant not in current_grants:
                     current_grants.append(grant)
             if current_grants:
@@ -795,9 +796,9 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                         del publi[f]
                 # code etab NNT
                 nnt_id = publi.get('nnt_id')
-                if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id) in nnt_etab_dict:
+                if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
                     current_local = publi.get('bso_local_affiliations', [])
-                    new_local = nnt_etab_dict[get_code_etab_nnt(nnt_id)]
+                    new_local = nnt_etab_dict[get_code_etab_nnt(nnt_id, nnt_etab_dict)]
                     if new_local not in current_local:
                         current_local.append(new_local)
                         publi['bso_local_affiliations'] = current_local
@@ -960,7 +961,14 @@ def build_bso_local_dict():
         bso_local_filenames.append(filename)
         local_affiliations = '.'.join(filename.split('.')[:-1]).split('_')
         data_from_input = get_dois_from_input(filename=filename)
-        current_dois = data_from_input['doi']
+        current_ids = []
+        if 'doi' in data_from_input:
+            current_ids += data_from_input['doi']
+        for id_type in ['hal_id', 'nnt_id']:
+            input_ids = data_from_input.get(id_type, [])
+            id_prefix = id_type.replace('_id', '')
+            current_ids += [{'id': f'{id_prefix}{v}', id_type: v} for v in input_ids]
+        #current_dois = data_from_input['doi']
         for s in data_from_input.get('hal_struct_id', []):
             assert(isinstance(s, str))
             assert('.0' not in s)
@@ -973,8 +981,8 @@ def build_bso_local_dict():
             assert(isinstance(s, str))
             assert('.0' not in s)
             nnt_etab_dict[s] = local_affiliations[0]
-        for elt in current_dois:
-            elt_id = elt['doi']
+        for elt in current_ids:
+            elt_id = elt['id']
             if elt_id not in bso_local_dict:
                 bso_local_dict[elt_id] = {'affiliations': [], 'grants': [], 'bso_country': []}
             for local_affiliation in local_affiliations:
