@@ -102,6 +102,10 @@ def to_scanr(publications):
                 elt['publicationDate'] = dateutil.parser.parse(p[f_date]).isoformat()
                 elt['year'] = int(elt['publicationDate'][0:4])
                 break
+        if p.get('year') and p['year']==p['year']:
+            elt['year'] = int(p['year'])
+        else:
+            logger.debug(f"no year for {p['id']}")
         # genre
         for e in p.get('all_ids'):
             if e[0:3] == 'nnt' or e[0:7]=='haltel-':

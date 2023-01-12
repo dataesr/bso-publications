@@ -481,7 +481,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             all_updated.append(d)
 
     # affiliation matcher
-    compute_missing = False
+    compute_missing = True
     recompute_all = False
     publicationsWithAffiliations = []
     if affiliation_matching:

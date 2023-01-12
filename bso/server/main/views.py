@@ -32,9 +32,10 @@ def run_task_zotero():
 @main_blueprint.route('/upload_sword', methods=['POST'])
 def run_task_upload_sword():
     args = request.get_json(force=True)
+    index_name = args.get('index')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='scanr-publications', default_timeout=default_timeout)
-        task = q.enqueue(upload_sword, args)
+        task = q.enqueue(upload_sword, index_name)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 

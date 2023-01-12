@@ -46,13 +46,14 @@ def to_mongo_affiliations(input_list):
     os.remove(output_json)
 
 def create_task_cache_affiliations(args):
+    index_name = args.get('index')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     #collection_name = 'classifications'
     collection_name = 'affiliations'
     mycoll = mydb[collection_name]
     mycoll.drop()
-    full = pd.read_json('/upw_data/test-scanr.jsonl', lines=True, chunksize=25000)
+    full = pd.read_json('/upw_data/{index_name}.jsonl', lines=True, chunksize=25000)
     existing_hash = {}
     for df in full:
         to_save = []
