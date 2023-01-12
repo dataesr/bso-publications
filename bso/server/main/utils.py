@@ -48,13 +48,19 @@ def to_json(input_list, output_file, ix):
             entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
             json.dump(entry, outfile)
 
-def get_code_etab_nnt(x):
+def get_code_etab_nnt(x, nnt_etab_dict):
     #format nnt YYYY ETAB ABCD
     # cf https://documentation.abes.fr/sudoc/regles/CodesUnivEtab.htm
     if not isinstance(x, str):
         return None
     #if x[0:3] != 'nnt':
     #    return None
+    # on essaie sur 5 caractères pour gérer les cas comme LYSE1
+    # on garde ce cas si le code est dans le dictionnaire des code etab connus des bso locaux
+    etab = x[4:9].lower()
+    if etab in nnt_etab_dict:
+        return etab
+    # par défaut, on renvoie les 4 caractères conformément à la doc de l'ABES
     etab=x[4:8].lower()
     return etab
 
@@ -140,14 +146,14 @@ def get_dois_from_input(filename: str) -> list:
     if 'bso_country' in df.columns:
         logger.debug(f'bso_country detected in file {filename}')
         filtered_columns += ['bso_country']
-    elts_with_doi = []
+    elts_with_id = []
     grant_ids = []
     for row in df[filtered_columns].itertuples():
         if isinstance(row.doi, str):
             clean_id = clean_doi(row.doi)
             if clean_id is None or len(clean_id)<5:
                 continue
-            elt = {'doi': clean_id}
+            elt = {'id': f'doi{clean_id}', 'doi': clean_id}
             if 'project_id' in filtered_columns:
                 if isinstance(row.project_id, str):
                     current_grant = {'grantid': str(row.project_id), 'agency': row.agency}
@@ -161,15 +167,15 @@ def get_dois_from_input(filename: str) -> list:
                 if isinstance(row.bso_country, str):
                     elt['bso_country'] = [row.bso_country]
             elt['sources'] = [filename]
-            elts_with_doi.append(elt)
+            elts_with_id.append(elt)
     nb_grants = len(set(grant_ids))
-    res = {'doi': elts_with_doi}
-    for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt', 'hal_id']:
+    res = {'doi': elts_with_id}
+    for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt_id', 'hal_id']:
         if f in df.columns:
             data_column = [str(e).replace('.0','').strip().lower() for e in df[f].dropna().tolist()]
             res[f] = data_column
             logger.debug(f'{len(data_column)} {f} for {filename}')
-    logger.debug(f'doi column: {doi_column} for {filename} with {len(elts_with_doi)} dois and {nb_grants} funding')
+    logger.debug(f'doi column: {doi_column} for {filename} with {len(elts_with_id)} dois and {nb_grants} funding')
     return res
 
 
