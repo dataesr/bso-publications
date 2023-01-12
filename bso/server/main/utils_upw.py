@@ -1,5 +1,7 @@
 from bso.server.main.strings import dedup_sort
+from bso.server.main.logger import get_logger
 
+logger = get_logger(__name__)
 
 def chunks(lst, n):
     if len(lst) == 0:
@@ -127,10 +129,11 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
     licence_publisher = []
     oa_locations = []
     res['unpaywall_oa_status'] = elem.get('oa_status')
+    nb_valid_loc = 0
     for loc in oa_loc:
         if loc is None:
             continue
-        if (publisher == 'Springer-Nature') and (genre == 'book') and ('aleph.bib-bvb.de' in loc.get('pmh_id')):
+        if (publisher == 'Springer-Nature') and (genre == 'book') and (isinstance(loc.get('pmh_id'), str)) and ('aleph.bib-bvb.de' in loc.get('pmh_id')):
             # to fix false positive detection by unpaywall
             continue
         if isinstance(loc.get('url'), str):
@@ -190,6 +193,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
             status = 'unknown'
         host_types.append(host_type)
         oa_locations.append(loc)
+        nb_valid_loc += 1
         oa_colors.append(status)
     if licence_publisher:
         res['licence_publisher'] = dedup_sort(reduce_license(licence_publisher))
@@ -208,4 +212,11 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
     res['oa_colors'] = reduce_status(oa_colors)
     res['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(res['oa_colors'])
     res['oa_host_type'] = ";".join(dedup_sort(host_types))
+    
+    if nb_valid_loc == 0:
+        logger.debug(f'exclude false positive OA for {elem}')
+        res['is_oa'] = False
+        res['oa_host_type'] = 'closed'
+        res['oa_colors'] = ['closed']
+        res['oa_colors_with_priority_to_publisher'] = ['closed']
     return {millesime: res}
