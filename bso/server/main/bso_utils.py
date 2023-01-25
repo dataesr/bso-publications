@@ -24,7 +24,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
                      'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
                      'bso_classification', 'lang', 'genre',
                     'amount_apc_EUR', 'apc_source']
-    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations']
+    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country']
 
     flatten_data = []
     for elem in df.to_dict(orient='records'):
