@@ -55,11 +55,12 @@ def get_code_etab_nnt(x, nnt_etab_dict):
         return None
     #if x[0:3] != 'nnt':
     #    return None
-    # on essaie sur 5 caractères pour gérer les cas comme LYSE1
+    # on essaie sur 5 ou 6 caractères pour gérer les cas comme LYSE1
     # on garde ce cas si le code est dans le dictionnaire des code etab connus des bso locaux
-    etab = x[4:9].lower()
-    if etab in nnt_etab_dict:
-        return etab
+    for nb_caracters in [5, 6]:
+        etab = x[4:4+nb_caracters].lower()
+        if etab in nnt_etab_dict:
+            return etab
     # par défaut, on renvoie les 4 caractères conformément à la doc de l'ABES
     etab=x[4:8].lower()
     return etab
