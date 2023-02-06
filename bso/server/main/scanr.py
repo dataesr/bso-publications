@@ -97,15 +97,15 @@ def to_scanr(publications):
         if external_ids:
             elt['externalIds'] = external_ids
         # dates
-        for f_date in ['published_date', 'publication_date']:
-            if p.get(f_date) and isinstance(p[f_date], str):
-                elt['publicationDate'] = dateutil.parser.parse(p[f_date]).isoformat()
-                elt['year'] = int(elt['publicationDate'][0:4])
-                break
         if p.get('year') and p['year']==p['year']:
             elt['year'] = int(p['year'])
         else:
             logger.debug(f"no year for {p['id']}")
+        for f_date in ['published_date', 'publication_date', 'defense_date']:
+            if p.get(f_date) and isinstance(p[f_date], str):
+                elt['publicationDate'] = dateutil.parser.parse(p[f_date]).isoformat()
+                elt['year'] = int(elt['publicationDate'][0:4])
+                break
         # genre
         for e in p.get('all_ids'):
             if e[0:3] == 'nnt' or e[0:7]=='haltel-':
