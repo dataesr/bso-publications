@@ -32,7 +32,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         id_elem = elem['id']
         for f in simple_fields:
             if isinstance(elem.get(f), str):
-                new_elem[f] = elem[f].replace('\u2028',' ').replace('\n', ' ').replace('  ', ' ')
+                new_elem[f] = elem[f].replace('\u2028',' ').replace('\n', ' ').replace(';', ',').replace('|', ',').replace('  ', ' ')
             elif elem.get(f):
                 new_elem[f] = elem[f]
             else:
@@ -40,7 +40,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
 
         for f in array_fields:
             if isinstance(elem.get(f), list):
-                new_elem[f] = ';'.join(elem[f])
+                new_elem[f] = '|'.join(elem[f])
             else:
                 new_elem[f] = None
 
