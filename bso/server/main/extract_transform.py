@@ -807,10 +807,11 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     for coll_code in publi.get('hal_collection_code'):
                         current_local = publi.get('bso_local_affiliations', [])
                         # adding coll code into bso_local_affiliation
-                        current_local.append(coll_code.lower())
+                        coll_code_lower = coll_code.lower()
+                        current_local.append(coll_code_lower)
                         publi['bso_local_affiliations'] = list(set(current_local))
-                        if coll_code in hal_coll_code_dict:
-                            new_local = hal_coll_code_dict[coll_code]
+                        if coll_code_lower in hal_coll_code_dict:
+                            new_local = hal_coll_code_dict[coll_code_lower]
                             if new_local not in current_local:
                                 current_local.append(new_local)
                                 publi['bso_local_affiliations'] = list(set(current_local))
