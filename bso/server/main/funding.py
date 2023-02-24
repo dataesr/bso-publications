@@ -17,7 +17,11 @@ def get_anr_open_data():
         anr_type = 'ANR '+elt['type']
         url = elt['url']
         print(f'getting open data from {url} for {anr_type}')
-        df = pd.read_csv(url, sep=';')
+        try:
+            df = pd.read_csv(url, sep=';')
+        except:
+            logger.debug(f'PROBLEM WITH ANR DATA download ! {elt}')
+            continue
         all_df.append(df)
         for i, row in df.iterrows():
             code = row['Projet.Code_Decision_ANR']
@@ -50,6 +54,16 @@ def get_anr_details(code):
         return code_details[code]
     else:
         logger.debug(f'code {code} not in ANR open data')
+        if isinstance(code, str):
+            code_clean = code.strip().upper()
+            res = {'sub_agency': 'unknown',
+                'agency': 'ANR',
+                'grantid': code.strip().upper()}
+            try:
+                res['funding_year'] = int('20'+code_clean.split('-')[1])
+            except:
+                pass
+            return res
     return None
 
 def normalize_grant(grant):
