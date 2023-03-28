@@ -28,7 +28,7 @@ from bso.server.main.utils import download_file, get_dois_from_input, dump_to_ob
 from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
 from bso.server.main.funding import normalize_grant
-from bso.server.main.bso_utils import json_to_csv
+from bso.server.main.bso_utils import json_to_csv, remove_wrong_match
 
 
 logger = get_logger(__name__)
@@ -833,6 +833,7 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                                     current_local.append(new_local)
                                     publi['bso_local_affiliations'] = list(set(current_local))
 
+
                 if filter_fr:
                     # si filter_fr, on ajoute bso_country fr seulement pour les fr
                     is_fr = False
@@ -854,6 +855,10 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     # filter_fr == False
                     # sinon, fr par défaut
                     publi['bso_country'] = ['fr']
+                
+                # correct detected countries from previous affiliation-matcher
+                publi = remove_wrong_match(publi)
+                
                 if min_year and publi.get('genre') not in ['thesis']:
                     year = None
                     for f in ['year', 'publication_year', 'published_year']:

@@ -1,5 +1,5 @@
 import pandas as pd
-
+from bso.server.main.utils import FRENCH_ALPHA2
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
@@ -132,3 +132,65 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
             else:
                 df_flatten_year.to_csv(filename_year, sep=';', index=False, header=False, mode='a')
 
+
+def remove_wrong_match(publi):
+    if 'fr' not in publi.get('bso_country'):
+        return publi
+    for source in publi.get('sources'):
+        if source in ['dois_fr'] or '.csv' in source or '.xls' in source:
+            return publi
+    bso_country = []
+    for c in publi.get('bso_country'):
+        if c != 'fr' and c not in bso_country:
+            bso_country.append(c)
+    affiliations_dict = {}
+    previous_affiliations = publi.get('affiliations')
+    if not isinstance(previous_affiliations, list):
+        return publi
+    if len(previous_affiliations) == 0:
+        return publi
+    has_fr = False
+    for aff in previous_affiliations:
+        has_fr_previous = False
+        previous_detected_countries = aff.get('detected_countries')
+        if isinstance(previous_detected_countries, list):
+            for c in FRENCH_ALPHA2:
+                if c in previous_detected_countries:
+                    has_fr_previous = True
+        if has_fr_previous is False:
+            continue
+        if aff.get('country') == 'France':
+            has_fr = True
+            continue
+        aff_name = aff.get('name')
+        if not isinstance(aff_name, str) or len(aff_name)<2:
+            aff['detected_countries'] = []
+            logger.debug('remove empty affiliation')
+        aff_name_normalized = ';'+aff_name.lower().strip() + ';'
+        aff_name_normalized = aff_name_normalized.replace(' ', ';').replace(',', ';').replace('.',';').replace(';;', ';')
+        if 'france' in aff_name_normalized and 'dieu de france' not in aff_name_normalized:
+            has_fr = True
+            continue
+        for w in [";saint;louis;", ";orleans;", ";mn;", ";mo;", ";mi;", ";ma;", "mn", "korea",
+                  "first;author",
+                  ";public;health;", ";r&d;", ";com;", ";air;", ";ill;", ";oak;", ";us;", ";liban;"]:
+            if w in aff_name_normalized:
+                logger.debug('REMOVE '+aff_name_normalized)
+                aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
+        if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized:
+            logger.debug('REMOVE '+aff_name_normalized)
+            aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]      
+    if has_fr:
+        return publi
+    detected_countries = []
+    for aff in previous_affiliations:
+        if isinstance(aff.get('detected_countries'), list):
+            for c in aff.get('detected_countries'):
+                if c not in detected_countries:
+                    detected_countries.append(c)
+    publi['detected_countries'] = detected_countries
+    for c in FRENCH_ALPHA2:
+        if c in detected_countries:
+            bso_country.append('fr')
+    publi['bso_country_corrected'] = bso_country
+    return publi
