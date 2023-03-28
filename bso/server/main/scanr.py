@@ -284,6 +284,7 @@ def to_scanr(publications):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
+            elt['authorsCount'] = len(authors)
         elt = clean_json(elt)
         if elt:
             scanr_publications.append(elt)
