@@ -475,7 +475,7 @@ def merge_publications(current_publi, new_publi):
     if current_sources:
         current_publi['sources'] = current_sources
     # bso3
-    for f in ['has_availability_statement', 'softcite_details', 'datastet_details']:
+    for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
         if f in new_publi:
             current_publi[f] = new_publi[f]
             change = True

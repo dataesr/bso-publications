@@ -80,6 +80,11 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
                      'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
                 new_elem[f] = None
 
+        for g in ['bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
+            new_elem[g] = False
+            if elem.get(g):
+                new_elem[g] = elem[g]
+
         new_elem['software_mentions'] = None
         new_elem['data_mentions'] = None
         for g in ['software', 'data']:
