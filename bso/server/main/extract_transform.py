@@ -262,7 +262,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                             subpatents[j_p]['publicationDate'] = subpatent['pulicationDate']
                             del subpatents[j_p]['pulicationDate']
                     patents[i_p]['patents'] = subpatents
-            to_json(patents, scanr_output_file, ix)
+            #to_json(patents, scanr_output_file, ix)
+            to_jsonl(patents, scanr_output_file)
             ix += 1
             logger.debug(f'scanr extract patent, {ix}')
 
@@ -272,7 +273,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             publications = c.to_dict(orient='records')
             publications = get_person_ids(publications)
             publications_scanr = to_scanr(publications)
-            to_json(publications_scanr, scanr_output_file, ix)
+            #to_json(publications_scanr, scanr_output_file, ix)
+            to_jsonl(publications_scanr, scanr_output_file)
             relevant_infos = []
             for p in publications_scanr:
                 new_elt = {'id': p['id']}
@@ -295,10 +297,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             to_jsonl(publications_cleaned, internal_output_file, 'a')
             ix += 1
             logger.debug(f'scanr extract publi, {ix}')
-        with open(scanr_output_file, 'a') as outfile:
-            outfile.write(']')
+        #with open(scanr_output_file, 'a') as outfile:
+        #    outfile.write(']')
         #load_scanr_publications({})
-        upload_sword(index_name)
+        #upload_sword(index_name)
         #upload_object(container='tmp', filename=f'{scanr_output_file}')
 
 def load_scanr_publications(args):
