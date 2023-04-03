@@ -29,7 +29,7 @@ jobs:
         run: make docker-push
 
   notify:
-    needs: deploy
+    needs: build
     if: always()
     runs-on: ubuntu-latest
     steps:
