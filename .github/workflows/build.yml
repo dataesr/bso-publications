@@ -15,15 +15,15 @@ jobs:
       - name: 🏁 Checkout
         uses: actions/checkout@v3
 
-      - name: 🏷️ Get Tag
+      - name: 🏷️ Get tag
         id: version
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo ::set-output name=version::${GITHUB_REF#refs/tags/}
+
+      - name: 🔑 Login docker
+        run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🐋 Build docker image
         run: make docker-build
-
-      - name: 🔑 Login docker
-        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 📦 Push docker image
         run: make docker-push
