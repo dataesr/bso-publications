@@ -36,12 +36,6 @@ jobs:
       - name: Get Tag
         id: version
         run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      - name: Create changelog text
-        id: changelog
-        uses: loopwerk/tag-changelog@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config_file: .github/config/changelog.js
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
