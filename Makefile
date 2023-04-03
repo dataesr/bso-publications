@@ -1,5 +1,6 @@
-DOCKER_IMAGE_NAME=dataesr/bso-publications
 CURRENT_VERSION=$(shell cat bso/__init__.py | cut -d "'" -f 2)
+DOCKER_IMAGE_NAME=dataesr/bso-publications
+GHCR_IMAGE_NAME=ghcr.io/$(DOCKER_IMAGE_NAME)
 
 test: unit
 
@@ -20,8 +21,10 @@ docker-build:
 
 docker-push:
 	@echo Pushing a new docker image
-	docker push $(DOCKER_IMAGE_NAME):$(CURRENT_VERSION)
-	docker push $(DOCKER_IMAGE_NAME):latest
+	docker tag $(DOCKER_IMAGE_NAME) $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)
+	docker tag $(DOCKER_IMAGE_NAME) $(GHCR_IMAGE_NAME):latest
+	docker push $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)
+	docker push $(GHCR_IMAGE_NAME):latest
 	@echo Docker image pushed
 
 release:

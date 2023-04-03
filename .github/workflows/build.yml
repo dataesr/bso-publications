@@ -1,4 +1,4 @@
-name: Publish Docker image
+name: Docker image
 
 on:
   push:
@@ -15,21 +15,38 @@ jobs:
       - name: 🏁 Checkout
         uses: actions/checkout@v3
 
-      - name: 🏷️ Get Tag
-        id: version
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: 🔑 Login docker
+        run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🐋 Build docker image
         run: make docker-build
 
-      - name: 🔑 Login docker
-        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: 📦 Push docker image
         run: make docker-push
 
+  release:
+    name: Release new version
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🏁 Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Get Tag
+        id: version
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: "${{ steps.changelog.outputs.changes }}"
+
   notify:
-    needs: deploy
+    needs: build
     if: always()
     runs-on: ubuntu-latest
     steps:
