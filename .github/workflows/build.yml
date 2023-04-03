@@ -15,10 +15,6 @@ jobs:
       - name: 🏁 Checkout
         uses: actions/checkout@v3
 
-      - name: 🏷️ Get tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
       - name: 🔑 Login docker
         run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
@@ -27,6 +23,33 @@ jobs:
 
       - name: 📦 Push docker image
         run: make docker-push
+
+  release:
+    name: Release new version
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🏁 Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Get Tag
+        id: version
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Create changelog text
+        id: changelog
+        uses: loopwerk/tag-changelog@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config_file: .github/config/changelog.js
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: "${{ steps.changelog.outputs.changes }}"
 
   notify:
     needs: build
