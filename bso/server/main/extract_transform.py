@@ -475,10 +475,21 @@ def merge_publications(current_publi, new_publi):
     if current_sources:
         current_publi['sources'] = current_sources
     # bso3
-    for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
+    for f in ['has_availability_statement', 'softcite_details', 'datastet_details']:
         if f in new_publi:
             current_publi[f] = new_publi[f]
             change = True
+    # bso3 boolean
+    for f in ['bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
+        if f in new_publi:
+            if new_publi[f] == '0':
+                current_publi[f] = False
+            elif new_publi[f] == '1':
+                current_publi[f] = True
+            else:
+                current_publi[f] = new_publi[f]
+            change = True
+
     # hal
     for f in ['hal_collection_code']:
         if f in new_publi:
