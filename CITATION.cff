@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+message: "If you use this software, please cite our publication as below."
 authors:
 - family-names: "Bracco"
   given-names: "Laetitia"
@@ -14,11 +14,10 @@ authors:
   given-names: "Didier"
   orcid: "https://orcid.org/0000-0001-6661-9680"
 title: "Extending the open monitoring of open science"
-version: 1.0.0
 date-released: 2022-04-25
-url: "https://github.com/dataesr/bso-publications/"
+url: "https://hal.science/hal-03651518"
 preferred-citation:
-  type: article
+  type: unpublished
   authors:
   - family-names: "Bracco"
     given-names: "Laetitia"
@@ -36,3 +35,6 @@ preferred-citation:
   start: 1 # First page number
   end: 35 # Last page number
   title: "Extending the open monitoring of open science"
+  version: 1.0.0
+  url: "https://hal.science/hal-03651518"
+  date-released: 2022-04-25
