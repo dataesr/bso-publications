@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Bracco"
+  given-names: "Laetitia"
+  orcid: "https://orcid.org/0000-0002-2939-9110"
+- family-names: "Jeangirard"
+  given-names: "Eric"
+  orcid: "https://orcid.org/0000-0002-3767-7125"
+- family-names: "L'Hôte"
+  given-names: "Anne"
+  orcid: "https://orcid.org/0000-0003-1353-5584"
+- family-names: "Torny"
+  given-names: "Didier"
+  orcid: "https://orcid.org/0000-0001-6661-9680"
+title: "Extending the open monitoring of open science"
+version: 1.0.0
+date-released: 2022-04-25
+url: "https://github.com/dataesr/bso-publications/"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Bracco"
+    given-names: "Laetitia"
+    orcid: "https://orcid.org/0000-0002-2939-9110"
+  - family-names: "Jeangirard"
+    given-names: "Eric"
+    orcid: "https://orcid.org/0000-0002-3767-7125"
+  - family-names: "L'Hôte"
+    given-names: "Anne"
+    orcid: "https://orcid.org/0000-0003-1353-5584"
+  - family-names: "Torny"
+    given-names: "Didier"
+    orcid: "https://orcid.org/0000-0001-6661-9680"
+  month: 9
+  start: 1 # First page number
+  end: 35 # Last page number
+  title: "Extending the open monitoring of open science"
