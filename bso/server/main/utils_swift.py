@@ -2,7 +2,7 @@ import gzip
 import os
 import pandas as pd
 import swiftclient
-
+import time
 from io import BytesIO, TextIOWrapper
 from retry import retry
 
@@ -46,13 +46,15 @@ def get_connection() -> swiftclient.Connection:
     return conn
 
 
-@retry(delay=2, tries=50)
+@retry(delay=10, tries=10, backoff=2)
 def upload_object(container: str, filename: str) -> str:
+    time.sleep(3)
     object_name = filename.split('/')[-1]
     logger.debug(f'Uploading {filename} in {container} as {object_name}')
     cmd = init_cmd + f' upload {container} {filename} --object-name {object_name}' \
                      f' --segment-size 1048576000 --segment-threads 100'
     os.system(cmd)
+    time.sleep(3)
     return f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{object_name}'
 
 

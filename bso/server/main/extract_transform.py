@@ -96,6 +96,8 @@ def remove_fields_bso(res):
 def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode):
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
+    # correct detected countries from previous affiliation-matcher
+    publications = [remove_wrong_match(p) for p in publications]
     # publis_chunks = list(chunks(publications, 20000))
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
         entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, index_name=index_name)
@@ -859,9 +861,6 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     # filter_fr == False
                     # sinon, fr par défaut
                     publi['bso_country'] = ['fr']
-                
-                # correct detected countries from previous affiliation-matcher
-                publi = remove_wrong_match(publi)
                 
                 if min_year and publi.get('genre') not in ['thesis']:
                     year = None
