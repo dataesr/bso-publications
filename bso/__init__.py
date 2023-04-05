@@ -1,1 +1,1 @@
-__version__ = '0.0.17-scanr'
+__version__ = '0.0.18-scanr'
