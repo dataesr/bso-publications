@@ -3,7 +3,7 @@ name: Production release
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+.*'
 
 env:
   MM_NOTIFICATION_CHANNEL: 'bso-bot'
