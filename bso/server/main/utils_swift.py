@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import swiftclient
 import time
+import subprocess
 from io import BytesIO, TextIOWrapper
 from retry import retry
 
@@ -46,23 +47,23 @@ def get_connection() -> swiftclient.Connection:
     return conn
 
 
-@retry(delay=10, tries=10, backoff=2)
+@retry(delay=3, tries=50, backoff=2)
 def upload_object(container: str, filename: str) -> str:
-    time.sleep(3)
     object_name = filename.split('/')[-1]
     logger.debug(f'Uploading {filename} in {container} as {object_name}')
     cmd = init_cmd + f' upload {container} {filename} --object-name {object_name}' \
                      f' --segment-size 1048576000 --segment-threads 100'
-    os.system(cmd)
-    time.sleep(3)
+    #os.system(cmd)
+    r = subprocess.check_output(cmd, shell=True)
     return f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{object_name}'
 
 
-@retry(delay=2, tries=50)
+@retry(delay=3, tries=50, backoff=2)
 def download_object(container: str, filename: str, out: str) -> None:
     logger.debug(f'Downloading {filename} from {container} to {out}')
     cmd = init_cmd + f' download {container} {filename} -o {out}'
-    os.system(cmd)
+    #os.system(cmd)
+    r = subprocess.check_output(cmd, shell=True)
 
 
 @retry(delay=2, tries=50)
