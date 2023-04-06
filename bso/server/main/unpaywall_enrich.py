@@ -9,6 +9,7 @@ from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.affiliation_matcher import enrich_publications_with_affiliations_id, get_affiliations_computed
 from bso.server.main.fields.field_detect import detect_fields
+from bso.server.main.hal_mongo import get_hal_ids_full
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.publisher.publisher_detect import detect_publisher
@@ -434,7 +435,7 @@ def merge_authors_affiliations(p, index_name):
     return p
 
 
-def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, index_name='bso-publications') -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, hal_date: list, index_name='bso-publications') -> list:
     publis_dict = {}
     
     # dict of all the publis
@@ -451,11 +452,16 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         
         # getting infos for the DOIs
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str)]
-        data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
+        data_unpaywall = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # data contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
+        data_hal = get_hal_ids_full(hal_ids=doi_chunk, observations=hal_date, last_observation_date_only=last_observation_date_only)
         
         # publis_dict contains info for all publi, even if no DOI crossref
-        new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
+        new_updated_unpaywall = format_upw(dois_infos=data_unpaywall, extra_data=publis_dict, entity_fishing=entity_fishing)
+        new_updated_hal = format_upw(dois_infos=data_hal, extra_data=publis_dict, entity_fishing=entity_fishing)
+
+        # Merge with priority given to Unpaywall
+        new_updated = {**new_updated_hal, **new_updated_unpaywall}
         for d in new_updated:
             # some post-filtering
             if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
