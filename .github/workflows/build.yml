@@ -48,7 +48,7 @@ jobs:
           name: ${{ steps.tag.outputs.tag }}
 
   notify:
-    needs: publish-ghcr
+    needs: release
     if: always()
     runs-on: ubuntu-latest
     steps:
