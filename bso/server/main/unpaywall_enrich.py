@@ -231,6 +231,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
         #    res['domains'] = ['health']
         # OA Details
+        hal_id = res.get('hal_id')
         if isinstance(doi, str) and doi in dois_infos:
             res['observation_dates'] = []
             res['oa_details'] = {}
@@ -289,6 +290,11 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                                 res['external_ids'] = external_ids
                                 if 'hal_id' not in res:
                                     res['hal_id'] = hal_id
+
+        elif isinstance(hal_id, str) and hal_id in dois_infos:
+            print('IS IN HAL')
+            res['oa_details'] = dois_infos[hal_id]
+
         if 'oa_details' not in res:
             pass
             #logger.debug(f'no oa details for publi {res["id"]}')
