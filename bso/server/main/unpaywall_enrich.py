@@ -450,18 +450,19 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
     for publi_chunk in chunks(lst=publications, n=20000):
         logger.debug(f'{len(publi_chunk)} / {len(publications)} to enrich')
         
-        # getting infos for the DOIs
+        # list doi
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str)]
+        # get infos for the DOI, data_unpaywall contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
         data_unpaywall = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
-        # data contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
-        data_hal = get_hal_ids_full(hal_ids=doi_chunk, observations=hal_date, last_observation_date_only=last_observation_date_only)
-        
-        # publis_dict contains info for all publi, even if no DOI crossref
-        new_updated_unpaywall = format_upw(dois_infos=data_unpaywall, extra_data=publis_dict, entity_fishing=entity_fishing)
-        new_updated_hal = format_upw(dois_infos=data_hal, extra_data=publis_dict, entity_fishing=entity_fishing)
+        # list hal_id without doi
+        hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
+        # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
+        data_hal = get_hal_ids_full(hal_ids=hal_chunk, observations=hal_date, last_observation_date_only=last_observation_date_only)
+        data = {**data_hal, **data_unpaywall}
 
-        # Merge with priority given to Unpaywall
-        new_updated = {**new_updated_hal, **new_updated_unpaywall}
+        # publis_dict contains info for all publi, even if no DOI crossref
+        new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
+
         for d in new_updated:
             # some post-filtering
             if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
