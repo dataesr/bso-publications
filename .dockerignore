@@ -23,6 +23,7 @@ dist
 # Git
 .git
 .github
+.gitignore
 
 # Documentation
 doc

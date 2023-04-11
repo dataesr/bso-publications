@@ -93,14 +93,14 @@ def remove_fields_bso(res):
     return remove_extra_fields(res)
 
 
-def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode):
+def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode, hal_date):
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
     # correct detected countries from previous affiliation-matcher
     publications = [remove_wrong_match(p) for p in publications]
     # publis_chunks = list(chunks(publications, 20000))
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
-        entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, index_name=index_name)
+        entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_date=hal_date, index_name=index_name)
     if 'bso-publications' in index_name:
         enriched_publications = [p for p in enriched_publications if p['oa_details']]
         to_jsonl([remove_fields_bso(p) for p in enriched_publications], enriched_output_file, write_mode)
@@ -154,9 +154,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'theses' in datasources:
             extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict) #always fr
         if 'hal' in datasources:
-            extract_container('hal',    bso_local_dict, False, download_prefix=f'{hal_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict) # filter_fr add bso_country fr for french publi
+            hal_date.sort(reverse=True)
+            extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_date[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
-            extract_container('sudoc',  bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name) # always fr
+            extract_container('sudoc', bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name) # always fr
         if 'fixed' in datasources:
             extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name) # always fr
             extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name)
@@ -194,7 +195,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             publications = c.to_dict(orient='records')
             
             if not parallel:
-                transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a')
+                transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_date)
     
             else:
                 publis_chunks = list(chunks(lst=publications, n=1700))
@@ -203,7 +204,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                 for jx, c in enumerate(publis_chunks):
                     current_output = f'{enriched_output_file}_{ix}_{jx}'
                     logger.debug(current_output)
-                    p = mp.Process(target=transform_publications, args=(c, index_name, observations, affiliation_matching, entity_fishing, current_output, 'w'))
+                    p = mp.Process(target=transform_publications, args=(c, index_name, observations, affiliation_matching, entity_fishing, current_output, 'w', hal_date))
                     outputs.append(current_output)
                     p.start()
                     jobs.append(p)

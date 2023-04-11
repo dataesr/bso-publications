@@ -9,6 +9,7 @@ from bso.server.main.apc.apc_detect import detect_apc
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.affiliation_matcher import enrich_publications_with_affiliations_id, get_affiliations_computed
 from bso.server.main.fields.field_detect import detect_fields
+from bso.server.main.hal_mongo import get_hal_ids_full
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.publisher.publisher_detect import detect_publisher
@@ -230,6 +231,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
         #    res['domains'] = ['health']
         # OA Details
+        hal_id1 = res.get('hal_id')
         if isinstance(doi, str) and doi in dois_infos:
             res['observation_dates'] = []
             res['oa_details'] = {}
@@ -288,6 +290,10 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                                 res['external_ids'] = external_ids
                                 if 'hal_id' not in res:
                                     res['hal_id'] = hal_id
+
+        elif isinstance(hal_id1, str) and hal_id1 in dois_infos:
+            res['oa_details'] = dois_infos[hal_id1]
+
         if 'oa_details' not in res:
             pass
             #logger.debug(f'no oa details for publi {res["id"]}')
@@ -434,7 +440,7 @@ def merge_authors_affiliations(p, index_name):
     return p
 
 
-def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, index_name='bso-publications') -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, hal_date: list, index_name='bso-publications') -> list:
     publis_dict = {}
     
     # dict of all the publis
@@ -449,13 +455,19 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
     for publi_chunk in chunks(lst=publications, n=20000):
         logger.debug(f'{len(publi_chunk)} / {len(publications)} to enrich')
         
-        # getting infos for the DOIs
+        # list doi
         doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str)]
-        data = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
-        # data contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
-        
+        # get infos for the DOI, data_unpaywall contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
+        data_unpaywall = get_doi_full(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
+        # list hal_id without doi
+        hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
+        # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
+        data_hal = get_hal_ids_full(hal_ids=hal_chunk, observations=hal_date, last_observation_date_only=last_observation_date_only)
+        data = {**data_hal, **data_unpaywall}
+
         # publis_dict contains info for all publi, even if no DOI crossref
         new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
+
         for d in new_updated:
             # some post-filtering
             if d.get('publisher_group') in ['United Nations', 'World Trade Organization']:
