@@ -143,7 +143,7 @@ def remove_wrong_match(publi):
     if 'fr' not in publi.get('bso_country'):
         return publi
     for source in publi.get('sources'):
-        if source in ['dois_fr'] or '.csv' in source or '.xls' in source:
+        if source in ['dois_fr', 'theses'] or '.csv' in source or '.xls' in source:
             return publi
     bso_country = []
     for c in publi.get('bso_country'):
@@ -157,14 +157,7 @@ def remove_wrong_match(publi):
         return publi
     has_fr = False
     for aff in previous_affiliations:
-        has_fr_previous = False
         previous_detected_countries = aff.get('detected_countries')
-        if isinstance(previous_detected_countries, list):
-            for c in FRENCH_ALPHA2:
-                if c in previous_detected_countries:
-                    has_fr_previous = True
-        if has_fr_previous is False:
-            continue
         if aff.get('country') == 'France':
             has_fr = True
             continue
