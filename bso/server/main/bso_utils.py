@@ -157,6 +157,8 @@ def remove_wrong_match(publi):
     has_fr = False
     for aff in previous_affiliations:
         previous_detected_countries = aff.get('detected_countries')
+        if not isinstance(previous_detected_countries, list) or len(previous_detected_countries) == 0:
+            continue
         if aff.get('country') == 'France':
             has_fr = True
             continue
