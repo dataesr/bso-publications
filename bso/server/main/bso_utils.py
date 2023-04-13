@@ -149,7 +149,6 @@ def remove_wrong_match(publi):
     for c in publi.get('bso_country'):
         if c != 'fr' and c not in bso_country:
             bso_country.append(c)
-    affiliations_dict = {}
     previous_affiliations = publi.get('affiliations')
     if not isinstance(previous_affiliations, list):
         return publi
@@ -178,12 +177,12 @@ def remove_wrong_match(publi):
         for w in [";saint;louis;", ";orleans;", ";mn;", ";mo;", ";mi;", ";ma;", ";mn;", ";korea;",
                   "first;author",
                   ";public;health;", ";r&d;", ";com;", ";air;", ";ill;", ";oak;", ";us;", ";liban;"]:
-            if w in aff_name_normalized:
+            if w in aff_name_normalized and previous_detected_countries is not None:
                 logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
                 aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
-        if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized:
+        if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized and previous_detected_countries is not None:
             logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
-            aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]      
+            aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
     if has_fr:
         return publi
     detected_countries = []
