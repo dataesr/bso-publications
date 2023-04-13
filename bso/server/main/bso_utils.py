@@ -165,6 +165,7 @@ def remove_wrong_match(publi):
         if not isinstance(aff_name, str) or len(aff_name)<2:
             aff['detected_countries'] = []
             logger.debug(f"REMOVE empty affiliation for {publi.get('id')}")
+            continue
         aff_name_normalized = ';'+aff_name.lower().strip() + ';'
         aff_name_normalized = aff_name_normalized.replace(' ', ';').replace(',', ';').replace('.',';').replace(';;', ';')
         if ';france;' in aff_name_normalized and ';dieu;de;france;' not in aff_name_normalized:
