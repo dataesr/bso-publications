@@ -25,13 +25,16 @@ def detect_apc(doi: str, journal_issns: str, publisher: str, published_date: str
 
     # estimation via le DOAJ
     res_doaj = detect_doaj(issns, published_date)
+    if res_doaj.get('apc_source') == 'doaj':
+        is_oa_publisher = True # if in DOAJ, for sure is_oa_publisher True even if unpaywall is wrong
     
     # estimation via openAPC
     res_openapc = detect_openapc(doi, issns, publisher, published_date)
 
     res = {'has_apc': None}
     if not is_oa_publisher:
-        return {'has_apc': False}
+        #return {'has_apc': False}
+        return {'has_apc': None}
     is_openapc_estimation_accurate = False
     # on commence par tenter d'estimer d'éventuels APC avec openAPC
     if res_openapc.get('has_apc'):
