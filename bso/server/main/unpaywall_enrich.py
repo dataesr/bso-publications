@@ -231,7 +231,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
         #    res['domains'] = ['health']
         # OA Details
-        hal_id1 = res.get('hal_id')
         if isinstance(doi, str) and doi in dois_infos:
             res['observation_dates'] = []
             res['oa_details'] = {}
@@ -251,7 +250,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                     else:
                         last_millesime = asof
                         last_observation_date = obs_date
-
             #logger.debug('MILLESIME_END')
             # get hal_id if present in one of the last oa locations
             if last_millesime:
@@ -260,7 +258,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 if 'hybrid' not in last_oa_details.get('oa_colors', []) and 'gold' not in last_oa_details.get('oa_colors', []):
                     # si ni gold ni hybrid '
                     res['amount_apc_EUR'] = 0
-                    if res['has_apc'] == True:
+                    if res.get('has_apc') == True:
                         #logger.debug(f'{doi} should not have apc')
                         res['has_apc'] = None
                 if isinstance(last_oa_loc, list):
@@ -290,9 +288,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                                 res['external_ids'] = external_ids
                                 if 'hal_id' not in res:
                                     res['hal_id'] = hal_id
-
-        elif isinstance(hal_id1, str) and hal_id1 in dois_infos:
-            res['oa_details'] = dois_infos[hal_id1]
 
         if 'oa_details' not in res:
             pass
