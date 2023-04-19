@@ -54,7 +54,7 @@ def get_hal_id(hal_id, collection_name: str) -> dict:
             res[ix] = clean(e, collection_name)
     return res
 
-def get_hal_ids_full(hal_ids: list, observations: list, last_observation_date_only: bool) -> dict:
+def get_hal_history(hal_ids: list, observations: list, last_observation_date_only: bool) -> dict:
     logger.debug(f'Getting hal_id info for {len(hal_ids)} hal_ids')
     db = get_database()
     res = {}
