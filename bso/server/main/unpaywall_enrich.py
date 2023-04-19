@@ -289,6 +289,10 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                                 if 'hal_id' not in res:
                                     res['hal_id'] = hal_id
 
+        hal_id = res.get('hal_id')
+        if isinstance(hal_id, str) and hal_id in dois_infos:
+            res['oa_details'] = {**dois_infos[hal_id], **res['oa_details']}
+
         if 'oa_details' not in res:
             pass
             #logger.debug(f'no oa details for publi {res["id"]}')
@@ -302,7 +306,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                     res['oa_details'][millesime]['repositories_concat'] = ";".join(repos)
                 else:
                     res['oa_details'][millesime]['repositories_concat'] = 'closed'
-
         #logger.debug('HAL_END')
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
