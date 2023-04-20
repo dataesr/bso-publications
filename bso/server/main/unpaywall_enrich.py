@@ -242,14 +242,14 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                 else:
                     tmp = format_upw_millesime(dois_infos[doi][asof], asof, res['has_apc'], res['publisher_dissemination'], res['genre'])
                     res['oa_details'].update(tmp)
-                    obs_date = list(tmp.keys())[0]
-                    res['observation_dates'].append(obs_date)  # getting the key that is the observation date
+                    observation_date = list(tmp.keys())[0]
+                    res['observation_dates'].append(observation_date)  # getting the key that is the observation date
                     if last_millesime:
                         last_millesime = max(last_millesime, asof)
-                        last_observation_date = max(last_observation_date, obs_date) 
+                        last_observation_date = max(last_observation_date, observation_date) 
                     else:
                         last_millesime = asof
-                        last_observation_date = obs_date
+                        last_observation_date = observation_date
             #logger.debug('MILLESIME_END')
             # get hal_id if present in one of the last oa locations
             if last_millesime:
@@ -291,11 +291,23 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
 
         hal_id = res.get('hal_id')
         if isinstance(hal_id, str) and hal_id in dois_infos:
-            res['oa_details'] = {**dois_infos[hal_id], **res['oa_details']}
+            # res['oa_details'] = {**dois_infos[hal_id], **res['oa_details']}
+            current_oa_details = res.get('oa_details', {})
+            hal_oa_details = dois_infos[hal_id]
+            for observation_date in hal_oa_details:
+                if observation_date not in current_oa_details:
+                    current_oa_details[observation_date] = hal_oa_details[observation_date]
+                else:
+                    if current_oa_details[observation_date]['is_oa'] is False and hal_oa_details[observation_date]['is_oa'] is True:
+                        current_oa_details[observation_date] = hal_oa_details[observation_date]
+                    elif current_oa_details[observation_date]['is_oa'] is True and hal_oa_details[observation_date]['is_oa'] is True:
+                        current_oa_details[observation_date]['repositories'] += hal_oa_details[observation_date]['repositories']
+                        current_oa_details[observation_date]['repositories'] = dedup_sort(current_oa_details[observation_date]['repositories'])
+                        current_oa_details[observation_date]['oa_locations'] += hal_oa_details[observation_date]['oa_locations']
+            res['oa_details'] = current_oa_details
 
         if 'oa_details' not in res:
             pass
-            #logger.debug(f'no oa details for publi {res["id"]}')
         else:
             for millesime in res.get('oa_details'):
                 if isinstance(res['oa_details'][millesime].get('oa_colors'), str):
