@@ -68,6 +68,8 @@ def get_hal_history(hal_ids: list, observations: list, last_observation_date_onl
             continue
         if last_observation_date_only and (collection in collections_dates) and (collection != max(collections_dates)):
             continue
+        if collection == max(collections_dates):
+            continue
         logger.debug(f'Collection: {collection}')
         current_list = get_hal_id(hal_ids, collection)
         for e in current_list:
