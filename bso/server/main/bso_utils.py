@@ -143,7 +143,7 @@ def remove_wrong_match(publi):
     if 'fr' not in publi.get('bso_country'):
         return publi
     for source in publi.get('sources'):
-        if source in ['dois_fr', 'theses'] or '.csv' in source or '.xls' in source:
+        if source in ['dois_fr', 'theses', 'HAL'] or '.csv' in source or '.xls' in source:
             return publi
     bso_country = []
     for c in publi.get('bso_country'):
@@ -157,8 +157,6 @@ def remove_wrong_match(publi):
     has_fr = False
     for aff in previous_affiliations:
         previous_detected_countries = aff.get('detected_countries')
-        if not isinstance(previous_detected_countries, list) or len(previous_detected_countries) == 0:
-            continue
         if aff.get('country') == 'France':
             has_fr = True
             continue
@@ -179,10 +177,10 @@ def remove_wrong_match(publi):
         for w in [";saint;louis;", ";orleans;", ";mn;", ";mo;", ";mi;", ";ma;", ";mn;", ";korea;",
                   "first;author",
                   ";public;health;", ";r&d;", ";com;", ";air;", ";ill;", ";oak;", ";us;", ";liban;"]:
-            if w in aff_name_normalized and previous_detected_countries is not None:
+            if w in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
                 logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
                 aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
-        if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized and previous_detected_countries is not None:
+        if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
             logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
             aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
     if has_fr:
