@@ -47,7 +47,8 @@ def normalize(x, min_length = 0):
     normalized = normalizer.normalize_str(x)
     normalized = normalized.replace('\n', ' ')
     normalized = re.sub(' +', ' ', normalized)
-    return " ".join([e[0] for e in pre_tokenizer.pre_tokenize_str(normalized) if len(e[0]) > min_length])
+    # keep if digit alone
+    return " ".join([e[0] for e in pre_tokenizer.pre_tokenize_str(normalized) if (len(e[0]) > min_length) or (e[0] in string.digits)])
 
 def normalize2(x, remove_space = True, min_length = 0):
     if not isinstance(x, str):

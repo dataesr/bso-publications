@@ -106,6 +106,9 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
             if isinstance(mentions, list):
                 new_elem['data_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
 
+        if year not in new_elem or not isinstance(new_elem['year'], int) or new_elem['year']<2013:
+            continue
+
         flatten_data.append(new_elem)
     final_cols = ['observation_date', 'id', 'doi', 'pmid', 'hal_id', 'year', 'title',
        'journal_issns', 'journal_issn_l', 'journal_name', 'publisher',
@@ -142,14 +145,18 @@ def remove_wrong_match(publi):
     publi['bso_country_corrected'] = publi.get('bso_country')
     if 'fr' not in publi.get('bso_country'):
         return publi
-    for source in publi.get('sources'):
-        if source in ['dois_fr', 'theses', 'HAL'] or '.csv' in source or '.xls' in source:
-            return publi
+    if isinstance(publi.get('sources'), list):
+        for source in publi.get('sources'):
+            if source in ['dois_fr', 'theses', 'HAL'] or '.csv' in source or '.xls' in source:
+                return publi
     bso_country = []
     for c in publi.get('bso_country'):
         if c != 'fr' and c not in bso_country:
             bso_country.append(c)
-    previous_affiliations = publi.get('affiliations')
+    previous_affiliations = []
+    for f in publi:
+        if 'affiliations' in f and isinstance(publi[f], list):
+            previous_affiliations += publi[f]
     if not isinstance(previous_affiliations, list):
         return publi
     if len(previous_affiliations) == 0:
@@ -170,7 +177,7 @@ def remove_wrong_match(publi):
         if ';france;' in aff_name_normalized and ';dieu;de;france;' not in aff_name_normalized:
             has_fr = True
             continue
-        for f in [';paris;', 'é', ';cnrs;', ';inserm;', ';umr;', '.fr;', ';ehess;', ';cea;', ';inra', 'lyon', 'marseille', 'bordeaux', 'nancy', 'strasbourg', 'rennes', 'lille', 'nantes']:
+        for f in [';paris;', 'é', ';cnrs;', ';inserm;', ';umr;', '.fr;', ';ehess;', ';cea;', ';inra', 'lyon', 'marseille', 'bordeaux', 'nancy', 'strasbourg', 'rennes', 'lille', 'nantes', 'french']:
             if f in aff_name_normalized:
                 has_fr = True
                 continue
