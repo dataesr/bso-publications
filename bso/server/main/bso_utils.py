@@ -106,7 +106,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
             if isinstance(mentions, list):
                 new_elem['data_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
 
-        if year not in new_elem or not isinstance(new_elem['year'], int) or new_elem['year']<2013:
+        if 'year' not in new_elem or not isinstance(new_elem['year'], int) or new_elem['year']<2013:
             continue
 
         flatten_data.append(new_elem)
