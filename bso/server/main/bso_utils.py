@@ -24,7 +24,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
                      'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
                      'bso_classification', 'lang', 'genre',
                     'amount_apc_EUR', 'apc_source']
-    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country']
+    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected']
     INSIDE_FIELD_SEP = '|'
     flatten_data = []
     for elem in df.to_dict(orient='records'):
@@ -112,7 +112,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         flatten_data.append(new_elem)
     final_cols = ['observation_date', 'id', 'doi', 'pmid', 'hal_id', 'year', 'title',
        'journal_issns', 'journal_issn_l', 'journal_name', 'publisher',
-       'publisher_dissemination', 'bso_classification', 'lang', 'genre', 'bso_country',
+       'publisher_dissemination', 'bso_classification', 'lang', 'genre', 'bso_country_corrected',
        'amount_apc_EUR', 'apc_source', 'domains', 'detected_countries',
        'bso_local_affiliations', 'funding_anr', 'funding_europe',
        'bsso_classification', 'is_oa', 'oa_host_type', 'journal_is_in_doaj',
@@ -123,6 +123,8 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
        'data_used', 'data_created', 'data_shared'
        ]
     df_flatten = pd.DataFrame(flatten_data)[final_cols]
+    df_flatten['bso_country'] = df_flatten['bso_country_corrected']
+    del df_flatten['bso_country_corrected']
 
     if write_header:
         df_flatten.to_csv(filename, sep=';', index=False)
