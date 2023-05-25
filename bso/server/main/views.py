@@ -134,7 +134,7 @@ def get_status(task_id):
 
 @main_blueprint.route('/cache', methods=['POST'])
 def run_task_cache():
-    logger.debug('Starting task etl')
+    logger.debug('Starting task cache')
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)

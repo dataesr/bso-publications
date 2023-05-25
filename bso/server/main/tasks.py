@@ -24,23 +24,22 @@ logger = get_logger(__name__)
 START_YEAR = 2022
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
-def to_mongo_affiliations(input_list):
+def to_mongo_cache(input_list, collection_name):
     logger.debug(f'importing {len(input_list)} affiliations queries')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
-    output_json = f'{MOUNTED_VOLUME}affiliations_cache.jsonl'
+    output_json = f'{MOUNTED_VOLUME}{collection_name}_cache.jsonl'
     pd.DataFrame(input_list).to_json(output_json, lines=True, orient='records')
     #to_jsonl(input_list, output_json, 'w')
     #collection_name = 'classifications'
-    collection_name = 'affiliations'
+    #collection_name = 'affiliations'
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
                   f' --collection {collection_name}'
     logger.debug(f'{mongoimport}')
     os.system(mongoimport)
     logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
-    #for f in ['id']:
-    for f in ['query_md5']:
+    for f in ['id']:
         mycol.create_index(f)
     logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
@@ -50,7 +49,7 @@ def create_task_cache_affiliations(args):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     #collection_name = 'classifications'
-    collection_name = 'affiliations'
+    #collection_name = 'affiliations'
     mycoll = mydb[collection_name]
     mycoll.drop()
     full = pd.read_json('/upw_data/{index_name}.jsonl', lines=True, chunksize=25000)
@@ -59,16 +58,21 @@ def create_task_cache_affiliations(args):
         to_save = []
         publis = df.to_dict(orient='records')
         for p in publis:
-            affiliations = p.get('affiliations')
-            if isinstance(affiliations, list):
-                for aff in affiliations:
-                    ids = aff.get('ids', [])
-                    query = get_hash(get_query_from_affiliation(aff))
-                    if query and query not in existing_hash and isinstance(ids, list):
-                        to_save.append({'query_md5': query, 'ids': ids})
-                        existing_hash[query] = 1
-        if to_save:
-            to_mongo_affiliations(to_save)
+            for collection_name in ['affiliations', 'classifications']:
+                data = p.get(collection_name)
+                if not isinstance(data, list):
+                    data = []
+                if collection_name == 'affiliations':
+                    for aff in affiliations:
+                        ids = aff.get('ids', [])
+                        query = get_hash(get_query_from_affiliation(aff))
+                        if query and query not in existing_hash:
+                            to_save.append({'id': query, 'cache': ids})
+                            existing_hash[query] = 1
+                if collection_name == 'classifications':
+                    to_save.append({'id': p['id'], 'cache': p['classifications']})
+            if to_save:
+                to_mongo_cache(to_save, collection_name)
 
 def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:

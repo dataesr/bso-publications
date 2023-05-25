@@ -36,9 +36,9 @@ def get_affiliation_from_mongo(name):
     collection_name = 'affiliations'
     mycoll = mydb[collection_name]
     query_md5 = get_hash(name)
-    res = mycoll.find_one({'query_md5': query_md5})
+    res = mycoll.find_one({'id': query_md5})
     if res:
-        return res['ids']
+        return res['cache']
     return
 
 def clean(p):
@@ -64,7 +64,7 @@ def get_affiliations_computed(publications, recompute_all = False, compute_missi
             if recompute_all is False:
                 if aff_name not in affiliations:
                     res = get_affiliation_from_mongo(aff_name)
-                    if res:
+                    if isinstance(res, list):
                         affiliations[aff_name] = res 
                 if aff_name in affiliations:
                     aff['ids'] = affiliations[aff_name]

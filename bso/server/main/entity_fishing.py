@@ -30,7 +30,7 @@ def get_from_mongo(pid):
     mycoll = mydb[collection_name]
     res = mycoll.find_one({'id': pid})
     if res:
-        return {'classifications': res['classifications']}
+        return {'classifications': res['cache']}
     return
 
 
@@ -38,12 +38,13 @@ def get_from_mongo(pid):
 def get_entity_fishing(publication: dict) -> dict:
     #logger.debug(publication)
     pre_computed = get_from_mongo(publication['id'])
-    if pre_computed:
+    if isinstance(pre_computed, list):
         return pre_computed
 
     # TODO TO REMOVE
     #return {}
 
+    logger.debug('compute classifications from entity fishing')
     ans = {}
 
     lang = publication.get('lang')
