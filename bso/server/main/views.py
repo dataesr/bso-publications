@@ -136,8 +136,9 @@ def get_status(task_id):
 def run_task_cache():
     logger.debug('Starting task cache')
     args = request.get_json(force=True)
+    queue = args.get('queue', 'scanr-publications')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        q = Queue(name=queue, default_timeout=default_timeout)
         task = q.enqueue(create_task_cache_affiliations, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
