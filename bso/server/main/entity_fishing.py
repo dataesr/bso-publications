@@ -38,13 +38,13 @@ def get_from_mongo(pid):
 def get_entity_fishing(publication: dict) -> dict:
     #logger.debug(publication)
     pre_computed = get_from_mongo(publication['id'])
-    if isinstance(pre_computed, list):
+    if pre_computed and isinstance(pre_computed.get('classifications'), list):
         return pre_computed
 
     # TODO TO REMOVE
     #return {}
 
-    logger.debug('compute classifications from entity fishing')
+    logger.debug(f"compute classifications from entity fishing for {publication['id']}")
     ans = {}
 
     lang = publication.get('lang')

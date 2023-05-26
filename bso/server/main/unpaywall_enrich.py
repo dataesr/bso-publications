@@ -473,8 +473,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
         # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
         hal_date.sort()
-        #get HAL history for all dates but not the last one (already the from the extract step) 
-        data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_date[0:-1], last_observation_date_only=last_observation_date_only)
+        #get HAL history for all dates but not the last one (already the from the extract step)
+        data_hal = {}
+        if len(hal_date)>1:
+            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_date[0:-1], last_observation_date_only=last_observation_date_only)
         data = {**data_hal, **data_unpaywall}
 
         # publis_dict contains info for all publi, even if no DOI crossref
