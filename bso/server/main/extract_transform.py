@@ -28,6 +28,7 @@ from bso.server.main.utils import download_file, get_dois_from_input, dump_to_ob
 from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, get_person_ids
 from bso.server.main.funding import normalize_grant
+from bso.server.main.scanr import to_light
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match
 
 
@@ -662,6 +663,19 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                     g.update(new_grant)
                     new_grants.append(g)
             p['grants'] = new_grants
+        existing_affiliations = p.get('affiliations', [])
+        for f in p:
+            if 'authors' in f and isinstance(p[f], list):
+                for aut in p[f]:
+                    if 'affiliation' in aut:
+                        new_affiliations = aut['affiliation']
+                        for new_affiliation in new_affiliations:
+                            if new_affiliation not in existing_affiliations:
+                                existing_affiliations.append(new_affiliation)
+                        aut['affiliations'] = new_affiliations
+                        del aut['affiliation']
+        if existing_affiliations:
+            p['affiliations'] = existing_affiliations
     # on récupère les data des publis déjà en base
     ids_to_check = list(set(ids_to_check))
     existing_publis = get_from_mongo('all_ids', ids_to_check, collection_name)
@@ -721,6 +735,9 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                     current_grants.append(grant)
             if current_grants:
                 p['grants'] = current_grants
+            extract_light = True
+            if extract_light:
+                p = to_light(p)
     if to_delete:
         delete_from_mongo(to_delete, collection_name)
     to_mongo(to_add, collection_name)
@@ -728,6 +745,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     nb_del = len(to_delete)
     nb_new = nb_add - nb_del
     logger.debug(f'new : {nb_new} publis, updating {nb_del} publis')
+
 
 def extract_pubmed(bso_local_dict, collection_name) -> None:
     start_string = '2013-01-01'

@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 START_YEAR = 2022
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
-def to_mongo_cache(input_list, collection_name):
+def to_mongo_cache(input_list, collection_name, upsert=False):
     logger.debug(f'importing {len(input_list)} {collection_name}')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
@@ -35,6 +35,8 @@ def to_mongo_cache(input_list, collection_name):
     #collection_name = 'affiliations'
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
                   f' --collection {collection_name}'
+    if upsert:
+        mongoimport = mongoimport + ' --upsert --upsertFields id'
     #logger.debug(f'{mongoimport}')
     os.system(mongoimport)
     #logger.debug(f'Checking indexes on collection {collection_name}')
@@ -48,24 +50,34 @@ def create_task_cache_affiliations(args):
     index_name = args.get('index')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
+    resume_after = args.get('resume_after', 0)
     #collection_name = 'classifications'
     #collection_name = 'affiliations'
     mycolls = {}
     for collection_name in ['affiliations', 'classifications']:
         mycolls[collection_name] = mydb[collection_name]
-        logger.debug(f'dropping {collection_name}')
-        mycolls[collection_name].drop()
+        if resume_after == 0:
+            logger.debug(f'dropping {collection_name}')
+            mycolls[collection_name].drop()
     input_file = f'/upw_data/{index_name}.jsonl'
     logger.debug(f'reading {input_file}') 
-    CHUNK_SIZE = 25000
-    full = pd.read_json(input_file, lines=True, chunksize=25000)
-    existing_hash = {}
+    CHUNK_SIZE = args.get('chunk_size', 10000)
+    full = pd.read_json(input_file, lines=True, chunksize=CHUNK_SIZE)
+    ix = -1
     for df in full:
+        existing_hash = {}
+        ix += 1
+        if ix * CHUNK_SIZE < resume_after:
+            continue
+        logger.debug(f'iteration {ix}, {ix*CHUNK_SIZE} publications treated')
         to_save = {}
         for collection_name in ['affiliations', 'classifications']:
             to_save[collection_name] = []
         publis = df.to_dict(orient='records')
-        for p in publis:
+        for px, p in enumerate(publis):
+            for f in p:
+                if isinstance(p[f], list) and len(p[f]) > 150:
+                    logger.debug(f"{p['id']}, {f}, {len(p[f])}") 
             for collection_name in ['affiliations', 'classifications']:
                 data = p.get(collection_name)
                 if not isinstance(data, list):
@@ -73,15 +85,20 @@ def create_task_cache_affiliations(args):
                 if collection_name == 'affiliations':
                     affiliations = data
                     for aff in affiliations:
-                        ids = aff.get('ids', [])
+                        ids = []
+                        # make sure of unicity
+                        for x in aff.get('ids', []):
+                            if x not in ids:
+                                ids.append(x)
+
                         query = get_hash(get_query_from_affiliation(aff))
                         if query and query not in existing_hash:
                             to_save[collection_name].append({'id': query, 'cache': ids})
                             existing_hash[query] = 1
                 if collection_name == 'classifications':
                     to_save[collection_name].append({'id': p['id'], 'cache': data})
-        for collection_name in ['affiliations', 'classifications']:
-            to_mongo_cache(to_save[collection_name], collection_name)
+        to_mongo_cache(input_list = to_save['affiliations'],    collection_name = 'affiliations',    upsert=False)
+        to_mongo_cache(input_list = to_save['classifications'], collection_name = 'classifications', upsert=False)
 
 def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:

@@ -14,6 +14,17 @@ logger = get_logger(__name__)
 
 NB_MAX_AUTHORS = 50
 
+def to_light(p):
+    for f in ['references']:
+        if f in p:
+            del p[f]
+    authors = p.get('authors')
+    if isinstance(authors, list) and len(authors)>NB_MAX_AUTHORS:
+        other_authors_keys = [e for e in list(p.keys()) if (('authors_' in e) or ('_authors' in e))]
+        for f in other_authors_keys:
+            del p[f]
+    return p
+
 @retry(delay=200, tries=3)
 def get_matches_for_publication(publi_ids):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -243,6 +254,7 @@ def to_scanr(publications):
         authors=[]
         if isinstance(p.get('authors'), list):
             nb_authors = len([a for a in p['authors'] if a.get('role', 'author')[0:3] == 'aut'])
+            elt['authorsCount'] = nb_authors
             for ix_aut, a in enumerate(p['authors']):
                 # max auteurs
                 if ix_aut > NB_MAX_AUTHORS:
@@ -284,7 +296,6 @@ def to_scanr(publications):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
-            elt['authorsCount'] = len(authors)
         elt = clean_json(elt)
         if elt:
             scanr_publications.append(elt)

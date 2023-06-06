@@ -16,6 +16,7 @@ from bso.server.main.publisher.publisher_detect import detect_publisher
 from bso.server.main.strings import dedup_sort, normalize, normalize2, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_unpaywall_history
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
+from bso.server.main.scanr import to_light
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 from bso.server.main.entity_fishing import get_entity_fishing
 
@@ -406,16 +407,13 @@ def merge_authors_affiliations(p, index_name):
         if f in p and isinstance(p[f], list):
             target_authors = p[f]
             target_name = f
-            for a in target_authors:
-                if isinstance(a.get('affiliation'), list):
-                    current_aff = a.get('affiliations', [])
-                    current_aff += a['affiliation']
-                    a['affiliations'] = current_aff
 
     affiliations = []
     for f in p:
-        if ('affiliation' in f) and ('bso_local_affiliations' not in f) and (isinstance(p[f], list)):
-            affiliations += p[f]
+        if ('affiliation' in f) and ('bso_local' not in f) and (isinstance(p[f], list)):
+            for new_aff in p[f]:
+                if new_aff not in affiliations:
+                    affiliations.append(new_aff)
 
     # for bso no need to work on authors data
     if 'bso-' not in index_name:
@@ -443,6 +441,7 @@ def merge_authors_affiliations(p, index_name):
     if isinstance(target_authors, list) and target_authors and ('nnt' in p['id'] or len(target_authors) == 1):
         # if thesis or single-author publication, first author has all the affiliations
         target_authors[0]['affiliations'] = affiliations
+        target_authors[0]['corresponding'] = True
 
     p['affiliations'] = affiliations
     p['authors'] = target_authors
@@ -503,7 +502,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             d = merge_authors_affiliations(d, index_name)
 
             d = treat_affiliations_authors(d) # useful_rank etc ...
-            
+            d = to_light(d) 
             all_updated.append(d)
 
     # affiliation matcher
