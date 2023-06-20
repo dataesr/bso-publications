@@ -186,7 +186,9 @@ def enrich_publications_with_affiliations_id(publications: list) -> dict:
                 results = all_affiliations_dict[query]
                 if 'ids' not in affiliation:
                     affiliation['ids'] = []
-                affiliation['ids'] += results
+                for result in results:
+                    if result not in affiliation['ids']:
+                        affiliation['ids'].append(result)
         authors = publication.get('authors', [])
         for author in authors:
             affiliations = author.get('affiliations', [])
@@ -196,5 +198,7 @@ def enrich_publications_with_affiliations_id(publications: list) -> dict:
                     results = all_affiliations_dict[query]
                     if 'ids' not in affiliation:
                         affiliation['ids'] = []
-                    affiliation['ids'] += results
+                    for result in results:
+                        if result not in affiliation['ids']:
+                            affiliation['ids'].append(result)
     return publications
