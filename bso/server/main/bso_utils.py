@@ -63,6 +63,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
 
         if 'oa_details' in elem and observation_date in elem['oa_details']:
             new_elem['is_oa'] = elem['oa_details'][observation_date].get('is_oa')
+            new_elem['is_oa_hal'] = elem['oa_details'][observation_date].get('is_oa_hal')
             new_elem['oa_host_type'] = elem['oa_details'][observation_date].get('oa_host_type')
             if new_elem['oa_host_type']:
                 new_elem['oa_host_type'] = new_elem['oa_host_type'].replace(';', '-')
@@ -115,7 +116,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
        'publisher_dissemination', 'bso_classification', 'lang', 'genre', 'bso_country_corrected',
        'amount_apc_EUR', 'apc_source', 'domains', 'detected_countries',
        'bso_local_affiliations', 'funding_anr', 'funding_europe',
-       'bsso_classification', 'is_oa', 'oa_host_type', 'journal_is_in_doaj',
+       'bsso_classification', 'is_oa', 'is_oa_hal', 'oa_host_type', 'journal_is_in_doaj',
        'journal_is_oa', 'unpaywall_oa_status', 'oa_colors',
        'licence_publisher', 'licence_repositories', 'repositories',
        'software_mentions', 'data_mentions',

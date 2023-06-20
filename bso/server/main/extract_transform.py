@@ -82,7 +82,7 @@ def remove_extra_fields(res):
 def remove_fields_bso(res): 
     # not exposing some fields in index
     for f in list(res):
-        if 'authors' in f:
+        if 'authors' in f and isinstance(res['authors'], list) and len(res['authors']) > 50:
             del res[f]
         if 'affiliations_' in f and (f not in ['bso_local_affiliations', 'french_affiliations_types']) :
             del res[f]

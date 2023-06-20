@@ -181,14 +181,15 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         res = detect_fields(res, classification_types)
         
         # APC
+        info_apc = {'has_apc': None}
         published_date_for_apc = res.get('published_date')
         if not isinstance(published_date_for_apc, str):
             published_date_for_apc = '2100-01-01'
             #logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc")
-        if isinstance(doi, str) and (doi in dois_infos):
+        if isinstance(doi, str) and (doi in dois_infos) and (res.get('is_paratext') == False):
             info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
                               published_date_for_apc, dois_infos[doi])
-            res.update(info_apc)
+        res.update(info_apc)
         #logger.debug('APC_END')
         
         # Language
@@ -319,6 +320,13 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
                     res['oa_details'][millesime]['repositories_concat'] = ";".join(repos)
                 else:
                     res['oa_details'][millesime]['repositories_concat'] = 'closed'
+
+                current_repo = res['oa_details'][millesime].get('repositories')
+                if isinstance(current_repo, list) and 'HAL' in current_repo:
+                    res['oa_details'][millesime]['is_oa_hal'] = True
+                else:
+                    res['oa_details'][millesime]['is_oa_hal'] = False
+
         #logger.debug('HAL_END')
         for field in ['amount_apc_doaj', 'amount_apc_doaj_EUR', 'amount_apc_EUR', 'is_paratext', 'issn_print',
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
