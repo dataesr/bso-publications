@@ -1,4 +1,4 @@
-# bso-publications
+# Baromètre publications
 [![Discord Follow](https://dcbadge.vercel.app/api/server/dkcww8vs?style=flat)](https://discord.gg/dkcww8vs)
 ![GitHub](https://img.shields.io/github/license/dataesr/bso-publications)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/dataesr/bso-publications)

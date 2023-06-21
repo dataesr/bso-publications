@@ -73,7 +73,7 @@ def upload_sword(index_name):
             
 def remove_extra_fields(res): 
     # Not exposing some fields in index
-    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw']:
+    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw', 'publication_date', 'publication_year']:
         if f in res:
             del res[f]
     return res
@@ -82,8 +82,14 @@ def remove_extra_fields(res):
 def remove_fields_bso(res): 
     # not exposing some fields in index
     for f in list(res):
-        if 'authors' in f and isinstance(res['authors'], list) and len(res['authors']) > 50:
-            del res[f]
+        if 'authors' in f and isinstance(res['authors'], list):
+            if len(res['authors']) > 50:
+                del res[f]
+            for aut in res['authors']:
+                if isinstance(aut, dict):
+                    for g in aut:
+                        if 'affiliations_' in g:
+                            del aut[g]
         if 'affiliations_' in f and (f not in ['bso_local_affiliations', 'french_affiliations_types']) :
             del res[f]
         #if f == 'affiliations' and isinstance(res['affiliations'], list):

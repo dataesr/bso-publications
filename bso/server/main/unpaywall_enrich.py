@@ -129,7 +129,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
             res.update(dois_infos[doi]['global'])
             if 'external_ids' not in res:
                 res['external_ids'] = []
-            res['external_ids'].append({'crossref': doi})
+            res['external_ids'].append({'id_type': 'crossref', 'id_value': doi})
         if 'z_authors' in res and isinstance(res['z_authors'], list):
             for ix, a in enumerate(res['z_authors']):
                 full_name = ''
