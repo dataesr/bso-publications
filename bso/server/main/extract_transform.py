@@ -85,11 +85,12 @@ def remove_fields_bso(res):
         if 'authors' in f and isinstance(res['authors'], list):
             if len(res['authors']) > 50:
                 del res[f]
-            for aut in res['authors']:
-                if isinstance(aut, dict):
-                    for g in aut:
-                        if 'affiliations_' in g:
-                            del aut[g]
+            else:
+                for aut in res['authors']:
+                    if isinstance(aut, dict):
+                        for g in aut:
+                            if 'affiliations_' in g:
+                                del aut[g]
         if 'affiliations_' in f and (f not in ['bso_local_affiliations', 'french_affiliations_types']) :
             del res[f]
         #if f == 'affiliations' and isinstance(res['affiliations'], list):
