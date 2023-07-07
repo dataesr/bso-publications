@@ -30,7 +30,7 @@ from bso.server.main.scanr import to_scanr, get_person_ids
 from bso.server.main.funding import normalize_grant
 from bso.server.main.scanr import to_light
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match
-
+from bso.server.main.s3 import upload_s3
 
 logger = get_logger(__name__)
     
@@ -82,7 +82,9 @@ def remove_extra_fields(res):
 def remove_fields_bso(res): 
     # not exposing some fields in index
     for f in list(res):
-        if 'authors' in f and isinstance(res['authors'], list):
+        if 'authors_' in f:
+            del res[f]
+        if f =='authors' and isinstance(res['authors'], list):
             if len(res['authors']) > 50:
                 del res[f]
             else:
@@ -91,6 +93,8 @@ def remove_fields_bso(res):
                         for g in aut:
                             if 'affiliations_' in g:
                                 del aut[g]
+                            # if g == 'affiliation':
+                            #    del aut[g]
         if 'affiliations_' in f and (f not in ['bso_local_affiliations', 'french_affiliations_types']) :
             del res[f]
         #if f == 'affiliations' and isinstance(res['affiliations'], list):
@@ -125,9 +129,15 @@ def get_collection_name(index_name):
         collection_name = 'publications_before_enrichment_bso'
     return collection_name
 
+def split_file():
+    # TODO
+    # split function
+    # pour scanR, bso3-harvester ...
+
 def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
+    split_prefix = output_file.replace('_extract.jsonl', '_split_')
     
     bso_local_filenames = []
     bso_local_dict = {}
@@ -151,6 +161,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             extract_container('bso3_publications_dump', bso_local_dict, skip_download=False, download_prefix='final_for_bso', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name) #always fr
         if 'pubmed' in datasources:
             extract_pubmed(bso_local_dict, collection_name)
+        for d in datasources:
+            if 'medline/' in d:
+                medline_year = d.split('/')[1].strip()
+                extract_container('medline', bso_local_dict, skip_download, download_prefix=f'parsed/{medline_year}/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'medline' in datasources:
             extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
@@ -175,6 +189,16 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         # export to jsonl
         dump_cmd = f'mongoexport --forceTableScan --uri mongodb://mongo:27017/scanr --collection {collection_name} --out {output_file}'
         os.system(dump_cmd)
+        
+        # split file in several smaller files
+        if 'scanr' in index_name:
+            os.system(f'cd /upw_data && split -l 1000000 {output_file} {split_prefix}')
+            idx_split = 0
+            for f in is os.listdir('/upw_data/'):
+                if f.startswith(f'{split_prefix})':
+                    os.system(f'mv /upw_data/{f} /upw_data/{split_prefix}{idx_split}_extract.jsonl')
+                    logger.debug(f'file /upw_data/{split_prefix}{idx_split}_extract.jsonl')
+                    idx_split += 1
 
     # enrichment
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
@@ -187,6 +211,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if 'Q4' in current_millesime:
             last_oa_details = current_millesime
     logger.debug(f'using {last_oa_details} for oa_detail date in csv export')
+
+
     if transform:
         df_chunks = pd.read_json(output_file, lines=True, chunksize = chunksize)
         os.system(f'rm -rf {enriched_output_file}')
@@ -250,6 +276,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
 
     if load and 'scanr' in index_name:
+
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
         scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
         internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
@@ -305,7 +332,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                         del elt[f]
                 elt = {f: elt[f] for f in elt if elt[f]==elt[f] }
                 publications_cleaned.append(elt)
-            to_jsonl(publications_cleaned, internal_output_file, 'a')
+            #to_jsonl(publications_cleaned, internal_output_file, 'a')
             ix += 1
             logger.debug(f'scanr extract publi, {ix}')
         #with open(scanr_output_file, 'a') as outfile:
@@ -313,6 +340,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         #load_scanr_publications({})
         #upload_sword(index_name)
         #upload_object(container='tmp', filename=f'{scanr_output_file}')
+        os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && gzip -k publications.jsonl')
+        upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications.jsonl.gz', destination='production/publications.jsonl.gz')
 
 def load_scanr_publications(args):
     index_name = args.get('index')
@@ -332,6 +361,7 @@ def drop_collection(db, collection_name):
     mydb = myclient[db]
     mycoll = mydb[collection_name]
     mycoll.drop()
+    myclient.close()
 
 def save_to_mongo_publi(relevant_infos):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -349,6 +379,7 @@ def save_to_mongo_publi(relevant_infos):
     mycol.create_index('authors.person')
     #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
+    myclient.close()
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
     # first remove existing files
@@ -418,6 +449,7 @@ def to_mongo(input_list, collection_name):
         mycol.create_index(f)
     #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
+    myclient.close()
 
 @retry(delay=200, tries=3)
 def get_from_mongo(identifier_type, identifiers, collection_name):
@@ -430,6 +462,7 @@ def get_from_mongo(identifier_type, identifiers, collection_name):
         del r['_id']
         res.append(r)
     cursor.close()
+    myclient.close()
     return res
 
 @retry(delay=200, tries=3)
@@ -439,6 +472,7 @@ def delete_from_mongo(identifiers, collection_name):
     mycoll = mydb[collection_name]
     logger.debug(f'removing {len(identifiers)} publis for {identifiers[0:10]} ...')
     mycoll.delete_many({ 'id' : { '$in': identifiers } })
+    myclient.close()
 
 
 
