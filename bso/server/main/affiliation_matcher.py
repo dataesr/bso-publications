@@ -30,8 +30,7 @@ def exception_handler(func):
             return None
     return inner_function
 
-def get_affiliation_from_mongo(name):
-    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+def get_affiliation_from_mongo(name, myclient):
     mydb = myclient['scanr']
     collection_name = 'affiliations'
     mycoll = mydb[collection_name]
@@ -52,6 +51,7 @@ def clean(p):
     return p
 
 def get_affiliations_computed(publications, recompute_all = False, compute_missing = True):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     affiliations = {}
     done, todo = [], []
     for p in publications:
@@ -63,7 +63,7 @@ def get_affiliations_computed(publications, recompute_all = False, compute_missi
                 continue
             if recompute_all is False:
                 if aff_name not in affiliations:
-                    res = get_affiliation_from_mongo(aff_name)
+                    res = get_affiliation_from_mongo(aff_name, myclient)
                     if isinstance(res, list):
                         affiliations[aff_name] = res 
                 if aff_name in affiliations:
@@ -87,6 +87,7 @@ def get_affiliations_computed(publications, recompute_all = False, compute_missi
             else:
                 done.append(p)
     logger.debug(f'affiliation matching {len(todo)}/{len(publications)} todo, {len(done)}/{len(publications)} done')
+    myclient.close()
     return done, todo
 
 @timeout_decorator.timeout(50*60)

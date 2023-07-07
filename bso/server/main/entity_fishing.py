@@ -23,8 +23,7 @@ def exception_handler(func):
     return inner_function
 
 
-def get_from_mongo(pid):
-    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+def get_from_mongo(pid, myclient):
     mydb = myclient['scanr']
     collection_name = 'classifications'
     mycoll = mydb[collection_name]
@@ -35,9 +34,9 @@ def get_from_mongo(pid):
 
 
 @exception_handler
-def get_entity_fishing(publication: dict) -> dict:
+def get_entity_fishing(publication: dict, myclient) -> dict:
     #logger.debug(publication)
-    pre_computed = get_from_mongo(publication['id'])
+    pre_computed = get_from_mongo(publication['id'], myclient)
     if pre_computed and isinstance(pre_computed.get('classifications'), list):
         return pre_computed
 

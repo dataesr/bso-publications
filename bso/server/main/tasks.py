@@ -45,6 +45,7 @@ def to_mongo_cache(input_list, collection_name, upsert=False):
         mycol.create_index(f)
     #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
+    myclient.close()
 
 def create_task_cache_affiliations(args):
     index_name = args.get('index')
@@ -99,6 +100,7 @@ def create_task_cache_affiliations(args):
                     to_save[collection_name].append({'id': p['id'], 'cache': data})
         to_mongo_cache(input_list = to_save['affiliations'],    collection_name = 'affiliations',    upsert=False)
         to_mongo_cache(input_list = to_save['classifications'], collection_name = 'classifications', upsert=False)
+    myclient.close()
 
 def send_to_parser(publication_json):
     if HTML_PARSER_SERVICE:

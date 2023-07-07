@@ -1,6 +1,7 @@
 import fasttext
 import os
 import pandas as pd
+import pymongo
 
 from dateutil import parser
 from typing import Union
@@ -114,7 +115,8 @@ def has_fr(countries: list) -> bool:
     return False
 
 
-def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list:
+def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_name: str, myclient) -> list:
+    logger.debug('start format_upw')
     # dois_infos contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
     # extra_data contains info for all publi, even if no DOI crossref
     final = []
@@ -164,74 +166,71 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool) -> list
         else:
             res['genre'] = 'other'
        
-        
-        # Fields detection (dépend de genre)
-        classification_types = ['bso']
         domains = res.get('domains', [])
         if not isinstance(domains, list):
             domains = []
-        if 'health' in domains:
-            classification_types.append('bsso')
+        classification_types = []
         if res['genre'] == 'thesis':
             classification_types.append('thesis')
-        
-        # TODO TO REMOVE
-        #if entity_fishing:
-        #    classification_types.append('sdg')
+        if 'bso' in index_name: 
+            # Fields detection (dépend de genre)
+            classification_types.append('bso')
+            #classification_types.append('sdg')
+            if 'health' in domains:
+                classification_types.append('bsso')
         res = detect_fields(res, classification_types)
         
-        # APC
+        
         info_apc = {'has_apc': None}
-        published_date_for_apc = res.get('published_date')
-        if not isinstance(published_date_for_apc, str):
-            published_date_for_apc = '2100-01-01'
-            #logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc")
-        if isinstance(doi, str) and (doi in dois_infos) and (res.get('is_paratext') == False):
-            info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
+        if 'bso' in index_name:
+            # APC
+            published_date_for_apc = res.get('published_date')
+            if not isinstance(published_date_for_apc, str):
+                published_date_for_apc = '2100-01-01'
+                #logger.debug(f"missing published date ({res.get('published_date')}) for doi {doi}, using a fallback in future for apc")
+            if isinstance(doi, str) and (doi in dois_infos) and (res.get('is_paratext') == False):
+                info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
                               published_date_for_apc, dois_infos[doi])
         res.update(info_apc)
-        #logger.debug('APC_END')
         
-        # Language
-        lang_mapping = {
+        if 'bso' in index_name:
+            # Language
+            lang_mapping = {
                 'english': 'en',
                 'french': 'fr',
                 'spanish': 'es',
                 'german': 'de',
                 'dutch': 'nl',
                 'italian': 'it'
-        }
-        if isinstance(res.get('lang'), str) and res.get('lang').lower() in lang_mapping:
-            res['lang'] = lang_mapping[res['lang'].lower()]
-        elif (not(isinstance(res.get('lang'), str))) or (len(res['lang']) != 2) or (res['lang'] != res['lang'].lower()):
-            publi_title_abstract = ''
-            words_title = get_words(res.get('title'))
-            if isinstance(words_title, str):
-                publi_title_abstract += words_title + ' '
-            words_abstract = get_words(res.get('abstract'))
-            if isinstance(words_abstract, str):
-                publi_title_abstract += words_abstract
-            publi_title_abstract = publi_title_abstract.strip()
-            if len(publi_title_abstract) > 5:
-                res['lang'] = identify_language(publi_title_abstract.strip())
-            else:
-                pass
-                #logger.debug(f'not enough info title / abstract for doi {doi} : {publi_title_abstract}')
+            }
+            if isinstance(res.get('lang'), str) and res.get('lang').lower() in lang_mapping:
+                res['lang'] = lang_mapping[res['lang'].lower()]
+            elif (not(isinstance(res.get('lang'), str))) or (len(res['lang']) != 2) or (res['lang'] != res['lang'].lower()):
+                publi_title_abstract = ''
+                words_title = get_words(res.get('title'))
+                if isinstance(words_title, str):
+                    publi_title_abstract += words_title + ' '
+                words_abstract = get_words(res.get('abstract'))
+                if isinstance(words_abstract, str):
+                    publi_title_abstract += words_abstract
+                publi_title_abstract = publi_title_abstract.strip()
+                if len(publi_title_abstract) > 5:
+                    res['lang'] = identify_language(publi_title_abstract.strip())
+                else:
+                    pass
+                    #logger.debug(f'not enough info title / abstract for doi {doi} : {publi_title_abstract}')
         
         # Entity fishing
         if entity_fishing:
-            ef_info = get_entity_fishing(res)
+            ef_info = get_entity_fishing(res, myclient)
             if ef_info:
                 res.update(ef_info)
         
-        # Predatory info
-        pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
-        res.update(pred_info)
-        #logger.debug('PREDA_END')
-        # Language
+        if 'bso' in index_name:
+            # Predatory info
+            pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
+            res.update(pred_info)
         
-        #if res.get('publisher_normalized') in ['Cold Spring Harbor Laboratory']:
-        #    res['domains'] = ['health']
         # OA Details
         if isinstance(doi, str) and doi in dois_infos:
             res['observation_dates'] = []
@@ -424,7 +423,7 @@ def merge_authors_affiliations(p, index_name):
                     affiliations.append(new_aff)
 
     # for bso no need to work on authors data
-    if 'bso-' not in index_name:
+    if 'scanr' in index_name:
         for f in p:
             if ('authors' in f) and (isinstance(p[f], list)) and f != target_name:
                 current_authors = p[f]
@@ -487,7 +486,9 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         data = {**data_hal, **data_unpaywall}
 
         # publis_dict contains info for all publi, even if no DOI crossref
-        new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing)
+        myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+        new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing, index_name = index_name, myclient=myclient)
+        myclient.close()
 
         for d in new_updated:
             # some post-filtering

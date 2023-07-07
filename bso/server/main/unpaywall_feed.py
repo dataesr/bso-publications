@@ -85,6 +85,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     if delete_input:
         logger.debug(f'Deleting {f}')
         os.remove(f)
+    myclient.close()
 
 
 def download_snapshot(asof: str = None, upload_to_object_storage: bool = True) -> str:

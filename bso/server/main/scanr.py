@@ -39,6 +39,7 @@ def get_matches_for_publication(publi_ids):
         person_id = r.get('person_id')
         if publi_id and author_key and person_id:
             data[f'{publi_id};{author_key}'] = person_id
+    myclient.close()
     return data
 
 def get_person_ids(publications):

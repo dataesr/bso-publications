@@ -173,7 +173,7 @@ def remove_wrong_match(publi):
         aff_name = aff.get('name')
         if not isinstance(aff_name, str) or len(aff_name)<2:
             aff['detected_countries'] = []
-            logger.debug(f"REMOVE empty affiliation for {publi.get('id')}")
+            #logger.debug(f"REMOVE empty affiliation for {publi.get('id')}")
             continue
         aff_name_normalized = ';'+aff_name.lower().strip() + ';'
         aff_name_normalized = aff_name_normalized.replace(' ', ';').replace(',', ';').replace('.',';').replace(';;', ';')
@@ -188,10 +188,10 @@ def remove_wrong_match(publi):
                   "first;author",
                   ";public;health;", ";r&d;", ";com;", ";air;", ";ill;", ";oak;", ";us;", ";liban;"]:
             if w in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
-                logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
+                #logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
                 aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
         if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
-            logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
+            #logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
             aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
     if has_fr:
         return publi
