@@ -271,6 +271,13 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         # upload to OS
         os.system(f'cp {enriched_output_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
         os.system(f'mv {enriched_output_file_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
+        # also upload a splitted version (1000 lines) 
+        os.system('cd /upw_data && split -l 1000 bso-publications-latest.jsonl bso-publications-latest-split')
+        os.system('rm -rf /upw_data/bso-publications-split')
+        os.system('mkdir -p /upw_data/bso-publications-split')
+        os.system('cd /upw_data && mv bso-publications-latest-split* bso-publications-split/.')
+        os.system(f'cd /upw_data && {init_cmd} upload bso_dump bso-publications-split')
+        # end split upload
         zip_upload(enriched_output_file, delete = False)
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
