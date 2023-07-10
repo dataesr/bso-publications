@@ -159,8 +159,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                 extract_one_bso_local(filename, bso_local_dict, collection_name)
         if 'bso3' in datasources:
             extract_container('bso3_publications_dump', bso_local_dict, skip_download=False, download_prefix='final_for_bso', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name) #always fr
-        if 'pubmed' in datasources:
-            extract_pubmed(bso_local_dict, collection_name)
+        #if 'pubmed' in datasources:
+        #    extract_pubmed(bso_local_dict, collection_name)
+        #medline depends on the year snapshot
         for d in datasources:
             if 'medline/' in d:
                 medline_year = d.split('/')[1].strip()
