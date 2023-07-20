@@ -2,7 +2,7 @@ import os
 import boto3
 from retry import retry
 from io import BytesIO, TextIOWrapper
-from project.server.main.logger import get_logger
+from bso.server.main.logger import get_logger
 
 client = boto3.client(
     's3',
@@ -19,5 +19,5 @@ def upload_s3(container: str, source: str, destination: str) -> str:
     logger.debug(f'Uploading {source} in {container} as {destination}')
     data = open(f'{source}', 'rb')
   
-    client.put_object(Key=destination, Body=data, Bucket=container)
+    client.put_object(Key=destination, Body=data, Bucket=container, ACL='public-read')
     return f'ok: 1'
