@@ -4,6 +4,9 @@ from bs4 import BeautifulSoup
 
 from bso.server.main.strings import normalize
 from bso.server.main.publisher.publisher_detect import detect_publisher
+from bso.server.main.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_domain(url: str) -> str:
@@ -14,8 +17,8 @@ def get_domain(url: str) -> str:
 
 def update_list_publishers() -> dict:
     publishers_url = 'https://beallslist.net/'
-    soup = BeautifulSoup(requests.get(publishers_url).text, 'lxml')
     publishers = []
+    soup = BeautifulSoup(requests.get(publishers_url).text, 'lxml')
     for e in soup.find_all('li'):
         if e.find('a'):
             a = e.find('a')
@@ -49,9 +52,13 @@ def update_list_journals() -> dict:
     df_journals = pd.DataFrame(journals)
     return df_journals.to_dict(orient='records')
 
+pred_publishers, pred_journals = [], []
+try:
+    pred_publishers = update_list_publishers()
+    pred_journals = update_list_journals()
+except:
+    logger.debug('ERROR in getting predatory infos!')
 
-pred_publishers = update_list_publishers()
-pred_journals = update_list_journals()
 pred_j = [normalize(e['journal']) for e in pred_journals]
 pred_p = [normalize(e['publisher']) for e in pred_publishers]
 pred_j_domain = [normalize(e['domain']) for e in pred_journals]

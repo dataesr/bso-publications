@@ -22,7 +22,7 @@ from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.enrich_parallel import enrich_parallel
 from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos, get_dois_meta
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd
+from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd, clean_container_by_prefix
 from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
 from bso.server.main.strings import dedup_sort, normalize
@@ -129,15 +129,23 @@ def get_collection_name(index_name):
         collection_name = 'publications_before_enrichment_bso'
     return collection_name
 
-def split_file():
-    # TODO
-    # split function
-    # pour scanR, bso3-harvester ...
+def split_file(input_dir, file_to_split, nb_lines, split_prefix, output_dir, split_suffix):
+    os.system(f'cd {input_dir} && split -l {nb_lines} {file_to_split} {split_prefix}')
+    os.system(f'mkdir -p {output_dir}')
+    os.system(f'rm -rf {output_dir}/{split_prefix}*')
+    idx_split = 0
+    local_files = os.listdir(input_dir)
+    local_files.sort()
+    for f in local_files:
+        if f.startswith(f"{split_prefix}"):
+            os.system(f'mv {input_dir}/{f} {output_dir}/{split_prefix}{idx_split}{split_suffix}')
+            idx_split += 1
+    logger.debug(f'{input_dir}/{file_to_split} has been splitted into {idx_split} files of {nb_lines} lines from {output_dir}/{split_prefix}0{split_suffix} to {output_dir}/{split_prefix}{idx_split - 1}{split_suffix}')
 
 def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
-    split_prefix = output_file.replace('_extract.jsonl', '_split_')
+    scanr_split_prefix = output_file.replace('_extract.jsonl', '_split_').split('/')[-1]
     
     bso_local_filenames = []
     bso_local_dict = {}
@@ -193,13 +201,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         
         # split file in several smaller files
         if 'scanr' in index_name:
-            os.system(f'cd /upw_data && split -l 1000000 {output_file} {split_prefix}')
-            idx_split = 0
-            for f in is os.listdir('/upw_data/'):
-                if f.startswith(f'{split_prefix})':
-                    os.system(f'mv /upw_data/{f} /upw_data/{split_prefix}{idx_split}_extract.jsonl')
-                    logger.debug(f'file /upw_data/{split_prefix}{idx_split}_extract.jsonl')
-                    idx_split += 1
+            split_file(input_dir = '/upw_data', file_to_split = output_file, nb_lines = 1000000, split_prefix = scanr_split_prefix, output_dir='/upw_data/scanr-split', split_suffix = '_extract.jsonl')
 
     # enrichment
     enriched_output_file = output_file.replace('_extract.jsonl', '.jsonl')
@@ -273,10 +275,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         os.system(f'cp {enriched_output_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
         os.system(f'mv {enriched_output_file_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
         # also upload a splitted version (1000 lines) 
-        os.system('cd /upw_data && split -l 1000 bso-publications-latest.jsonl bso-publications-latest-split')
-        os.system('rm -rf /upw_data/bso-publications-split')
-        os.system('mkdir -p /upw_data/bso-publications-split')
-        os.system('cd /upw_data && mv bso-publications-latest-split* bso-publications-split/.')
+        split_file(input_dir = '/upw_data', file_to_split = 'bso-publications-latest.jsonl', nb_lines = 1000, split_prefix = 'bso-publications-latest-split-', output_dir='/upw_data/bso-publications-split', split_suffix = '.jsonl')
+        #remove files in container before upload
+        clean_container_by_prefix('bso_dump', 'bso-publications-split')
+        # upload new splitted files
         os.system(f'cd /upw_data && {init_cmd} upload bso_dump bso-publications-split')
         # end split upload
         zip_upload(enriched_output_file, delete = False)
@@ -348,8 +350,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         #load_scanr_publications({})
         #upload_sword(index_name)
         #upload_object(container='tmp', filename=f'{scanr_output_file}')
-        os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && gzip -k publications.jsonl')
+        os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && rm -rf publications.jsonl.gz && gzip -k publications.jsonl')
         upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications.jsonl.gz', destination='production/publications.jsonl.gz')
+        upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/persons.jsonl.gz', destination='production/persons.jsonl.gz')
 
 def load_scanr_publications(args):
     index_name = args.get('index')

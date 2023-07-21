@@ -27,6 +27,23 @@ init_cmd = f"swift --os-auth-url https://auth.cloud.ovh.net/v3 --auth-version 3 
       --os-region-name GRA"
 conn = None
 
+def chunks_swift(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+def clean_container_by_prefix(container, prefix):
+    os.system(f'{init_cmd} list {container} --prefix {prefix} > list_files_{container}_{prefix}')
+    list_files = [k.strip() for k in open(f'list_files_{container}_{prefix}', 'r').readlines()]
+    logger.debug(f'{len(list_files)} files listed in {container} with prefix {prefix}')
+    list_files_chunked = list(chunks_swift(list_files, 10))
+    for f in list_files_chunked:
+        for c in f:
+            assert(prefix in c)
+        list_files_concat = ' '.join(f)
+        cmd = f'{init_cmd} delete {container} {list_files_concat}'
+        logger.debug('delete files:')
+        os.system(cmd)
 
 def get_connection() -> swiftclient.Connection:
     global conn
