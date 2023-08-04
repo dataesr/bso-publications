@@ -142,7 +142,7 @@ def split_file(input_dir, file_to_split, nb_lines, split_prefix, output_dir, spl
             idx_split += 1
     logger.debug(f'{input_dir}/{file_to_split} has been splitted into {idx_split} files of {nb_lines} lines from {output_dir}/{split_prefix}0{split_suffix} to {output_dir}/{split_prefix}{idx_split - 1}{split_suffix}')
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     scanr_split_prefix = output_file.replace('_extract.jsonl', '_split_').split('/')[-1]
@@ -173,9 +173,10 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         for d in datasources:
             if 'medline/' in d:
                 medline_year = d.split('/')[1].strip()
+                logger.debug(f'medline year = {medline_year}')
                 extract_container('medline', bso_local_dict, skip_download, download_prefix=f'parsed/{medline_year}/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
-        if 'medline' in datasources:
-            extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
+        #if 'medline' in datasources:
+        #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
             extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name) # always fr
         if 'crossref_fr' in datasources:
@@ -255,8 +256,6 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         if not exists(enriched_output_file):
             download_object(container='bso_dump', filename=f"{enriched_output_file.split('/')[-1]}.gz", out=f'{enriched_output_file}.gz')
             os.system(f'gunzip {enriched_output_file}.gz')
-        # csv
-        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details, split_year=False)
         # elastic
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
@@ -266,6 +265,12 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         # logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
+
+        if reload_index_only:
+            return
+        
+        # csv
+        enriched_output_file_csv = json_to_csv(enriched_output_file, last_oa_details, split_year=False)
 
         if 'local' in datasources and len(bso_local_filenames) == 0:
             bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
@@ -352,7 +357,6 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         #upload_object(container='tmp', filename=f'{scanr_output_file}')
         os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && rm -rf publications.jsonl.gz && gzip -k publications.jsonl')
         upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications.jsonl.gz', destination='production/publications.jsonl.gz')
-        upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/persons.jsonl.gz', destination='production/persons.jsonl.gz')
 
 def load_scanr_publications(args):
     index_name = args.get('index')

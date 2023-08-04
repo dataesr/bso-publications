@@ -218,6 +218,7 @@ def create_task_et(args: dict) -> None:
     entity_fishing = args.get('entity_fishing', False)
     skip_download = args.get('skip_download', False)
     chunksize = args.get('chunksize', 5000)
+    reload_index_only = args.get('reload_index_only', False)
     datasources = args.get('datasources', [])
     start_chunk = args.get('start_chunk', 0)
     if len(datasources) == 0:
@@ -228,4 +229,4 @@ def create_task_et(args: dict) -> None:
             datasources += ['bso3']
     hal_date = args.get('hal_date', ['20221201'])
     theses_date = args.get('theses_date', '20220720')
-    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk)
+    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only)
