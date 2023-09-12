@@ -10,6 +10,8 @@ from bso.server.main.tasks import create_task_download_unpaywall, create_task_en
 from bso.server.main.utils import dump_to_object_storage
 from bso.server.main.extract_transform import load_scanr_publications, upload_sword
 from bso.server.main.zotero import make_file_ANR
+from bso.server.main.extra_treatment import compute_extra
+
 
 default_timeout = 43200000
 logger = get_logger(__name__)
@@ -24,8 +26,22 @@ def home():
 def run_task_load_collection_from_object_storage():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
-        q = Queue(queue_name, default_timeout=216000)
+        q = Queue('scanr-publications', default_timeout=216000)
         task = q.enqueue(create_task_load_collection_from_object_storage, args)
+    response_object = {
+        "status": "success",
+        "data": {
+            "task_id": task.get_id()
+        }
+    }
+    return jsonify(response_object), 202
+
+@main_blueprint.route("/extra", methods=["POST"])
+def run_extra():
+    args = request.get_json(force=True)
+    with Connection(redis.from_url(current_app.config["REDIS_URL"])):
+        q = Queue('scanr-publications', default_timeout=216000)
+        task = q.enqueue(compute_extra, args)
     response_object = {
         "status": "success",
         "data": {
