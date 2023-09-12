@@ -9,7 +9,7 @@ from bso.server.main.elastic import reset_index
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
 from bso.server.main.utils import download_file
-from bso.server.main.utils_swift import download_object, get_objects_by_prefix
+from bso.server.main.utils_swift import download_object, get_list_files
 
 logger = get_logger(__name__)
 UPW_API_KEY = os.getenv('UPW_API_KEY')
@@ -27,11 +27,20 @@ def load_collection_from_object_storage(collection_name: str) -> None:
     myclient['unpaywall'][collection_name].drop()
     # 2. Find the file path for the Unpaywall snapshot on OVH Object Storage
     full_date = f'{collection_name[0:4]}-{collection_name[4:6]}-{collection_name[6:8]}'
-    files = get_objects_by_prefix(container='unpaywall', prefix=f'unpaywall_snapshot_{full_date}T')
+    files = get_list_files(container='unpaywall', prefix=f'unpaywall_snapshot_{full_date}T')
+    if len(files) == 0:
+        logger.debug(f'no unpaywall snapshot found for {full_date}')
+        return
+    if len(files) > 1:
+        logger.debug(f'more than one unpaywall snapshot found for {full_date}: {files}')
+        return
+    assert(len(files) == 1)
     # 3. Download the file
-    download_object(container='unpaywall', filename=files[0], out=f'unpaywall_snapshot_{full_date}T083001.jsonl.gz')
+    file_path = f'/upw_data/unpaywall_snapshot_{full_date}T083001.jsonl.gz'
+    download_object(container='unpaywall', filename=files[0], out=file_path)
     # 4. Load this file into a mongo collection
-    snapshot_to_mongo(f=f'unpaywall_snapshot_{full_date}T083001.jsonl.gz')
+    snapshot_to_mongo(f=file_path, global_metadata=False, delete_input=False)
+    os.system(f'rm -rf {file_path}')
     return
 
 def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool = False) -> None:
