@@ -4,6 +4,18 @@ from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
 
+def get_ror_from_local(aff, locals_data):
+    if aff in locals_data:
+        if 'ror' in locals_data[aff]:
+            return locals_data[aff]['ror']
+        else:
+            pass
+            #logger.debug(f'{aff} has no ror in locals from bso-ui')
+    else:
+        pass
+        #logger.debug(f'{aff} not in locals data from bso-ui')
+
+
 def json_to_csv(json_file, observation_date, split_year = False):
     df = pd.read_json(json_file, lines=True, chunksize = 25000)
     output_csv_file = json_file.replace('.jsonl', '.csv')
@@ -24,7 +36,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
                      'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
                      'bso_classification', 'lang', 'genre',
                     'amount_apc_EUR', 'apc_source']
-    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected']
+    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected', 'rors']
     INSIDE_FIELD_SEP = '|'
     flatten_data = []
     for elem in df.to_dict(orient='records'):
@@ -115,7 +127,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
        'journal_issns', 'journal_issn_l', 'journal_name', 'publisher',
        'publisher_dissemination', 'bso_classification', 'lang', 'genre', 'bso_country_corrected',
        'amount_apc_EUR', 'apc_source', 'domains', 'detected_countries',
-       'bso_local_affiliations', 'funding_anr', 'funding_europe',
+       'bso_local_affiliations', 'rors', 'funding_anr', 'funding_europe',
        'bsso_classification', 'is_oa', 'is_oa_hal', 'oa_host_type', 'journal_is_in_doaj',
        'journal_is_oa', 'unpaywall_oa_status', 'oa_colors',
        'licence_publisher', 'licence_repositories', 'repositories',

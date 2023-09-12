@@ -19,6 +19,33 @@ medium_url = f'http://api.unpaywall.org/feed/changefile/changed_dois_with_versio
 url_snapshot = f'http://api.unpaywall.org/feed/snapshot?api_key={UPW_API_KEY}'
 url = url_snapshot
 
+def load_collection_from_object_storage(collection_name: str) -> None:
+    # 1. Drop mongo collection
+    logger.debug(f'dropping {collection_name} collection before insertion')
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    myclient['unpaywall'][collection_name].drop()
+    # TODO below code was for HAL
+    # 2. Collect all paths from Object Storage container with prefix
+    #paths = get_paths_by_prefix(container='hal', prefix=f'{collection_name}/parsed/hal_parsed')
+    #logger.debug(f'{len(paths)} paths retrieved in the container with prefix')
+    #for path in paths:
+    #    # 3. For each path, collect all objects
+    #    publications = get_objects(container='hal', path=path)
+    #    # publications = [item for sublist in objects for item in sublist]
+    #    oa_details_data = []
+    #    # 4. Extract oa_details from publications
+    #    for publication in publications:
+    #        result = {
+    #            'hal_id': publication.get('hal_id'),
+    #            'oa_details': publication.get('oa_details')
+    #        }
+    #        oa_details_data.append(result)
+    #    # 5. Save it into mongo collection
+    #    current_file_oa_details = f'hal_oa_details.json'
+    #    json.dump(oa_details_data, open(current_file_oa_details, 'w'))
+    #    insert_data(collection_name=collection_name, output_file=current_file_oa_details)
+    #    os.system(f'rm -rf {current_file_oa_details}')
+    return
 
 def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool = False) -> None:
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')

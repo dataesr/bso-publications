@@ -12,7 +12,7 @@ from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
-from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
+from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo, load_collection_from_object_storage
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file, get_hash
@@ -23,6 +23,11 @@ HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
 START_YEAR = 2022
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
+
+def create_task_load_collection_from_object_storage(args):
+    collection_name = args.get('collection_name')
+    if collection_name:
+        load_collection_from_object_storage(collection_name)
 
 def to_mongo_cache(input_list, collection_name, upsert=False):
     logger.debug(f'importing {len(input_list)} {collection_name}')
