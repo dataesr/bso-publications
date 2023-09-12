@@ -27,7 +27,7 @@ def home():
 def run_task_load_collection_from_object_storage():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
-        q = Queue('scanr-publications', default_timeout=216000)
+        q = Queue('bso-publications', default_timeout=216000)
         logger.debug('Starting task load collection from object storage')
         logger.debug(args)
         task = q.enqueue(create_task_load_collection_from_object_storage, args)
