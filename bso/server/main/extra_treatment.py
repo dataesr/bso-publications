@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import requests
-from bso.server.main.utils_swift import download_object
+from bso.server.main.utils_swift import download_object, upload_object
 from bso.server.main.bso_utils import get_ror_from_local
 from bso.server.main.utils import to_jsonl
 

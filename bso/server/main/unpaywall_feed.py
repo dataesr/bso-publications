@@ -9,6 +9,7 @@ from bso.server.main.elastic import reset_index
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import drop_collection
 from bso.server.main.utils import download_file
+from bso.server.main.utils_swift import download_object, get_objects_by_prefix
 
 logger = get_logger(__name__)
 UPW_API_KEY = os.getenv('UPW_API_KEY')
@@ -21,30 +22,16 @@ url = url_snapshot
 
 def load_collection_from_object_storage(collection_name: str) -> None:
     # 1. Drop mongo collection
-    logger.debug(f'dropping {collection_name} collection before insertion')
+    logger.debug(f'Dropping {collection_name} collection before insertion')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     myclient['unpaywall'][collection_name].drop()
-    # TODO below code was for HAL
-    # 2. Collect all paths from Object Storage container with prefix
-    #paths = get_paths_by_prefix(container='hal', prefix=f'{collection_name}/parsed/hal_parsed')
-    #logger.debug(f'{len(paths)} paths retrieved in the container with prefix')
-    #for path in paths:
-    #    # 3. For each path, collect all objects
-    #    publications = get_objects(container='hal', path=path)
-    #    # publications = [item for sublist in objects for item in sublist]
-    #    oa_details_data = []
-    #    # 4. Extract oa_details from publications
-    #    for publication in publications:
-    #        result = {
-    #            'hal_id': publication.get('hal_id'),
-    #            'oa_details': publication.get('oa_details')
-    #        }
-    #        oa_details_data.append(result)
-    #    # 5. Save it into mongo collection
-    #    current_file_oa_details = f'hal_oa_details.json'
-    #    json.dump(oa_details_data, open(current_file_oa_details, 'w'))
-    #    insert_data(collection_name=collection_name, output_file=current_file_oa_details)
-    #    os.system(f'rm -rf {current_file_oa_details}')
+    # 2. Find the file path for the Unpaywall snapshot on OVH Object Storage
+    full_date = f'{collection_name[0:4]}-{collection_name[4:6]}-{collection_name[6:8]}'
+    files = get_objects_by_prefix(container='unpaywall', prefix=f'unpaywall_snapshot_{full_date}T')
+    # 3. Download the file
+    download_object(container='unpaywall', filename=files[0], out=f'unpaywall_snapshot_{full_date}T083001.jsonl.gz')
+    # 4. Load this file into a mongo collection
+    snapshot_to_mongo(f=f'unpaywall_snapshot_{full_date}T083001.jsonl.gz')
     return
 
 def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool = False) -> None:

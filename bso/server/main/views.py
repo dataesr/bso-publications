@@ -22,11 +22,14 @@ main_blueprint = Blueprint('main', __name__, )
 def home():
     return render_template('home.html')
 
+
 @main_blueprint.route("/load_collection_from_object_storage", methods=["POST"])
 def run_task_load_collection_from_object_storage():
     args = request.get_json(force=True)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
         q = Queue('scanr-publications', default_timeout=216000)
+        logger.debug('Starting task load collection from object storage')
+        logger.debug(args)
         task = q.enqueue(create_task_load_collection_from_object_storage, args)
     response_object = {
         "status": "success",
@@ -35,6 +38,7 @@ def run_task_load_collection_from_object_storage():
         }
     }
     return jsonify(response_object), 202
+
 
 @main_blueprint.route("/extra", methods=["POST"])
 def run_extra():
@@ -50,6 +54,7 @@ def run_extra():
     }
     return jsonify(response_object), 202
 
+
 @main_blueprint.route('/zotero', methods=['POST'])
 def run_task_zotero():
     args = request.get_json(force=True)
@@ -58,6 +63,7 @@ def run_task_zotero():
         task = q.enqueue(make_file_ANR, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
+
 
 @main_blueprint.route('/upload_sword', methods=['POST'])
 def run_task_upload_sword():
@@ -173,6 +179,7 @@ def run_task_cache():
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
+
 @main_blueprint.route('/et', methods=['POST'])
 def run_task_et():
     logger.debug('Starting task et')
@@ -184,6 +191,7 @@ def run_task_et():
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
+
 @main_blueprint.route('/et_scanr', methods=['POST'])
 def run_task_et_scanr():
     logger.debug('Starting task et scanr')
@@ -194,6 +202,7 @@ def run_task_et_scanr():
         task = q.enqueue(create_task_et, args)
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
+
 
 @main_blueprint.route('/et_fast', methods=['POST'])
 def run_task_et_fast():
