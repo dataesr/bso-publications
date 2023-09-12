@@ -25,7 +25,9 @@ START_YEAR = 2022
 parser_endpoint_url = f'{HTML_PARSER_SERVICE}/parse'
 
 def create_task_load_collection_from_object_storage(args):
+    logger.debug('function create_task_load_collection_from_object_storage')
     collection_name = args.get('collection_name')
+    logger.debug(collection_name)
     if collection_name:
         load_collection_from_object_storage(collection_name)
 
