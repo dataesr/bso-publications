@@ -780,31 +780,32 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                         to_delete.append(current_id)
                     logger.debug(f'replacing {current_id} with {f_short}{p[f]}')
                     break
-        if p.get('id') and p['id'] in bso_local_dict:
-            if 'bso_local_affiliations' not in p:
-                p['bso_local_affiliations'] = []
-            for e in bso_local_dict[p['id']]['affiliations']:
-                if e not in p['bso_local_affiliations']:
-                    p['bso_local_affiliations'].append(e)
+        for publi_id in p.get('all_ids', []):
+            if publi_id and publi_id in bso_local_dict:
+                if 'bso_local_affiliations' not in p:
+                    p['bso_local_affiliations'] = []
+                for e in bso_local_dict[publi_id]['affiliations']:
+                    if e not in p['bso_local_affiliations']:
+                        p['bso_local_affiliations'].append(e)
             
 
-            if 'bso_country' not in p:
-                p['bso_country'] = []
-            for e in bso_local_dict[p['id']]['bso_country']:
-                if e not in p['bso_country']:
-                    p['bso_country'].append(e)
+                if 'bso_country' not in p:
+                    p['bso_country'] = []
+                for e in bso_local_dict[publi_id]['bso_country']:
+                    if e not in p['bso_country']:
+                        p['bso_country'].append(e)
             
-            if 'grants' in p and not isinstance(p['grants'], list):
-                del p['grants']
-            current_grants = p.get('grants', [])
-            for grant in bso_local_dict[p['id']].get('grants', []):
-                if grant not in current_grants:
-                    current_grants.append(grant)
-            if current_grants:
-                p['grants'] = current_grants
-            extract_light = True
-            if extract_light:
-                p = to_light(p)
+                if 'grants' in p and not isinstance(p['grants'], list):
+                    del p['grants']
+                current_grants = p.get('grants', [])
+                for grant in bso_local_dict[publi_id].get('grants', []):
+                    if grant not in current_grants:
+                        current_grants.append(grant)
+                if current_grants:
+                    p['grants'] = current_grants
+        extract_light = True
+        if extract_light:
+            p = to_light(p)
         current_local_rors = []
         for aff in p.get('bso_local_affiliations', []):
             current_ror = get_ror_from_local(aff, locals_data)
