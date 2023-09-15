@@ -32,6 +32,11 @@ def chunks_swift(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
+def get_list_files(container, prefix):
+    os.system(f'{init_cmd} list {container} --prefix {prefix} > list_files_{container}_{prefix}')
+    list_files = [k.strip() for k in open(f'list_files_{container}_{prefix}', 'r').readlines()]
+    return list_files
+
 def clean_container_by_prefix(container, prefix):
     os.system(f'{init_cmd} list {container} --prefix {prefix} > list_files_{container}_{prefix}')
     list_files = [k.strip() for k in open(f'list_files_{container}_{prefix}', 'r').readlines()]
