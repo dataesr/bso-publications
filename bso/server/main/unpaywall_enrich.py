@@ -14,12 +14,14 @@ from bso.server.main.hal_mongo import get_hal_history
 from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.publisher.publisher_detect import detect_publisher
+from bso.server.main.retraction import detect_retraction 
 from bso.server.main.strings import dedup_sort, normalize, normalize2, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_unpaywall_history
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
 from bso.server.main.scanr import to_light
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 from bso.server.main.entity_fishing import get_entity_fishing
+
 
 logger = get_logger(__name__)
 models = {}
@@ -158,6 +160,11 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
             publisher_raw = 'unknown'
         publisher_clean = detect_publisher(publisher_raw, published_year, doi) 
         res.update(publisher_clean)
+
+        # Retraction (must be BEFORE genre)
+        if doi:
+            retraction_infos = detect_retraction(doi)
+            res.update(retraction_infos)
         
         # Genre (dépend de publisher_normalized)
         if isinstance(res.get('genre'), str):
