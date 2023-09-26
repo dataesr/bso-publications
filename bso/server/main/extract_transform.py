@@ -164,9 +164,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
         drop_collection('scanr', 'publications_before_enrichment')
         drop_collection('scanr', collection_name)
+        bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
         
         if 'local' in datasources:
-            bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
             for filename in bso_local_filenames:
                 extract_one_bso_local(filename, bso_local_dict, collection_name, locals_data=locals_data)
         if 'bso3' in datasources:
@@ -191,7 +191,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, locals_data=locals_data) #always fr
         if 'hal' in datasources:
             hal_date.sort(reverse=True)
-            extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_date[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data) # filter_fr add bso_country fr for french publi
+            extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_date[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
             extract_container('sudoc', bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'fixed' in datasources:
@@ -896,6 +896,8 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 # code etab NNT
                 nnt_id = publi.get('nnt_id')
                 if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
+                    # if nnt_id, make sure nnt_etab_dict if filled
+                    assert('emal' in nnt_etab_dict)
                     current_local = publi.get('bso_local_affiliations', [])
                     new_local = nnt_etab_dict[get_code_etab_nnt(nnt_id, nnt_etab_dict)]
                     if new_local not in current_local:
