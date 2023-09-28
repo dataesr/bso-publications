@@ -4,8 +4,12 @@ import requests
 from bso.server.main.utils_swift import download_object, upload_object
 from bso.server.main.bso_utils import get_ror_from_local
 from bso.server.main.utils import to_jsonl
+from bso.server.main.extract_transform import load_scanr_publications
 
 def compute_extra(args):
+    load_scanr_publications('/upw_data/scanr/publications_denormalized.jsonl', 'scanr-publications-20230912')
+
+def compute_extra2(args):
     to_download = False
     to_compute = False
     to_upload = True

@@ -16,7 +16,7 @@ from retry import retry
 from os.path import exists
 from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
-from bso.server.main.elastic import load_in_es, reset_index, get_doi_not_in_index, update_local_affiliations
+from bso.server.main.elastic import load_in_es, reset_index, reset_index_scanr, get_doi_not_in_index, update_local_affiliations
 from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
@@ -27,11 +27,12 @@ from bso.server.main.utils_swift import download_object, get_objects_by_page, ge
 from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
 from bso.server.main.strings import dedup_sort, normalize
-from bso.server.main.scanr import to_scanr, get_person_ids
+from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids
 from bso.server.main.funding import normalize_grant
 from bso.server.main.scanr import to_light
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local
 from bso.server.main.s3 import upload_s3
+from bso.server.main.denormalize_affiliations import get_orga_data
 
 logger = get_logger(__name__)
     
@@ -295,12 +296,14 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
 
     if load and 'scanr' in index_name:
-
+        df_orga = get_orga_data()
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
         scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
-        internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
+        scanr_output_file_denormalized = enriched_output_file.replace('.jsonl', '_export_scanr_denormalized.json')
+        #internal_output_file = enriched_output_file.replace('.jsonl', '_export_internal.jsonl')
         os.system(f'rm -rf {scanr_output_file}')
-        os.system(f'rm -rf {internal_output_file}')
+        os.system(f'rm -rf {scanr_output_file_denormalized}')
+        #os.system(f'rm -rf {internal_output_file}')
         
         ix = 0
 
@@ -308,69 +311,61 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         df_patents = pd.read_json(f'{MOUNTED_VOLUME}/fam_final_json.jsonl', lines=True, chunksize=10000)
         for c in df_patents:
             patents = c.to_dict(orient='records')
-            for i_p, patent in enumerate(patents):
-                for field_to_fix in ['title', 'summary']:
-                    if isinstance(patent.get(field_to_fix), list) and patent[field_to_fix]:
-                        patents[i_p][field_to_fix] = patent[field_to_fix][0]
-                subpatents = patent.get('patents')
-                if isinstance(subpatents, list):
-                    for j_p, subpatent in enumerate(subpatents):
-                        if 'pulicationDate' in subpatent:
-                            subpatents[j_p]['publicationDate'] = subpatent['pulicationDate']
-                            del subpatents[j_p]['pulicationDate']
-                    patents[i_p]['patents'] = subpatents
-            #to_json(patents, scanr_output_file, ix)
+            patents = fix_patents(patents) 
+            #patents_scanr = to_scanr_patents(patents=patents, df_orga=df_orga, denormalize = False)
             to_jsonl(patents, scanr_output_file)
+            
+            patents_scanr_denormalized = to_scanr_patents(patents=patents, df_orga=df_orga, denormalize = True)
+            to_jsonl(patents_scanr_denormalized, scanr_output_file_denormalized)
             ix += 1
             logger.debug(f'scanr extract patent, {ix}')
 
         drop_collection('scanr', 'publi_meta')
-
+    
         for c in df_chunks:
             publications = c.to_dict(orient='records')
             publications = get_person_ids(publications)
-            publications_scanr = to_scanr(publications)
-            #to_json(publications_scanr, scanr_output_file, ix)
+            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, denormalize = False)
             to_jsonl(publications_scanr, scanr_output_file)
+            
+            #denormalized
+            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, denormalize = True)
+            to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
+            
             relevant_infos = []
             for p in publications_scanr:
                 new_elt = {'id': p['id']}
-                for f in ['authors', 'domains', 'keywords', 'year']:
+                for f in ['authors', 'domains', 'keywords', 'year', 'affiliations']:
                     if p.get(f):
                         new_elt[f] = p[f]
                 relevant_infos.append(new_elt)
             save_to_mongo_publi(relevant_infos)
-            publications_cleaned = []
-            for elt in publications:
-                if isinstance(elt.get('classifications'), list):
-                    for d in elt['classifications']:
-                        if 'code' in d:
-                            d['code'] = str(d['code'])
-                for f in ['is_paratext', 'has_grant', 'has_apc', 'references']:
-                    if f in elt:
-                        del elt[f]
-                elt = {f: elt[f] for f in elt if elt[f]==elt[f] }
-                publications_cleaned.append(elt)
-            #to_jsonl(publications_cleaned, internal_output_file, 'a')
+            #publications_cleaned = []
+            #for elt in publications:
+            #    if isinstance(elt.get('classifications'), list):
+            #        for d in elt['classifications']:
+            #            if 'code' in d:
+            #                d['code'] = str(d['code'])
+            #    for f in ['is_paratext', 'has_grant', 'has_apc', 'references']:
+            #        if f in elt:
+            #            del elt[f]
+            #    elt = {f: elt[f] for f in elt if elt[f]==elt[f] }
+            #    publications_cleaned.append(elt)
             ix += 1
             logger.debug(f'scanr extract publi, {ix}')
-        #with open(scanr_output_file, 'a') as outfile:
-        #    outfile.write(']')
-        #load_scanr_publications({})
-        #upload_sword(index_name)
-        #upload_object(container='tmp', filename=f'{scanr_output_file}')
         os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && rm -rf publications.jsonl.gz && gzip -k publications.jsonl')
         upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications.jsonl.gz', destination='production/publications.jsonl.gz')
+        load_scanr_publications(scanr_output_file_denormalized, 'scanr-publications-'+index_name.split('-')[-1])
+        os.system(f'mv {scanr_output_file_denormalized} /upw_data/scanr/publications_denormalized.jsonl && cd /upw_data/scanr/ && rm -rf publications_denormalized.jsonl.gz && gzip -k publications_denormalized.jsonl')
+        #upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications_denormalized.jsonl.gz', destination='production/publications_denormalized.jsonl.gz')
 
-def load_scanr_publications(args):
-    index_name = args.get('index')
-    internal_output_file=f'{MOUNTED_VOLUME}{index_name}_export_internal.jsonl'
+def load_scanr_publications(scanr_output_file_denormalized, index_name):
+    denormalized_file=scanr_output_file_denormalized
     es_url_without_http = ES_URL.replace('https://','').replace('http://','')
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
-    index_name='scanr-publications'
     logger.debug('loading scanr-publications index')
-    reset_index(index=index_name)
-    elasticimport = f"elasticdump --input={internal_output_file} --output={es_host}{index_name} --type=data --limit 500 " + "--transform='doc._source=Object.assign({},doc)'"
+    reset_index_scanr(index=index_name)
+    elasticimport = f"elasticdump --input={denormalized_file} --output={es_host}{index_name} --type=data --limit 500 " + "--transform='doc._source=Object.assign({},doc)'"
     logger.debug(f'{elasticimport}')
     logger.debug('starting import in elastic')
     os.system(elasticimport)
@@ -396,6 +391,7 @@ def save_to_mongo_publi(relevant_infos):
     mycol = mydb[collection_name]
     mycol.create_index('id')
     mycol.create_index('authors.person')
+    mycol.create_index('affiliations')
     #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
     myclient.close()

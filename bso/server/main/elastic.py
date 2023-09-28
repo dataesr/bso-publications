@@ -165,6 +165,54 @@ def reset_index(index: str) -> None:
         response = str(response['index'])
         logger.debug(f'Index mapping success for index: {response}')
 
+@exception_handler
+def reset_index_scanr(index: str) -> None:
+    es = get_client()
+    delete_index(index)
+
+    settings = {
+        'analysis': {
+            'filter': get_filters(),
+            'analyzer': get_analyzers()
+        }
+    }
+
+    dynamic_match = None
+    #if 'publications-' in index:
+    #    dynamic_match = "*authors"
+
+    mappings = { 'properties': {} }
+    #for f in ['id']:
+    #    mappings['properties'][f] = {
+    #            'type': 'long'
+    #            }
+    # attention l'analyzer .keyword ne sera pas présent pour ce champs !
+    #for f in ['title', 'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name']:
+    #    mappings['properties'][f] = {
+    #            'type': 'text',
+    #            'analyzer': 'light'
+    #        }
+
+    if dynamic_match:
+        mappings["dynamic_templates"] = [
+                {
+                    "objects": {
+                        "match": dynamic_match,
+                        "match_mapping_type": "object",
+                        "mapping": {
+                            "type": "nested"
+                        }
+                    }
+                }
+            ]
+    response = es.indices.create(
+        index=index,
+        body={'settings': settings, 'mappings': mappings},
+        ignore=400  # ignore 400 already exists code
+    )
+    if 'acknowledged' in response and response['acknowledged']:
+        response = str(response['index'])
+        logger.debug(f'Index mapping success for index: {response}')
 
 @exception_handler
 def load_in_es(data: list, index: str) -> list:

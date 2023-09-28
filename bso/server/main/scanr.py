@@ -9,6 +9,7 @@ from retry import retry
 from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2
 from bso.server.main.utils import clean_json
+from bso.server.main.denormalize_affiliations import get_orga
 
 logger = get_logger(__name__)
 
@@ -62,7 +63,39 @@ def get_person_ids(publications):
                 a['id'] = res
     return publications
 
-def to_scanr(publications):
+def fix_patents(patents):
+    for i_p, patent in enumerate(patents):
+        patent['id'] = str(patent['id'])
+        for field_to_fix in ['title', 'summary']:
+            if isinstance(patent.get(field_to_fix), list) and patent[field_to_fix]:
+                patents[i_p][field_to_fix] = patent[field_to_fix][0]
+        subpatents = patent.get('patents')
+        if isinstance(subpatents, list):
+            for j_p, subpatent in enumerate(subpatents):
+                if 'pulicationDate' in subpatent:
+                    subpatents[j_p]['publicationDate'] = subpatent['pulicationDate']
+                    del subpatents[j_p]['pulicationDate']
+            patents[i_p]['patents'] = subpatents
+    return patents
+
+def to_scanr_patents(patents, df_orga, denormalize=False):
+    res = []
+    for patent in patents:
+        if denormalize:
+            denormalized_affiliations = []
+            affiliations = patent.get('affiliations', [])
+            if affiliations:
+                for aff in affiliations:
+                    denormalized = get_orga(df_orga, aff)
+                    if denormalized:
+                        denormalized_affiliations.append(denormalized)
+            if denormalized_affiliations:
+                patent['affiliations'] = denormalized_affiliations
+        res.append(patent)
+
+    return res
+
+def to_scanr(publications, df_orga, denormalize = False):
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
@@ -250,7 +283,8 @@ def to_scanr(publications):
                 if aff not in affiliations:
                     affiliations.append(aff)
         if affiliations:
-            elt['affiliations'] = affiliations
+            elt['affiliations'] = list(set(affiliations))
+
         ## authors
         authors=[]
         if isinstance(p.get('authors'), list):
@@ -297,6 +331,19 @@ def to_scanr(publications):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
+        
+        if denormalize:
+            denormalized_affiliations = []
+            affiliations = elt.get('affiliations')
+            if isinstance(affiliations, list) and len(affiliations) > 0:
+                for aff in affiliations:
+                    denormalized = get_orga(df_orga, aff)
+                    if denormalized:
+                        denormalized_affiliations.append(denormalized)
+                        assert(isinstance(denormalized, dict))
+            if denormalized_affiliations:
+                elt['affiliations'] = denormalized_affiliations
+        
         elt = clean_json(elt)
         if elt:
             scanr_publications.append(elt)
