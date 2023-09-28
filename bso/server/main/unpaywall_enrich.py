@@ -294,7 +294,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
                                     external_ids = []
                                 new_external_id = {'id_type': 'hal_id', 'id_value': hal_id}
                                 if new_external_id not in external_ids:
-                                    external_ids.append(external_ids)
+                                    external_ids.append(new_external_id)
                                     res['external_ids'] = external_ids
                                 if 'hal_id' not in res:
                                     res['hal_id'] = hal_id
