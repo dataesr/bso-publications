@@ -32,7 +32,7 @@ from bso.server.main.funding import normalize_grant
 from bso.server.main.scanr import to_light
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local
 from bso.server.main.s3 import upload_s3
-from bso.server.main.denormalize_affiliations import get_orga_data
+from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
 
 logger = get_logger(__name__)
     
@@ -297,6 +297,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
 
     if load and 'scanr' in index_name:
         df_orga = get_orga_data()
+        df_project = get_projects_data()
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
         scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
         scanr_output_file_denormalized = enriched_output_file.replace('.jsonl', '_export_scanr_denormalized.json')
@@ -315,8 +316,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             #patents_scanr = to_scanr_patents(patents=patents, df_orga=df_orga, denormalize = False)
             to_jsonl(patents, scanr_output_file)
             
-            patents_scanr_denormalized = to_scanr_patents(patents=patents, df_orga=df_orga, denormalize = True)
-            to_jsonl(patents_scanr_denormalized, scanr_output_file_denormalized)
+            # no patent in new home made file
+            #patents_scanr_denormalized = to_scanr_patents(patents=patents, df_orga=df_orga, denormalize = True)
+            #to_jsonl(patents_scanr_denormalized, scanr_output_file_denormalized)
             ix += 1
             logger.debug(f'scanr extract patent, {ix}')
 
@@ -325,11 +327,11 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         for c in df_chunks:
             publications = c.to_dict(orient='records')
             publications = get_person_ids(publications)
-            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, denormalize = False)
+            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             to_jsonl(publications_scanr, scanr_output_file)
             
             #denormalized
-            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, denormalize = True)
+            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
             
             relevant_infos = []

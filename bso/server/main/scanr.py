@@ -9,7 +9,7 @@ from retry import retry
 from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2
 from bso.server.main.utils import clean_json
-from bso.server.main.denormalize_affiliations import get_orga
+from bso.server.main.denormalize_affiliations import get_orga, get_project
 
 logger = get_logger(__name__)
 
@@ -95,7 +95,7 @@ def to_scanr_patents(patents, df_orga, denormalize=False):
 
     return res
 
-def to_scanr(publications, df_orga, denormalize = False):
+def to_scanr(publications, df_orga, df_project, denormalize = False):
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
@@ -304,7 +304,9 @@ def to_scanr(publications, df_orga, denormalize = False):
                 if a.get('id'):
                     author['person'] = a['id']
                 affiliations = []
+                denormalized_affiliations = []
                 if isinstance(a.get('affiliations'), list):
+                    denormalized_affiliations = a['affiliations']
                     for aff in a['affiliations']:
                         if isinstance(aff.get('ids'), list):
                             for x in aff['ids']:
@@ -327,12 +329,15 @@ def to_scanr(publications, df_orga, denormalize = False):
                                 affiliations.append(x)
                 if affiliations:
                     author['affiliations'] = affiliations
+                if denormalize and denormalized_affiliations:
+                    author['affiliations'] = denormalized_affiliations
                 if author:
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
         
         if denormalize:
+            # orga
             denormalized_affiliations = []
             affiliations = elt.get('affiliations')
             if isinstance(affiliations, list) and len(affiliations) > 0:
@@ -343,6 +348,17 @@ def to_scanr(publications, df_orga, denormalize = False):
                         assert(isinstance(denormalized, dict))
             if denormalized_affiliations:
                 elt['affiliations'] = denormalized_affiliations
+            # projects
+            denormalized_projects = []
+            projects = elt.get('projects')
+            if isinstance(projects, list) and len(projects) > 0:
+                for aff in projects:
+                    denormalized = get_project(df_project, aff)
+                    if denormalized:
+                        denormalized_projects.append(denormalized)
+                        assert(isinstance(denormalized, dict))
+            if denormalized_projects:
+                elt['projects'] = denormalized_projects
         
         elt = clean_json(elt)
         if elt:
