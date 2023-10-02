@@ -44,7 +44,7 @@ def get_retraction_data():
         if 'Notes' in row:
             retraction_details['retraction_notes'] = row['Notes']
         retraction_details['retraction_doi'] = retraction_doi
-        retraction_details['retraction_id'] = retraction_id
+        retraction_details['retraction_id'] = str(retraction_id)
         retracted[original_doi] = retraction_details
         if retraction_doi:
             retraction_notes[retraction_doi] = 1

@@ -30,8 +30,8 @@ def clean_json(elt):
 def to_jsonl(input_list, output_file, mode = 'a'):
     with open(output_file, mode) as outfile:
         for entry in input_list:
-            entry = {f: entry[f] for f in entry if entry[f]==entry[f] }
-            json.dump(entry, outfile)
+            new = clean_json(entry)
+            json.dump(new, outfile)
             outfile.write('\n')
 
 def to_json(input_list, output_file, ix):
