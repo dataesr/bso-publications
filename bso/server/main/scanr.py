@@ -327,9 +327,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         for x in elt.get('affiliations', []):
                             if x not in affiliations:
                                 affiliations.append(x)
-                if affiliations:
+                if affiliations and (denormalize == False):
                     author['affiliations'] = affiliations
-                if denormalize and denormalized_affiliations:
+                if denormalized_affiliations and denormalize:
                     author['affiliations'] = denormalized_affiliations
                 if author:
                     authors.append(author)
