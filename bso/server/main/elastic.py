@@ -138,11 +138,13 @@ def reset_index(index: str) -> None:
 
     mappings = { 'properties': {} }
     # attention l'analyzer .keyword ne sera pas présent pour ce champs !
-    for f in ['title', 'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name']:
-        mappings['properties'][f] = { 
-                'type': 'text',
-                'analyzer': 'light' 
-            }
+
+    if 'bso-' in index:
+        for f in ['title', 'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name']:
+            mappings['properties'][f] = { 
+                    'type': 'text',
+                    'analyzer': 'light' 
+                }
 
     if dynamic_match:
         mappings["dynamic_templates"] = [
@@ -169,6 +171,7 @@ def reset_index(index: str) -> None:
 def reset_index_scanr(index: str) -> None:
     es = get_client()
     delete_index(index)
+    
 
     settings = {
         'analysis': {
@@ -176,12 +179,29 @@ def reset_index_scanr(index: str) -> None:
             'analyzer': get_analyzers()
         }
     }
+    
+    mappings = { 'properties': {} }
+    for f in ['title.default', 'affiliations.label.default', 'authors.firstName', 'authors.lastName', 'authors.fullName', 'authors.affiliations.name', 
+              'source.title', 'keywords.default', 'domains.label.default', 'project.label.default']: 
+        mappings['properties'][f] = { 
+                'type': 'text',
+                'analyzer': 'light',
+                'fields': {
+                    'keyword': {
+                        'type':  'keyword'
+                    }
+                }
+            }
+    for f in [ 'summary.default']: 
+        mappings['properties'][f] = { 
+                'type': 'text',
+                'analyzer': 'light',
+            }
 
     dynamic_match = None
     #if 'publications-' in index:
     #    dynamic_match = "*authors"
 
-    mappings = { 'properties': {} }
     #for f in ['id']:
     #    mappings['properties'][f] = {
     #            'type': 'long'
