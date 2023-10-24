@@ -80,6 +80,7 @@ def get_unpaywall_infos(publications, collection_name, file_part) -> None:
     return unpaywall_info
 
 
+@retry(delay=60, tries=5)
 def get_doi(doi, collection_name: str) -> dict:
     collection = get_collection(collection_name=collection_name)
     res = {}
