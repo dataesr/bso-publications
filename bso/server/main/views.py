@@ -17,6 +17,7 @@ default_timeout = 43200000
 logger = get_logger(__name__)
 main_blueprint = Blueprint('main', __name__, )
 
+PUBLIC_API_PASSWORD = os.getenv('PUBLIC_API_PASSWORD')
 
 @main_blueprint.route('/', methods=['GET'])
 def home():
@@ -26,6 +27,7 @@ def home():
 @main_blueprint.route("/load_collection_from_object_storage", methods=["POST"])
 def run_task_load_collection_from_object_storage():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
         q = Queue('bso-publications', default_timeout=216000)
         logger.debug('Starting task load collection from object storage')
@@ -43,6 +45,7 @@ def run_task_load_collection_from_object_storage():
 @main_blueprint.route("/extra", methods=["POST"])
 def run_extra():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
         q = Queue('scanr-publications', default_timeout=216000)
         task = q.enqueue(compute_extra, args)
@@ -58,6 +61,7 @@ def run_extra():
 @main_blueprint.route('/zotero', methods=['POST'])
 def run_task_zotero():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='zotero', default_timeout=default_timeout)
         task = q.enqueue(make_file_ANR, args)
@@ -68,6 +72,7 @@ def run_task_zotero():
 @main_blueprint.route('/upload_sword', methods=['POST'])
 def run_task_upload_sword():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     index_name = args.get('index')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='scanr-publications', default_timeout=default_timeout)
@@ -78,6 +83,7 @@ def run_task_upload_sword():
 @main_blueprint.route('/load_scanr_publications', methods=['POST'])
 def run_task_load_scanr_publications():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='scanr-publications', default_timeout=default_timeout)
         task = q.enqueue(load_scanr_publications, args)
@@ -88,6 +94,7 @@ def run_task_load_scanr_publications():
 @main_blueprint.route('/forward', methods=['POST'])
 def run_task_forward():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     method = args.get('method', 'POST')
     if method.upper() == 'GET':
         response = requests.get(args.get('url'), timeout=1000)
@@ -120,6 +127,7 @@ def update_weekly():
 def run_task_enrich():
     logger.debug('Starting task enrich')
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(create_task_enrich, args)
@@ -130,6 +138,7 @@ def run_task_enrich():
 @main_blueprint.route('/download_unpaywall', methods=['POST'])
 def run_task_download_unpaywall():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
@@ -141,6 +150,7 @@ def run_task_download_unpaywall():
 @main_blueprint.route('/load_mongo', methods=['POST'])
 def run_task_load_mongo():
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     logger.debug(args)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
@@ -172,6 +182,7 @@ def get_status(task_id):
 def run_task_cache():
     logger.debug('Starting task cache')
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     queue = args.get('queue', 'scanr-publications')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name=queue, default_timeout=default_timeout)
@@ -184,6 +195,7 @@ def run_task_cache():
 def run_task_et():
     logger.debug('Starting task et')
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     queue = args.get('queue', 'bso-publications')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name=queue, default_timeout=default_timeout)
@@ -196,6 +208,7 @@ def run_task_et():
 def run_task_et_scanr():
     logger.debug('Starting task et scanr')
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     queue = args.get('queue', 'scanr-publications')
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name=queue, default_timeout=default_timeout)
@@ -208,6 +221,7 @@ def run_task_et_scanr():
 def run_task_et_fast():
     logger.debug('Starting task et')
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications-fast', default_timeout=default_timeout)
         task = q.enqueue(create_task_et, args)
@@ -219,6 +233,7 @@ def run_task_et_fast():
 def run_task_dump():
     logger.debug('Starting task dump')
     args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='bso-publications', default_timeout=default_timeout)
         task = q.enqueue(dump_to_object_storage, args)
