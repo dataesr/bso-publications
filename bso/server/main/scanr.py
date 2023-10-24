@@ -250,6 +250,23 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             elt['keywords'] = {'default': keywords}
         if domains:
             elt['domains'] = domains
+        
+        if denormalize:
+            map_code = {}
+            for d in domains:
+                if 'code' in d:
+                    code = d.get('code')
+                else:
+                    code = d.get('label', {}).get('default', '')
+                if code not in map_code:
+                    map_code[code] = d
+                    map_code[code]['count'] = 1
+                else:
+                    map_code[code]['count'] += 1
+            domains_with_count = list(map_code.values())
+            domains_with_count = sorted(domains_with_count, key=lambda x:x['count'], reverse=True)
+            if domains_with_count:
+                elt['domains'] = domains_with_count
         # grants
         projects = []
         if isinstance(p.get('grants'), list):
@@ -259,7 +276,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 if g.get('id'):
                     projects.append(g['id'])
         if projects:
-            elt['projects'] = projects
+            elt['projects'] = list(set(projects))
         # affiliations
         affiliations = []
         if isinstance(p.get('affiliations'), list):
@@ -303,6 +320,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     author['fullName'] = a['full_name']
                 if a.get('id'):
                     author['person'] = a['id']
+                    if denormalize:
+                        author['person_id_fullName'] = a['id']+'###'+a.get('full_name', 'NO_FULLNAME')
                 affiliations = []
                 denormalized_affiliations = []
                 if isinstance(a.get('affiliations'), list):
@@ -343,7 +362,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             if isinstance(affiliations, list) and len(affiliations) > 0:
                 for aff in affiliations:
                     denormalized = get_orga(df_orga, aff)
-                    if denormalized:
+                    if denormalized and (denormalized not in denormalized_affiliations):
                         denormalized_affiliations.append(denormalized)
                         assert(isinstance(denormalized, dict))
             if denormalized_affiliations:
@@ -354,7 +373,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             if isinstance(projects, list) and len(projects) > 0:
                 for aff in projects:
                     denormalized = get_project(df_project, aff)
-                    if denormalized:
+                    if denormalized and (denormalized not in denormalized_projects):
                         denormalized_projects.append(denormalized)
                         assert(isinstance(denormalized, dict))
             if denormalized_projects:
