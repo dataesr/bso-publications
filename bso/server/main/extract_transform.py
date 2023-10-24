@@ -284,18 +284,16 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         # upload to OS
         os.system(f'cp {enriched_output_file} {MOUNTED_VOLUME}bso-publications-latest.jsonl')
         os.system(f'mv {enriched_output_file_csv} {MOUNTED_VOLUME}bso-publications-latest.csv')
-        # also upload a splitted version (1000 lines) 
-        split_file(input_dir = '/upw_data', file_to_split = 'bso-publications-latest.jsonl', nb_lines = 1000, split_prefix = 'bso-publications-latest-split-', output_dir='/upw_data/bso-publications-split', split_suffix = '.jsonl')
-        #remove files in container before upload
-        clean_container_by_prefix('bso_dump', 'bso-publications-split')
-        # upload new splitted files
-        os.system(f'cd /upw_data && {init_cmd} upload bso_dump bso-publications-split')
+        #clean_container_by_prefix('bso_dump', 'bso-publications-split')
         # end split upload
         zip_upload(enriched_output_file, delete = False)
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.jsonl')
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
+    
+    if reload_index_only and 'scanr' in index_name:
+        load_scanr_publications('/upw_data/scanr/publications_denormalized.jsonl', 'scanr-publications-'+index_name.split('-')[-1])
 
-    if load and 'scanr' in index_name:
+    if load and ('scanr' in index_name) and (reload_index_only is False):
         df_orga = get_orga_data()
         df_project = get_projects_data()
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
@@ -399,13 +397,26 @@ def save_to_mongo_publi(relevant_infos):
     myclient.close()
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
-    # first remove existing files
+    year_min = 2013
+    year_max = 2025
+
+    # init (rm files for years)
+
+    for year in range(year_min, year_max + 1):
+        local_filename = f'{MOUNTED_VOLUME}{index_name}_split_{year}_enriched'
+        os.system(f'rm -rf {local_filename}.jsonl')
+        os.system(f'rm -rf {local_filename}.csv')
+
+    # init (rm files for local affiliations)
     for local_affiliation in local_bso_filenames:
         local_affiliation = local_affiliation.split('.')[0]
         local_filename = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched'
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
     local_bso_lower = set([k.split('.')[0].lower() for k in local_bso_filenames])
+    
+
+    # loop through the whole dataset
     df = pd.read_json(enriched_output_file, lines=True, chunksize=20000)
     ix = 0
     for c in df:
@@ -415,10 +426,27 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
             for local_affiliation in p.get('bso_local_affiliations', []):
                 if local_affiliation.lower() in local_bso_lower:
                     to_jsonl([p], f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl', 'a')
+            for year in range(year_min, year_max + 1):
+                if p.get('year') == year:
+                    to_jsonl([p], f'{MOUNTED_VOLUME}{index_name}_split_{year}_enriched.jsonl', 'a')
         ix += 1
     
+    # create csv files for years
+    for year in range(year_min, year_max + 1):
+        logger.debug(f'csv files creation for {year}')
+        local_filename_json = f'{MOUNTED_VOLUME}{index_name}_split_{year}_enriched.jsonl'
+        try:
+            local_filename_csv = json_to_csv(local_filename_json, last_oa_details)
+            os.system(f'mv {local_filename_csv} {MOUNTED_VOLUME}bso-publications-latest_split_{year}_enriched.csv')
+            zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_split_{year}_enriched.csv')
+            os.system(f'mv {local_filename_json} {MOUNTED_VOLUME}bso-publications-latest_split_{year}_enriched.jsonl')
+            zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest_split_{year}_enriched.jsonl')
+        except:
+            logger.debug(f'ERROR in file creation for {local_filename_json}')
+    
+    # create csv files for affiliations
     for local_affiliation in local_bso_filenames:
-        logger.debug(f'files creation for {local_affiliation}')
+        logger.debug(f'csv files creation for {local_affiliation}')
         local_affiliation = local_affiliation.split('.')[0]
         local_filename_json = f'{MOUNTED_VOLUME}{index_name}_{local_affiliation}_enriched.jsonl'
         try:
