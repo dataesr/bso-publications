@@ -59,9 +59,15 @@ def detect_fields(a_publication, classification_types):
             a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])['discipline']
             assert(isinstance(a_publication['bso_classification'], str))
         else:
+            r_classif = {}
             try:
-                r_classif = call_classifier(a_publication, classif_type)
-                a_publication = r_classif.json().get('publications')[0]
+                r_classif = call_classifier(a_publication, classif_type).json()
             except:
-                logger.debug(f'Error in classif {classif_type} for {a_publication}')
+                logger.debug(f'Error1 in classif {classif_type} for {a_publication}')
+                return a_publication
+            try:
+                a_publication = r_classif.get('publications')[0]
+            except:
+                logger.debug(f'Error2 in classif {classif_type} for {a_publication} ==> {r_classif}')
+                return a_publication
     return a_publication
