@@ -81,6 +81,7 @@ def snapshot_to_mongo(f: str, global_metadata: bool = False, delete_input: bool 
     mycol.create_index('year')
     mycol.create_index('is_oa')
     mycol.create_index('publisher')
+    mycol.create_index('journal_issn_l')
     end = datetime.datetime.now()
     delta = end - start
     logger.debug(f'Mongoimport done in {delta}')
