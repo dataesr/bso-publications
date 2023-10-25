@@ -1,22 +1,21 @@
 # Baromètre publications
-[![Discord Follow](https://dcbadge.vercel.app/api/server/dkcww8vs?style=flat)](https://discord.gg/dkcww8vs)
+[![Discord Follow](https://dcbadge.vercel.app/api/server/TudsqDqTqb?style=flat)](https://discord.gg/TudsqDqTqb)
 ![GitHub](https://img.shields.io/github/license/dataesr/bso-publications)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/dataesr/bso-publications)
 ![Build](https://github.com/dataesr/bso-publications/actions/workflows/build.yml/badge.svg)
 
-## API Baromètre
+## API
 
-Les données issues du Baromètre sont en OpenData https://storage.gra.cloud.ovh.net/v1/AUTH_32c5d10cb0fe4519b957064a111717e3/bso_dump/bso-publications-latest.jsonl.gz
-De plus, les données sont consommables par une API ouverte (cf documentation Elasticsearch).
-Exemple de requête
+The underlying dataset of the French Open Science Monitor is open and can be downloaded https://storage.gra.cloud.ovh.net/v1/AUTH_32c5d10cb0fe4519b957064a111717e3/bso_dump/bso-publications-latest.jsonl.gz
+One can also consume the data through an Elasticsearch endpoint (cf documentation Elasticsearch).
+Contact us to get an user and password at bso [at] recherche [dot] gouv [dot] fr
+Running example below
 
 ```
 from elasticsearch import Elasticsearch
 
 ES_HOST = "https://cluster.elasticsearch.dataesr.ovh/"
 ES_INDEX = "bso-publications"
-ES_PASSWORD = "vn84q9Xef9U7pmU"
-ES_USER = "BSO"
 
 es = Elasticsearch(ES_HOST, http_auth=(ES_USER, ES_PASSWORD))
 
