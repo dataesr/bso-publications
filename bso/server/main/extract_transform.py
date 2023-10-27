@@ -291,7 +291,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         zip_upload(f'{MOUNTED_VOLUME}bso-publications-latest.csv')
     
     if reload_index_only and 'scanr' in index_name:
-        load_scanr_publications('/upw_data/scanr/publications_denormalized.jsonl', 'scanr-publications-'+index_name.split('-')[-1])
+        load_scanr_publications('/upw_data/scanr/publications_denormalized.jsonl', 'scanr-publications-dev-'+index_name.split('-')[-1])
 
     if load and ('scanr' in index_name) and (reload_index_only is False):
         df_orga = get_orga_data()
@@ -331,11 +331,12 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             #denormalized
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
-            
+           
+            # elements to be re-used in the person file
             relevant_infos = []
             for p in publications_scanr:
                 new_elt = {'id': p['id']}
-                for f in ['authors', 'domains', 'keywords', 'year', 'affiliations']:
+                for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title']:
                     if p.get(f):
                         new_elt[f] = p[f]
                 relevant_infos.append(new_elt)
@@ -355,9 +356,9 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             logger.debug(f'scanr extract publi, {ix}')
         os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && rm -rf publications.jsonl.gz && gzip -k publications.jsonl')
         upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications.jsonl.gz', destination='production/publications.jsonl.gz')
-        load_scanr_publications(scanr_output_file_denormalized, 'scanr-publications-'+index_name.split('-')[-1])
+        load_scanr_publications(scanr_output_file_denormalized, 'scanr-publications-dev-'+index_name.split('-')[-1])
         os.system(f'mv {scanr_output_file_denormalized} /upw_data/scanr/publications_denormalized.jsonl && cd /upw_data/scanr/ && rm -rf publications_denormalized.jsonl.gz && gzip -k publications_denormalized.jsonl')
-        #upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications_denormalized.jsonl.gz', destination='production/publications_denormalized.jsonl.gz')
+        upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications_denormalized.jsonl.gz', destination='production/publications_denormalized.jsonl.gz')
 
 def load_scanr_publications(scanr_output_file_denormalized, index_name):
     denormalized_file=scanr_output_file_denormalized

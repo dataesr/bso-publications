@@ -93,6 +93,15 @@ def get_doi(doi, collection_name: str) -> dict:
             res[ix] = clean(e, collection_name)
     return res
 
+
+@retry(delay=60, tries=5)
+def get_doi_from_issn(issns) -> dict:
+    collection = get_collection(collection_name='global')
+    res = {}
+    res = list(collection.find({'journal_issn_l': {'$in': issns}, 'year': { '$gte': 2013 }}))
+    return res
+
+
 def get_dois_meta(dois):
     assert(isinstance(dois, list))
     logger.debug(f'getting metadata title / authors for {len(dois)} dois')

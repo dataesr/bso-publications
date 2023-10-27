@@ -14,6 +14,7 @@ from bso.server.main.denormalize_affiliations import get_orga, get_project
 logger = get_logger(__name__)
 
 NB_MAX_AUTHORS = 50
+MIN_YEAR_PUBLISHED = 1960
 
 def to_light(p):
     for f in ['references']:
@@ -338,6 +339,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                         affiliations.append(x)
                             if isinstance(aff.get(t), str) and aff[t] not in affiliations:
                                 affiliations.append(aff[t])
+                        if isinstance(aff.get('name')) and len(aff['name'])>3000:
+                            del aff['name']
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
@@ -381,6 +384,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         
         elt = clean_json(elt)
         if elt:
-            scanr_publications.append(elt)
+            if elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:
+                continue
+            else:
+                scanr_publications.append(elt)
     return scanr_publications
 
