@@ -147,7 +147,7 @@ def parse_these_with_genre(args):
             for t in d.get('classifications'):
                 if t.get('reference')=="degree discipline":
                     discipline = t.get("label_fr")
-                break
+                    break
             for t in d.get('classifications'):
                 if t.get('reference')=="dewey" and "00" not in t.get('code'):
                     dewey = t.get("label_fr")
