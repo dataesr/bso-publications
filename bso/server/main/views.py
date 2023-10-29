@@ -12,7 +12,7 @@ from bso.server.main.utils import dump_to_object_storage
 from bso.server.main.extract_transform import load_scanr_publications, upload_sword
 from bso.server.main.zotero import make_file_ANR
 from bso.server.main.extra_treatment import compute_extra
-
+from bso.server.main.genre_these import compute_genre
 
 default_timeout = 43200000
 logger = get_logger(__name__)
@@ -58,6 +58,20 @@ def run_extra():
     }
     return jsonify(response_object), 202
 
+@main_blueprint.route("/genre_these", methods=["POST"])
+def run_genre_these():
+    args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
+    with Connection(redis.from_url(current_app.config["REDIS_URL"])):
+        q = Queue('scanr-publications', default_timeout=216000)
+        task = q.enqueue(compute_genre, args)
+    response_object = {
+        "status": "success",
+        "data": {
+            "task_id": task.get_id()
+        }
+    }
+    return jsonify(response_object), 202
 
 @main_blueprint.route('/zotero', methods=['POST'])
 def run_task_zotero():

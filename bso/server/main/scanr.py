@@ -10,6 +10,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2
 from bso.server.main.utils import clean_json
 from bso.server.main.denormalize_affiliations import get_orga, get_project
+from bso.server.main.fields.field_detect import get_embeddings
 
 logger = get_logger(__name__)
 
@@ -339,7 +340,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                         affiliations.append(x)
                             if isinstance(aff.get(t), str) and aff[t] not in affiliations:
                                 affiliations.append(aff[t])
-                        if isinstance(aff.get('name')) and len(aff['name'])>3000:
+                        if isinstance(aff.get('name'), str) and len(aff['name'])>3000:
                             del aff['name']
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':
@@ -381,6 +382,12 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         assert(isinstance(denormalized, dict))
             if denormalized_projects:
                 elt['projects'] = denormalized_projects
+            # embeddings
+            # TODO remove
+            if 'embeddings' not in p and elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
+                p['embeddings'] = get_embeddings(p)
+            if isinstance(p.get('embeddings'), list):
+                elt['vector_text'] = p['embeddings']
         
         elt = clean_json(elt)
         if elt:

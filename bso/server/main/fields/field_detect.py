@@ -44,6 +44,31 @@ def get_classification_dewey(publi_codes):
             break
     return thesis_classification
 
+
+@retry(delay=2, tries=50)
+def get_embeddings(a_publication):
+    embeddings = None
+    texts = []
+    for f in ['journal_title', 'title', 'abstract', 'keywords', 'mesh_headings']:
+        current_words = a_publication.get(f)
+        if current_words is None:
+            continue
+        if not isinstance(current_words, str):
+            continue
+        if f == "abstract" and len(current_words.split(" ")) < 20:
+            continue
+        elif f == "title" and len(current_words.split(" ")) < 10:
+            continue
+        elif len(current_words.split(" ")) < 2:
+            continue
+        elif len(current_words) < 5:
+            continue
+        texts.append(current_words)
+    if texts:
+        text = ' ; '.join(texts)
+        embeddings = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/embeddings', json={'text': text}).json()['embeddings']
+    return embeddings
+
 @retry(delay=2, tries=50)
 def call_classifier(a_publication, classif_type):
     r_classif = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/classify_one', json={'publications': [a_publication], 'details': True,
@@ -58,6 +83,10 @@ def detect_fields(a_publication, classification_types):
         elif classif_type == 'bso' and a_publication.get('hal_classification', []):
             a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])['discipline']
             assert(isinstance(a_publication['bso_classification'], str))
+        elif classif_type == 'embeddings':
+            embeddings = get_embeddings(a_publication)
+            if embeddings:
+                a_publication['embeddings'] = embeddings
         else:
             r_classif = {}
             try:

@@ -22,6 +22,7 @@ from bso.server.main.scanr import to_light
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 from bso.server.main.entity_fishing import get_entity_fishing
 
+MIN_YEAR_PUBLISHED = 1960
 
 logger = get_logger(__name__)
 models = {}
@@ -185,6 +186,8 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
             #classification_types.append('sdg')
             if 'health' in domains:
                 classification_types.append('bsso')
+        if 'scanr' in index_name:
+                classification_types.append('embeddings')
         res = detect_fields(res, classification_types)
         
         
@@ -515,6 +518,11 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
                 if not isinstance(year, int):
                     continue
                 elif year < 2013 and d.get('genre') != 'thesis':
+                    continue
+            if 'scanr-' in index_name:
+                if not isinstance(year, int):
+                    continue
+                elif year < MIN_YEAR_PUBLISHED:
                     continue
             # merge authors, z_authors etc 
             d = merge_authors_affiliations(d, index_name)

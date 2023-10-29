@@ -198,6 +198,20 @@ def reset_index_scanr(index: str) -> None:
                 'analyzer': 'light',
             }
 
+
+
+    mappings["vector_text"]: {
+        "type": "dense_vector",
+        "dims": 768,
+        "index": True,
+        "similarity": "dot_product"
+      }
+    mappings["_source"] = {
+      "excludes": [
+        "vector_*"
+      ]
+    }
+
     dynamic_match = None
     #if 'publications-' in index:
     #    dynamic_match = "*authors"

@@ -473,13 +473,13 @@ def to_mongo(input_list, collection_name):
         if p.get('id') is None:
             continue
         if p['id'] in known_ids:
-            logger.debug(f"{p['id']} was in duplicate, inserted only once")
+            #logger.debug(f"{p['id']} was in duplicate, inserted only once")
             continue
         input_filtered.append(p)
         known_ids.add(p['id'])
     if len(input_filtered) == 0:
         return
-    logger.debug(f'importing {len(input_filtered)} publications')
+    #logger.debug(f'importing {len(input_filtered)} publications')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}{collection_name}.jsonl'
@@ -487,7 +487,7 @@ def to_mongo(input_list, collection_name):
     to_jsonl(input_filtered, output_json, 'w')
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
                   f' --collection {collection_name}'
-    logger.debug(f'{mongoimport}')
+    #logger.debug(f'{mongoimport}')
     os.system(mongoimport)
     #logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
@@ -641,7 +641,7 @@ def merge_publications(current_publi, new_publi, locals_data):
             if 'grants' not in current_publi:
                 current_publi['grants'] = []
             if grant not in current_publi['grants']:
-                logger.debug(f"merging grant {grant} into {current_publi['id']}")
+                #logger.debug(f"merging grant {grant} into {current_publi['id']}")
                 current_publi['grants'].append(grant)
                 current_publi['has_grant'] = True
                 change = True
@@ -805,7 +805,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                     p['id_type'] = f_short
                     if current_id not in to_delete:
                         to_delete.append(current_id)
-                    logger.debug(f'replacing {current_id} with {f_short}{p[f]}')
+                    #logger.debug(f'replacing {current_id} with {f_short}{p[f]}')
                     break
         for publi_id in p.get('all_ids', []):
             if publi_id and publi_id in bso_local_dict:

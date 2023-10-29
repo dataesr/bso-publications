@@ -214,7 +214,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
     res['oa_host_type'] = ";".join(dedup_sort(host_types))
     
     if nb_valid_loc == 0:
-        logger.debug(f'exclude false positive OA for {elem}')
+        #logger.debug(f'exclude false positive OA for {elem}')
         res['is_oa'] = False
         res['oa_host_type'] = 'closed'
         res['oa_colors'] = ['closed']

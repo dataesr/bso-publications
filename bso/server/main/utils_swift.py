@@ -79,6 +79,16 @@ def upload_object(container: str, filename: str) -> str:
     r = subprocess.check_output(cmd, shell=True)
     return f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{object_name}'
 
+@retry(delay=3, tries=50, backoff=2)
+def upload_object_with_destination(container: str, filename: str, destination: str) -> str:
+    if destination is None:
+        destination = filename.split('/')[-1]
+    logger.debug(f'Uploading {filename} in {container} as {destination}')
+    cmd = init_cmd + f' upload {container} {filename} --object-name {destination}' \
+                     f' --segment-size 1048576000 --segment-threads 100'
+    #os.system(cmd)
+    r = subprocess.check_output(cmd, shell=True)
+    return f'https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/{container}/{destination}'
 
 @retry(delay=3, tries=50, backoff=2)
 def download_object(container: str, filename: str, out: str) -> None:
