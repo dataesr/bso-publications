@@ -65,8 +65,12 @@ def get_embeddings(a_publication):
             continue
         texts.append(current_words)
     if texts:
-        text = ' ; '.join(texts)
-        embeddings = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/embeddings', json={'text': text}).json()['embeddings']
+        text = ' ; '.join(texts).replace('\\\\\\\\', '')[0:1000]
+        try:
+            embeddings = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/embeddings', json={'text': text}).json()['embeddings']
+        except:
+            logger.debug(f'embeddings error for text {text}')
+            embeddings=None
     return embeddings
 
 @retry(delay=2, tries=50)
