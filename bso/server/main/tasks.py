@@ -141,15 +141,18 @@ def create_task_download_unpaywall(args: dict) -> str:
     return snap
 
 
-def create_task_unpaywall_to_crawler():
+def create_task_unpaywall_to_crawler(is_daily):
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
     parser_url = HTML_PARSER_SERVICE
-    weekly_files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
-    weekly_files = requests.get(weekly_files_url).json()['list']
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     destination = f'{MOUNTED_VOLUME}/weekly_upw.jsonl.gz'
-    download_file(weekly_files[0]['url'], upload_to_object_storage=False, destination=destination)
+    if is_daily:
+        files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
+    else:
+        files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
+    files_to_download = requests.get(files_url).json()['list']
+    download_file(files_to_download[0]['url'], upload_to_object_storage=False, destination=destination)
     
     crawl_all = True
 
@@ -162,7 +165,7 @@ def create_task_unpaywall_to_crawler():
             element_to_crawl = sub_df.doi.tolist()
         else:
             element_to_crawl = get_not_crawled(sub_df.doi.tolist())
-        logger.debug(f'{len(c)} lines in weekly upw file')
+        logger.debug(f'{len(c)} lines in upw file')
         for i, row in sub_df.iterrows():
             title = row.title
             doi = row.doi

@@ -124,11 +124,26 @@ def run_task_forward():
     return jsonify(response_object), 202
 
 
-@main_blueprint.route('/update_weekly', methods=['GET'])
-def update_weekly():
+@main_blueprint.route('/update_daily', methods=['GET'])
+def update_daily():
+    is_daily = True
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='unpaywall_to_crawler', default_timeout=default_timeout)
-        task = q.enqueue(create_task_unpaywall_to_crawler)
+        task = q.enqueue(create_task_unpaywall_to_crawler, is_daily)
+    response_object = {
+        'status': 'success',
+        'data': {
+            'task_id': task.get_id()
+        }
+    }
+    return jsonify(response_object)
+
+@main_blueprint.route('/update_weekly', methods=['GET'])
+def update_daily():
+    is_daily = False
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name='unpaywall_to_crawler', default_timeout=default_timeout)
+        task = q.enqueue(create_task_unpaywall_to_crawler, is_daily)
     response_object = {
         'status': 'success',
         'data': {
