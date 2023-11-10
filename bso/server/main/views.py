@@ -139,7 +139,7 @@ def update_daily():
     return jsonify(response_object)
 
 @main_blueprint.route('/update_weekly', methods=['GET'])
-def update_daily():
+def update_weekly():
     is_daily = False
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='unpaywall_to_crawler', default_timeout=default_timeout)
