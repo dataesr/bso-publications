@@ -267,7 +267,8 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
                 last_oa_loc = dois_infos[doi][last_millesime].get('oa_locations', [])
                 last_oa_details = res['oa_details'][last_observation_date]
                 if 'hybrid' not in last_oa_details.get('oa_colors', []) and 'gold' not in last_oa_details.get('oa_colors', []):
-                    # si ni gold ni hybrid '
+                #if ('hybrid' != last_oa_details.get('unpaywall_oa_status', '')) and ('gold' != last_oa_details.get('unpaywall_oa_status', '')):
+                    # si ni gold ni hybrid
                     res['amount_apc_EUR'] = 0
                     if res.get('has_apc') == True:
                         #logger.debug(f'{doi} should not have apc')
