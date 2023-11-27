@@ -49,25 +49,14 @@ def get_classification_dewey(publi_codes):
 def get_embeddings(a_publication):
     embeddings = None
     texts = []
-    for f in ['journal_title', 'title', 'abstract', 'keywords', 'mesh_headings']:
-        current_words = a_publication.get(f)
-        if current_words is None:
-            continue
-        if not isinstance(current_words, str):
-            continue
-        if f == "abstract" and len(current_words.split(" ")) < 20:
-            continue
-        elif f == "title" and len(current_words.split(" ")) < 10:
-            continue
-        elif len(current_words.split(" ")) < 2:
-            continue
-        elif len(current_words) < 5:
-            continue
-        texts.append(current_words)
+    if isinstance(a_publication.get('classifications'), list):
+        for c in a_publication['classifications']:
+            if isinstance(c.get('label'), str):
+                texts.append(c['label'])
     if texts:
-        text = ' ; '.join(texts).replace('\\\\\\\\', '')[0:1000]
+        text = ' '.join(texts).replace('\\\\\\\\', '')[0:1000]
         try:
-            embeddings = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/embeddings', json={'text': text}).json()['embeddings']
+            embeddings = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/embeddings', json={'text': text, 'embedding_type': 'multilingual'}).json()['embeddings']
         except:
             logger.debug(f'embeddings error for text {text}')
             embeddings=None

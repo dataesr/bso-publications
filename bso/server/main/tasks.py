@@ -239,4 +239,5 @@ def create_task_et(args: dict) -> None:
             datasources += ['bso3']
     hal_date = args.get('hal_date', ['20221201'])
     theses_date = args.get('theses_date', '20220720')
-    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only)
+    save_to_mongo = args.get('save_to_mongo', True)
+    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only, save_to_mongo)

@@ -1,6 +1,7 @@
 import json
 import pymongo
 import os
+import itertools
 import pandas as pd
 
 import dateutil.parser
@@ -16,6 +17,8 @@ logger = get_logger(__name__)
 
 NB_MAX_AUTHORS = 50
 MIN_YEAR_PUBLISHED = 1960
+
+NB_MAX_CO_ELEMENTS = 20
 
 def to_light(p):
     for f in ['references']:
@@ -101,8 +104,12 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
+        if 'lang' in p and isinstance(p['lang'], str) and len(p['lang'])==2:
+            title_lang = p['lang']
         if p.get('title') and isinstance(p['title'], str) and len(p['title'])>2:
             elt['title'] = {'default': p['title']}
+            if title_lang:
+                elt['title'][title_lang] = p['title']
         else:
             continue
         #field abstract / abstracts 
@@ -260,6 +267,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     code = d.get('code')
                 else:
                     code = d.get('label', {}).get('default', '')
+                if isinstance(d.get('code'), str) and isinstance(d.get('label', {}).get('default'), str):
+                    d['id_name'] = f"{d['code']}###{d['label']['default']}"
                 if code not in map_code:
                     map_code[code] = d
                     map_code[code]['count'] = 1
@@ -314,16 +323,23 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 if ix_aut > NB_MAX_AUTHORS:
                     continue
                 author = {}
+                potentialFullName = ''
                 if a.get('first_name'):
                     author['firstName'] = a['first_name']
+                    potentialFullName += a['first_name']
                 if a.get('last_name'):
                     author['lastName'] = a['last_name']
+                    potentialFullName += ' '+ a['last_name']
+                    potentialFullName = potentialFullName.strip()
                 if a.get('full_name'):
                     author['fullName'] = a['full_name']
+                elif potentialFullName:
+                    author['fullName'] = potentialFullName
+
                 if a.get('id'):
                     author['person'] = a['id']
                     if denormalize:
-                        author['person_id_fullName'] = a['id']+'###'+a.get('full_name', 'NO_FULLNAME')
+                        author['id_name'] = a['id']+'###'+author.get('fullName', 'NO_FULLNAME')
                 affiliations = []
                 denormalized_affiliations = []
                 if isinstance(a.get('affiliations'), list):
@@ -354,12 +370,13 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     author['affiliations'] = affiliations
                 if denormalized_affiliations and denormalize:
                     author['affiliations'] = denormalized_affiliations
-                if author:
+                if author and (isinstance(author.get('fullName'), str) or isinstance(author.get('lastName'), str)):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
         
         if denormalize:
+
             # orga
             denormalized_affiliations = []
             affiliations = elt.get('affiliations')
@@ -371,6 +388,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         assert(isinstance(denormalized, dict))
             if denormalized_affiliations:
                 elt['affiliations'] = denormalized_affiliations
+
             # projects
             denormalized_projects = []
             projects = elt.get('projects')
@@ -382,13 +400,40 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         assert(isinstance(denormalized, dict))
             if denormalized_projects:
                 elt['projects'] = denormalized_projects
+            
             # embeddings
             # TODO remove
             if 'embeddings' not in p and elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
                 p['embeddings'] = get_embeddings(p)
             if isinstance(p.get('embeddings'), list):
                 elt['vector_text'] = p['embeddings']
-        
+            
+            # for network mapping
+            # authors network
+            if authors:
+                try:
+                    co_authors = get_co_occurences([a for a in authors if (a.get('role') == 'author')], 'id_name')
+                except:
+                    logger.debug(authors)
+                    co_authors = get_co_occurences([a for a in authors if (a.get('role') == 'author')], 'id_name')
+                if co_authors:
+                    elt['co_authors'] = co_authors
+            # affiliations network
+            if denormalized_affiliations:
+                structures_to_combine = [a for a in denormalized_affiliations if ('Structure de recherche' in a.get('kind', []))]
+                co_structures = get_co_occurences(structures_to_combine, 'id_name')
+                if co_structures:
+                    elt['co_structures'] = co_structures
+                institutions_to_combine = [a for a in denormalized_affiliations if ('Structure de recherche' not in a.get('kind', []))]
+                co_institutions = get_co_occurences(institutions_to_combine, 'id_name')
+                if co_institutions:
+                    elt['co_institutions'] = co_institutions
+            # wikidate network
+            if domains:
+                domains_to_combine = [a for a in domains if ((a.get('type') == 'wikidata') and (a.get('count', 0) > 1))]
+                co_domains = get_co_occurences(domains_to_combine, 'id_name')
+                if co_domains:
+                    elt['co_domains'] = co_domains
         elt = clean_json(elt)
         if elt:
             if elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:
@@ -397,3 +442,10 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 scanr_publications.append(elt)
     return scanr_publications
 
+def get_co_occurences(my_list, my_field):
+    elts_to_combine = [a for a in my_list if a.get(my_field)]
+    if len(elts_to_combine) <= NB_MAX_CO_ELEMENTS:
+        combinations = list(set(itertools.combinations([a[my_field] for a in elts_to_combine], 2)))
+        res = [f'{a}---{b}' for (a,b) in combinations]
+        return res
+    return None

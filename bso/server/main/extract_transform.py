@@ -144,7 +144,7 @@ def split_file(input_dir, file_to_split, nb_lines, split_prefix, output_dir, spl
             idx_split += 1
     logger.debug(f'{input_dir}/{file_to_split} has been splitted into {idx_split} files of {nb_lines} lines from {output_dir}/{split_prefix}0{split_suffix} to {output_dir}/{split_prefix}{idx_split - 1}{split_suffix}')
 
-def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only):
+def extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only, save_to_mongo):
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     scanr_split_prefix = output_file.replace('_extract.jsonl', '_split_').split('/')[-1]
@@ -331,16 +331,17 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             #denormalized
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
-           
-            # elements to be re-used in the person file
-            relevant_infos = []
-            for p in publications_scanr:
-                new_elt = {'id': p['id']}
-                for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title']:
-                    if p.get(f):
-                        new_elt[f] = p[f]
-                relevant_infos.append(new_elt)
-            save_to_mongo_publi(relevant_infos)
+          
+            if save_to_mongo:
+                # elements to be re-used in the person file
+                relevant_infos = []
+                for p in publications_scanr:
+                    new_elt = {'id': p['id']}
+                    for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title']:
+                        if p.get(f):
+                            new_elt[f] = p[f]
+                    relevant_infos.append(new_elt)
+                save_to_mongo_publi(relevant_infos)
             #publications_cleaned = []
             #for elt in publications:
             #    if isinstance(elt.get('classifications'), list):

@@ -21,6 +21,7 @@ from bso.server.main.utils import download_file, FRENCH_ALPHA2
 from bso.server.main.scanr import to_light
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 from bso.server.main.entity_fishing import get_entity_fishing
+from bso.server.main.fields.field_detect import get_embeddings
 
 MIN_YEAR_PUBLISHED = 1960
 
@@ -186,8 +187,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
             #classification_types.append('sdg')
             if 'health' in domains:
                 classification_types.append('bsso')
-        if 'scanr' in index_name:
-                classification_types.append('embeddings')
         res = detect_fields(res, classification_types)
         
         
@@ -202,8 +201,9 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
                 info_apc = detect_apc(doi, res.get('journal_issns'), res.get('publisher'),
                               published_date_for_apc, dois_infos[doi])
         res.update(info_apc)
-        
-        if 'bso' in index_name:
+
+        infer_language = True
+        if infer_language:
             # Language
             lang_mapping = {
                 'english': 'en',
@@ -220,9 +220,11 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
                 words_title = get_words(res.get('title'))
                 if isinstance(words_title, str):
                     publi_title_abstract += words_title + ' '
-                words_abstract = get_words(res.get('abstract'))
-                if isinstance(words_abstract, str):
-                    publi_title_abstract += words_abstract
+                # using abstract only for BSO
+                if 'bso' in index_name:
+                    words_abstract = get_words(res.get('abstract'))
+                    if isinstance(words_abstract, str):
+                        publi_title_abstract += words_abstract
                 publi_title_abstract = publi_title_abstract.strip()
                 if len(publi_title_abstract) > 5:
                     res['lang'] = identify_language(publi_title_abstract.strip())
@@ -235,6 +237,7 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
             ef_info = get_entity_fishing(res, myclient)
             if ef_info:
                 res.update(ef_info)
+            res['embeddings'] = get_embeddings(res)
         
         if 'bso' in index_name:
             # Predatory info
