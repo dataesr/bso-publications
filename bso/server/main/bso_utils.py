@@ -17,6 +17,7 @@ def get_ror_from_local(aff, locals_data):
 
 
 def json_to_csv(json_file, observation_date, split_year = False):
+    logger.debug(f'start json to csv for {json_file} split_year={split_year}')
     df = pd.read_json(json_file, lines=True, chunksize = 25000)
     output_csv_file = json_file.replace('.jsonl', '.csv')
     ix = 0
@@ -27,6 +28,7 @@ def json_to_csv(json_file, observation_date, split_year = False):
             write_header = False
         pandas_to_csv(c, observation_date, output_csv_file, write_header, split_year)
         ix += 1
+    logger.debug('end json to csv')
     return output_csv_file
 
 
