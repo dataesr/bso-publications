@@ -265,6 +265,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         es_url_without_http = ES_URL.replace('https://','').replace('http://','')
         es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
         logger.debug('loading bso-publications index')
+        logger.debug(f'using {es_host}')
         reset_index(index=index_name)
         elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 1000 " + "--transform='doc._source=Object.assign({},doc)'"
         # logger.debug(f'{elasticimport}')
