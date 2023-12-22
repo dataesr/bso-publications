@@ -12,6 +12,7 @@ from bso.server.main.strings import normalize2
 from bso.server.main.utils import clean_json
 from bso.server.main.denormalize_affiliations import get_orga, get_project
 from bso.server.main.fields.field_detect import get_embeddings
+from bso.server.main.utils_swift import delete_object
 
 logger = get_logger(__name__)
 
@@ -19,6 +20,53 @@ NB_MAX_AUTHORS = 50
 MIN_YEAR_PUBLISHED = 1960
 
 NB_MAX_CO_ELEMENTS = 20
+
+idref_sudoc_only = {}
+
+def clean_sudoc_extra(p):
+    if 'sudoc' not in p['id']:
+        return
+    authors = p.get('authors', [])
+    all_sudoc_only = True
+    if isinstance(authors, list):
+        for a in authors:
+            if a.get('id'):
+                current = analyze_sudoc(a['id'])
+                if current is False:
+                    all_sudoc_only = False
+    if all_sudoc_only:
+        sudoc_id = p['id'].replace('sudoc', '').upper()
+        return f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json'
+        #delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
+    return None
+
+
+@retry(delay=200, tries=3)
+def get_publications_for_idref(idref):
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    collection_name = 'publi_meta'
+    mycoll = mydb[collection_name]
+    res = []
+    cursor = mycoll.find({ 'authors.person' : { '$in': [idref] } })
+    for r in cursor:
+        del r['_id']
+        res.append(r)
+    cursor.close()
+    myclient.close()
+    return res
+
+def analyze_sudoc(idref):
+    global idref_sudoc_only
+    if idref not in idref_sudoc_only:
+        publications = get_publications_for_idref(idref)
+        sudoc_only = True
+        for e in publications:
+            if 'sudoc' not in e['id']:
+                sudoc_only=False
+                break
+        idref_sudoc_only[idref] = sudoc_only
+    return idref_sudoc_only[idref]
 
 def to_light(p):
     for f in ['references']:
@@ -104,6 +152,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
+        title_lang = None
         if 'lang' in p and isinstance(p['lang'], str) and len(p['lang'])==2:
             title_lang = p['lang']
         if p.get('title') and isinstance(p['title'], str) and len(p['title'])>2:
@@ -374,6 +423,19 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
+                if 'sudoc' in elt['id']:
+                    all_sudoc_only = True
+                    for a in authors:
+                        if a.get('person'):
+                            current = analyze_sudoc(a['person'])
+                            if current is False:
+                                all_sudoc_only = False
+                    if all_sudoc_only:
+                        sudoc_id = elt['id'].replace('sudoc', '')
+                        elt['year'] = None
+                        delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
+
+
         
         if denormalize:
 

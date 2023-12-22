@@ -4,7 +4,6 @@ import os
 import pandas as pd
 import requests
 import pymongo
-from dateutil import parser
 
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.elastic import load_in_es, reset_index, get_doi_not_in_index, update_local_affiliations

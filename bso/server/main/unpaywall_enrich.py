@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import pymongo
 
-from dateutil import parser
+import dateutil.parser
 from typing import Union
 
 from bso.server.main.apc.apc_detect import detect_apc
@@ -439,7 +439,9 @@ def merge_authors_affiliations(p, index_name):
                     affiliations.append(new_aff)
 
     # for bso no need to work on authors data
-    if 'scanr' in index_name:
+    #if 'scanr' in index_name:
+    p['has_fr_corresponding'] = False
+    if True:
         for f in p:
             if ('authors' in f) and (isinstance(p[f], list)) and f != target_name:
                 current_authors = p[f]
@@ -465,9 +467,16 @@ def merge_authors_affiliations(p, index_name):
         # if thesis or single-author publication, first author has all the affiliations
         target_authors[0]['affiliations'] = affiliations
         target_authors[0]['corresponding'] = True
+        p['has_fr_corresponding'] = True
 
     p['affiliations'] = affiliations
     p['authors'] = target_authors
+    for a in target_authors:
+        if a.get('corresponding'):
+            for aff in a.get('affiliations', []):
+                if has_fr(aff.get('detected_countries', [])):
+                    p['has_fr_corresponding'] = True
+                    break
 
     return p
 
@@ -553,7 +562,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         for field in p:
             if isinstance(p.get(field), str) and field.endswith('_date'):
                 try:
-                    p[field] = parser.parse(p[field]).isoformat()
+                    p[field] = dateutil.parser.parse(p[field]).isoformat()
                 except:
                     logger.debug(f"error for field {field} : {p[field]} of type {type(p[field])}, deleting field")
                     field_to_del.append(field)

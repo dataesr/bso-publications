@@ -177,11 +177,13 @@ def set_objects(all_objects, container: str, path: str) -> None:
     logger.debug('Done')
     return
 
+def delete_object(container: str, filename: str) -> None:
+    logger.debug(f'Deleting {filename} from {container}')
+    cmd = init_cmd + f' delete {container} {filename}'
+    os.system(cmd)
 
-@retry(delay=2, tries=50)
-def delete_object(container: str, folder: str) -> None:
-    connection = get_connection()
-    cont = connection.get_container(container)
-    for n in [e['name'] for e in cont[1] if folder in e['name']]:
-        logger.debug(n)
-        connection.delete_object(container, n)
+def delete_objects(container: str, filenames) -> None:
+    filenames_str = ' '.join(filenames)
+    logger.debug(f'Deleting {filenames} from {container}')
+    cmd = init_cmd + f' delete {container} {filenames}'
+    os.system(cmd)

@@ -10,7 +10,7 @@ import pymongo
 import pysftp
 import requests
 
-from dateutil import parser
+import dateutil.parser
 from retry import retry
 
 from os.path import exists
@@ -183,9 +183,15 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         #if 'medline' in datasources:
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
-            extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+            skip_download_parsed = skip_download
+            if 'scanr' in index_name:
+                skip_download_parsed = False
+            extract_container('parsed_fr', bso_local_dict, skip_download_parsed, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'crossref_fr' in datasources:
-            extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+            skip_download_crossref = skip_download
+            if 'scanr' in index_name:
+                skip_download_crossref = False
+            extract_container('crossref_fr', bso_local_dict, skip_download_crossref, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'orcid' in datasources:
             extract_orcid(bso_local_dict=bso_local_dict, collection_name=collection_name, locals_data=locals_data)
         if 'theses' in datasources:
@@ -194,7 +200,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             hal_date.sort(reverse=True)
             extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_date[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
-            extract_container('sudoc', bso_local_dict, skip_download, download_prefix=f'parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+            skip_download_sudoc = True
+            extract_container('sudoc', bso_local_dict, skip_download_sudoc, download_prefix=f'json_parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'fixed' in datasources:
             extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data) # always fr
             extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data)
@@ -338,7 +345,7 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
                 relevant_infos = []
                 for p in publications_scanr:
                     new_elt = {'id': p['id']}
-                    for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title']:
+                    for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title', 'source']:
                         if p.get(f):
                             new_elt[f] = p[f]
                     relevant_infos.append(new_elt)
@@ -356,6 +363,8 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
             #    publications_cleaned.append(elt)
             ix += 1
             logger.debug(f'scanr extract publi, {ix}')
+        if save_to_mongo:
+            save_to_mongo_publi_indexes()
         os.system(f'mv {scanr_output_file} /upw_data/scanr/publications.jsonl && cd /upw_data/scanr/ && rm -rf publications.jsonl.gz && gzip -k publications.jsonl')
         upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications.jsonl.gz', destination='production/publications.jsonl.gz')
         load_scanr_publications(scanr_output_file_denormalized, 'scanr-publications-dev-'+index_name.split('-')[-1])
@@ -381,8 +390,8 @@ def drop_collection(db, collection_name):
     myclient.close()
 
 def save_to_mongo_publi(relevant_infos):
-    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
-    mydb = myclient['scanr']
+    #myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    #mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}publi-current.jsonl'
     pd.DataFrame(relevant_infos).to_json(output_json, lines=True, orient='records')
     collection_name = 'publi_meta'
@@ -391,12 +400,19 @@ def save_to_mongo_publi(relevant_infos):
     logger.debug(f'{mongoimport}')
     os.system(mongoimport)
     #logger.debug(f'Checking indexes on collection {collection_name}')
+    #logger.debug(f'Deleting {output_json}')
+    os.remove(output_json)
+    #myclient.close()
+
+def save_to_mongo_publi_indexes():
+    myclient = pymongo.MongoClient('mongodb://mongo:27017/')
+    mydb = myclient['scanr']
+    collection_name = 'publi_meta'
+    logger.debug('indices on publi_meta')
     mycol = mydb[collection_name]
     mycol.create_index('id')
     mycol.create_index('authors.person')
     mycol.create_index('affiliations')
-    #logger.debug(f'Deleting {output_json}')
-    os.remove(output_json)
     myclient.close()
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
@@ -754,10 +770,9 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
         if isinstance(p.get('grants'), list):
             new_grants = []
             for g in p['grants']:
-                new_grant = normalize_grant(g)
-                if new_grant:
-                    g.update(new_grant)
-                    new_grants.append(g)
+                new_grants = normalize_grant(g)
+                if new_grants:
+                    new_grants += g
             p['grants'] = new_grants
         existing_affiliations = p.get('affiliations', [])
         for f in p:
@@ -853,8 +868,8 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
 def extract_pubmed(bso_local_dict, collection_name, locals_data) -> None:
     start_string = '2013-01-01'
     end_string = datetime.date.today().isoformat()
-    start_date = parser.parse(start_string).date()
-    end_date = parser.parse(end_string).date()
+    start_date = dateutil.parser.parse(start_string).date()
+    end_date   = dateutil.parser.parse(end_string).date()
     nb_days = (end_date - start_date).days
     prefix_format = '%Y'
     prefixes = list(set([(start_date + datetime.timedelta(days=days)).strftime(prefix_format)
