@@ -166,6 +166,9 @@ def reset_index(index: str) -> None:
     if 'acknowledged' in response and response['acknowledged']:
         response = str(response['index'])
         logger.debug(f'Index mapping success for index: {response}')
+    else:
+        logger.debug(f'ERROR !')
+        logger.debug(response)
 
 @exception_handler
 def reset_index_scanr(index: str) -> None:
