@@ -62,6 +62,7 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         grants = elem.get('grants')
         if isinstance(grants, list):
             for g in grants:
+                assert(isinstance(g, dict))
                 if g.get('agency') == 'ANR':
                     funding_anr.append(g.get('grantid'))
                 if g.get('agency') == 'H2020':

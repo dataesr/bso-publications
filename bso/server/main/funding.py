@@ -80,7 +80,8 @@ def normalize_grant(grant):
             current_grant['funding_year'] = int(grant['funding_year'])
         if grantid[0:3].upper()=='ANR':
             current_grant = get_anr_details(grantid)
-            grants.append(current_grant)
+            if current_grant:
+                grants.append(current_grant)
         elif isinstance(grant.get('agency'), str):
             agency = grant['agency']
             if 'NIH HHS' in agency:

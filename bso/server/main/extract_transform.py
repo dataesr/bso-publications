@@ -770,9 +770,14 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
         if isinstance(p.get('grants'), list):
             new_grants = []
             for g in p['grants']:
-                new_grants = normalize_grant(g)
-                if new_grants:
-                    new_grants += g
+                if isinstance(g, dict):
+                    new_grant = normalize_grant(g)
+                elif isinstance(g, str):
+                    new_grant = normalize_grant({'grantid': g})
+                else:
+                    logger.debug(f'UNEXPECTED grant {g} not string neither dict')
+                if new_grant:
+                    new_grants += new_grant
             p['grants'] = new_grants
         existing_affiliations = p.get('affiliations', [])
         for f in p:
