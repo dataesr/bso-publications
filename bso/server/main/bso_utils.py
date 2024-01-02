@@ -63,9 +63,9 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         if isinstance(grants, list):
             for g in grants:
                 assert(isinstance(g, dict))
-                if g.get('agency') == 'ANR':
+                if g.get('agency') == 'ANR' and g.get('grantid'):
                     funding_anr.append(g.get('grantid'))
-                if g.get('agency') == 'H2020':
+                if g.get('agency') == 'H2020' and g.get('grantid'):
                     funding_europe.append(g.get('grantid'))
         new_elem['funding_anr'] = INSIDE_FIELD_SEP.join(list(set(funding_anr)))
         new_elem['funding_europe'] = INSIDE_FIELD_SEP.join(list(set(funding_europe)))
