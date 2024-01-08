@@ -3,7 +3,7 @@ import os
 import requests
 import pymongo
 from bso.server.main.logger import get_logger
-from bso.server.main.utils_swift import download_object, upload_object, delete_object, delete_objects
+from bso.server.main.utils_swift import download_object, upload_object, delete_object, delete_objects, init_cmd
 from bso.server.main.bso_utils import get_ror_from_local
 from bso.server.main.utils import to_jsonl
 from bso.server.main.extract_transform import load_scanr_publications
@@ -41,23 +41,30 @@ def tmp(args):
 
 def compute_extra(args):
 
-    index_name = args.get('index')
-    logger.debug(f'reading {index_name}')
-    df = pd.read_json(f'/upw_data/{index_name}.jsonl', lines=True, chunksize=1000)
-    ix = 0
-    for c in df:
-        publications = c.to_dict(orient='records')
-        publications = [p for p in publications if 'sudoc' in p['id']]
-        logger.debug(f'{len(publications)} to clean {ix} for {index_name}')
-        publications = get_person_ids(publications)
-        sudocs_to_rm = []
-        for p in publications:
-            sudoc_to_rm = clean_sudoc_extra(p)
-            if sudoc_to_rm:
-                sudocs_to_rm.append(sudoc_to_rm)
-                os.system(f'rm -rf /upw_data/sudoc/{sudoc_to_rm}')
-        #delete_objects('sudoc', sudocs_to_rm)
-        ix += 1
+    cmd0 = f'{init_cmd} delete --prefix parsed sudoc'
+    os.system(cmd0)
+
+    cmd1 = f'cd /upw_data/sudoc && {init_cmd} upload sudoc json_parsed --skip-identical'
+    os.system(cmd1)
+
+
+    #index_name = args.get('index')
+    #logger.debug(f'reading {index_name}')
+    #df = pd.read_json(f'/upw_data/{index_name}.jsonl', lines=True, chunksize=1000)
+    #ix = 0
+    #for c in df:
+    #    publications = c.to_dict(orient='records')
+    #    publications = [p for p in publications if 'sudoc' in p['id']]
+    #    logger.debug(f'{len(publications)} to clean {ix} for {index_name}')
+    #    publications = get_person_ids(publications)
+    #    sudocs_to_rm = []
+    #    for p in publications:
+    #        sudoc_to_rm = clean_sudoc_extra(p)
+    #        if sudoc_to_rm:
+    #            sudocs_to_rm.append(sudoc_to_rm)
+    #            os.system(f'rm -rf /upw_data/sudoc/{sudoc_to_rm}')
+    #    #delete_objects('sudoc', sudocs_to_rm)
+    #    ix += 1
 
     #myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     #mydb = myclient['unpaywall']
