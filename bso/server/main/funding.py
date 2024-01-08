@@ -1,4 +1,5 @@
 import requests
+import re
 import pandas as pd
 from bso.server.main.logger import get_logger
 
@@ -70,7 +71,7 @@ def normalize_grant(grant):
     grants = []
     if not isinstance(grant.get('grantid'), str):
         return [grant]
-    for grantid in grant['grantid'].split(';'):
+    for grantid in re.split(';|,| ', grant['grantid']):
         grantid = grantid.strip()
         if not grantid:
             continue
@@ -78,7 +79,7 @@ def normalize_grant(grant):
         current_grant['grantid'] = grantid
         if 'funding_year' in grant and not isinstance(grant['funding_year'], int):
             current_grant['funding_year'] = int(grant['funding_year'])
-        if grantid[0:3].upper()=='ANR':
+        if grantid[0:4].upper()=='ANR-':
             current_grant = get_anr_details(grantid)
             if current_grant:
                 grants.append(current_grant)
