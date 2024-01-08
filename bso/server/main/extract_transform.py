@@ -378,10 +378,11 @@ def load_scanr_publications(scanr_output_file_denormalized, index_name):
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
     logger.debug('loading scanr-publications index')
     reset_index_scanr(index=index_name)
-    elasticimport = f"elasticdump --input={denormalized_file} --output={es_host}{index_name} --type=data --limit 500 " + "--transform='doc._source=Object.assign({},doc)'"
+    elasticimport = f"elasticdump --input={denormalized_file} --output={es_host}{index_name} --type=data --limit 500 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
     logger.debug(f'{elasticimport}')
     logger.debug('starting import in elastic')
     os.system(elasticimport)
+    refresh_index(index_name)
 
 def drop_collection(db, collection_name):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
