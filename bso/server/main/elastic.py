@@ -15,6 +15,12 @@ def get_client():
         client = Elasticsearch(ES_URL, http_auth=(ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK))
     return client
 
+@exception_handler
+def refresh_index(index):
+    logger.debug(f'Refreshing {index}')
+    es = get_client()
+    response = es.indices.refresh(index=index)
+    logger.debug(response)
 
 @exception_handler
 def get_doi_not_in_index(index, dois):

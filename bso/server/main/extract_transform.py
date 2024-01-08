@@ -16,7 +16,7 @@ from retry import retry
 from os.path import exists
 from urllib import parse
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
-from bso.server.main.elastic import load_in_es, reset_index, reset_index_scanr, get_doi_not_in_index, update_local_affiliations
+from bso.server.main.elastic import load_in_es, reset_index, reset_index_scanr, get_doi_not_in_index, update_local_affiliations, refresh_index
 from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
@@ -30,7 +30,7 @@ from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids
 from bso.server.main.funding import normalize_grant
 from bso.server.main.scanr import to_light
-from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local
+from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long
 from bso.server.main.s3 import upload_s3
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
 
@@ -274,10 +274,11 @@ def extract_all(index_name, observations, reset_file, extract, transform, load, 
         logger.debug('loading bso-publications index')
         logger.debug(f'using {es_host}')
         reset_index(index=index_name)
-        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 1000 " + "--transform='doc._source=Object.assign({},doc)'"
+        elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 1000 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         # logger.debug(f'{elasticimport}')
         logger.debug('starting import in elastic')
         os.system(elasticimport)
+        refresh_index(index_name)
 
         if reload_index_only:
             return
@@ -937,11 +938,7 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     if k in publi and publi[k]:
                         publi_id = publi[k]
                         break
-                current_fields = list(publi.keys())
-                for f in current_fields:
-                    if len(str(publi[f])) > 100000:
-                        logger.debug(f"deleting field {f} in publi {publi_id} from {jsonfilename} as too long !") 
-                        del publi[f]
+                publi=remove_too_long(publi, publi_id, jsonfilename)
                 # code etab NNT
                 nnt_id = publi.get('nnt_id')
                 if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
