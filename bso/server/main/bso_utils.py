@@ -4,6 +4,22 @@ from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
 
+def remove_too_long(d, publi_id, jsonfilename):
+    assert(isinstance(d, dict))
+    current_fields = list(d.keys())
+    for f in current_fields:
+        if isinstance(d[f], str):
+            if len(d[f]) > 5000:
+                logger.debug(f"shortening str field {f} in publi {publi_id} from {jsonfilename} as too long !")
+                d[f] = d[f][0:5000]+'...'
+        elif isinstance(d[f], list):
+            if len(d[f]) > 50:
+                logger.debug(f"shortening list field {f} in publi {publi_id} from {jsonfilename} as too long !")
+                d[f] = d[f][0:50]
+        elif isinstance(d[f], dict):
+            d[f]=remove_too_long(d[f].copy(), publi_id, jsonfilename)
+    return d
+
 def get_ror_from_local(aff, locals_data):
     if aff in locals_data:
         if 'ror' in locals_data[aff]:
