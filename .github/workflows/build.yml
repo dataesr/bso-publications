@@ -6,7 +6,7 @@ on:
       - '*'
 
 env:
-  MM_NOTIFICATION_CHANNEL: 'bso-bot'
+  MM_NOTIFICATION_CHANNEL: 'bots'
 
 jobs:
   publish-ghcr:
