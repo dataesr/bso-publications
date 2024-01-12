@@ -16,13 +16,11 @@ install:
 
 docker-build:
 	@echo Building a new docker image
-	docker build -t $(DOCKER_IMAGE_NAME):$(CURRENT_VERSION) -t $(DOCKER_IMAGE_NAME):latest .
+	docker build -t $(GHCR_IMAGE_NAME):$(CURRENT_VERSION) -t $(GHCR_IMAGE_NAME):latest .
 	@echo Docker image built
 
 docker-push:
 	@echo Pushing a new docker image
-	docker tag $(DOCKER_IMAGE_NAME) $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)
-	docker tag $(DOCKER_IMAGE_NAME) $(GHCR_IMAGE_NAME):latest
 	docker push $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)
 	docker push $(GHCR_IMAGE_NAME):latest
 	@echo Docker image pushed
