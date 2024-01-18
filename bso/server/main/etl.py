@@ -194,7 +194,7 @@ def etl(args):
         if 'bso' in index_name:
             elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 1000 --noRefresh --ignore-es-write-errors=false " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
-            create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, local_bso_filenames)
+            create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
     
     if transform_scanr:
         df_orga = get_orga_data()
@@ -280,7 +280,7 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
     os.system(f'rm -rf {global_filename}.csv')
     current_len_filename[global_filename] = 0
     for year in range(year_min, year_max + 1):
-        local_filename = enriched_output_file.replace('.jsonl', '_SPLITYEAR{year}SPLITYEAR')
+        local_filename = enriched_output_file.replace('.jsonl', f'_SPLITYEAR{year}SPLITYEAR')
         current_len_filename[local_filename] = 0
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
@@ -288,7 +288,7 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
     # init (rm files for local affiliations)
     for local_affiliation in local_bso_filenames:
         local_affiliation = local_affiliation.split('.')[0]
-        local_filename = enriched_output_file.replace('.jsonl', '_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
+        local_filename = enriched_output_file.replace('.jsonl', f'_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
         current_len_filename[local_filename] = 0
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
@@ -299,7 +299,7 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
     df = pd.read_json(enriched_output_file, lines=True, chunksize=20000)
     ix = 0
     for c in df:
-        logger.debug(f'dumping bso jsonl chunk {ix}')
+        logger.debug(f'dumping bso {index_name} {split_idx} jsonl chunk {ix}')
         publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
         for p in publications:
             current_file = global_filename
@@ -307,13 +307,13 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
             current_len_filename[current_file] += 1
             for local_affiliation in p.get('bso_local_affiliations', []):
                 if local_affiliation.lower() in local_bso_lower:
-                    current_file = enriched_output_file.replace('.jsonl', '_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
+                    current_file = enriched_output_file.replace('.jsonl', f'_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
                     to_jsonl([p], f'{current_file}.jsonl', 'a')
                     dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
                     current_len_filename[current_file] += 1
             if isinstance(p.get('year'), int) and year_min <= p['year'] <= year_max:
                 year = p['year']
-                current_file = enriched_output_file.replace('.jsonl', '_SPLITYEAR{year}SPLITYEAR')
+                current_file = enriched_output_file.replace('.jsonl', f'_SPLITYEAR{year}SPLITYEAR')
                 to_jsonl([p], f'{current_file}.jsonl', 'a')
                 dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
                 current_len_filename[current_file] += 1

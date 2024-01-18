@@ -246,10 +246,48 @@ def run_task_et_scanr():
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
+@main_blueprint.route('/et_bso_all', methods=['POST'])
+def run_task_et_bso_all():
+    logger.debug('Starting task et bso all')
+    args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
+    args_extract = args.copy()
+    args_extract['reset_file'] = True
+    args_extract['extract'] = True
+    extract_task = []
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(create_task_et, args_extract)
+        extract_task.append(task)
+    response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+
+    args_transform = args.copy()
+    args_transform['reset_file'] = False
+    args_transform['extract'] = False
+    args_transform['transform'] = True
+
+    transform_tasks = []
+    for idx in range(0, 8):
+        with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+            q = Queue(name='bso-publications', default_timeout=default_timeout)
+            current_args_transform = args_transform.copy()
+            current_args_transform['split_idx'] = idx
+            task = q.enqueue(create_task_et, current_args_transform, depends_on=extract_task)
+            transform_tasks.append(task)
+            response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    
+    #args_finalize = args.copy()
+    #with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+    #    q = Queue(name='bso-publications', default_timeout=default_timeout)
+    #    task = q.enqueue(create_task_et, args_finalize, depends_on=transform_tasks)
+    #    extract_task.append(task)
+    #response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+
+    return jsonify(response_extract_object), 202
 
 @main_blueprint.route('/et_scanr_all', methods=['POST'])
 def run_task_et_scanr_all():
-    logger.debug('Starting task et')
+    logger.debug('Starting task et scanr all')
     args = request.get_json(force=True)
     assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     args_extract = args.copy()
@@ -258,7 +296,7 @@ def run_task_et_scanr_all():
     extract_task = []
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='scanr-publications', default_timeout=default_timeout)
-        task = q.enqueue(create_task_et, args)
+        task = q.enqueue(create_task_et, args_extract)
         extract_task.append(task)
     response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
 
@@ -275,7 +313,7 @@ def run_task_et_scanr_all():
             task = q.enqueue(create_task_et, current_args_transform, depends_on=extract_task)
             response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
 
-    return jsonify(response_object), 202
+    return jsonify(response_extract_object), 202
 
 
 @main_blueprint.route('/dump', methods=['POST'])
