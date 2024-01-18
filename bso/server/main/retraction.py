@@ -1,20 +1,26 @@
 import requests
 import pandas as pd
 from bso.server.main.logger import get_logger
+from retry import retry
 
 logger = get_logger(__name__)
 
 retracted = {}
 retraction_notes = {}
 
+@retry(delay=200, tries=5)
 def get_retraction_data():
     url = 'https://api.labs.crossref.org/data/retractionwatch?bso@recherche.gouv.fr'
     try:
         df = pd.read_csv(url, sep=',')
         logger.debug(f'{len(df)} records downloaded from retractionwatch')
     except:
-        logger.debug(f'PROBLEM WITH retraction watch DATA download ! {url}')
-        return
+        try:
+            df = pd.read_csv(url, sep=',', encoding='iso-8859-1')
+            logger.debug(f'{len(df)} records downloaded from retractionwatch')
+        except:
+            logger.debug(f'PROBLEM WITH retraction watch DATA download ! {url}')
+            return {}, {}
     retracted = {}
     retraction_notes = {}
     for i, row in df.iterrows():

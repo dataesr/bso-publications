@@ -42,13 +42,13 @@ def json_to_csv(json_file, observation_date, split_year = False):
             write_header = True
         else:
             write_header = False
-        pandas_to_csv(c, observation_date, output_csv_file, write_header, split_year)
+        pandas_to_csv(c, observation_date, output_csv_file, write_header)
         ix += 1
     logger.debug('end json to csv')
     return output_csv_file
 
 
-def pandas_to_csv(df, observation_date, filename, write_header=True, split_year = False):
+def dict_to_csv(elem, observation_date, filename, write_header=True):
 
     simple_fields = ['id','doi', 'pmid', 'hal_id', 'year', 'title',
                      'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
@@ -57,91 +57,91 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
     array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected', 'rors']
     INSIDE_FIELD_SEP = '|'
     flatten_data = []
-    for elem in df.to_dict(orient='records'):
-        new_elem = {'observation_date': observation_date}
-        id_elem = elem['id']
-        for f in simple_fields:
-            if isinstance(elem.get(f), str):
-                new_elem[f] = elem[f].replace('\u2028',' ').replace('\n', ' ').replace(';', ',').replace('|', ',').replace('  ', ' ')
-            elif elem.get(f):
-                new_elem[f] = elem[f]
-            else:
-                new_elem[f] = None
-
-        for f in array_fields:
-            if isinstance(elem.get(f), list):
-                new_elem[f] = INSIDE_FIELD_SEP.join(elem[f])
-            else:
-                new_elem[f] = None
-
-        funding_anr, funding_europe = [], []
-        grants = elem.get('grants')
-        if isinstance(grants, list):
-            for g in grants:
-                assert(isinstance(g, dict))
-                if g.get('agency') == 'ANR' and g.get('grantid'):
-                    funding_anr.append(g.get('grantid'))
-                if g.get('agency') == 'H2020' and g.get('grantid'):
-                    funding_europe.append(g.get('grantid'))
-        new_elem['funding_anr'] = INSIDE_FIELD_SEP.join(list(set(funding_anr)))
-        new_elem['funding_europe'] = INSIDE_FIELD_SEP.join(list(set(funding_europe)))
-
-
-        if isinstance(elem.get('bsso_classification'), dict) and isinstance(elem['bsso_classification'].get('field'), list):
-            new_elem['bsso_classification'] = "###".join(elem['bsso_classification'].get('field'))
+    #for elem in df.to_dict(orient='records'):
+    new_elem = {'observation_date': observation_date}
+    id_elem = elem['id']
+    for f in simple_fields:
+        if isinstance(elem.get(f), str):
+            new_elem[f] = elem[f].replace('\u2028',' ').replace('\n', ' ').replace(';', ',').replace('|', ',').replace('  ', ' ')
+        elif elem.get(f):
+            new_elem[f] = elem[f]
         else:
-            new_elem['bsso_classification'] = None
+            new_elem[f] = None
 
-        if 'oa_details' in elem and observation_date in elem['oa_details']:
-            new_elem['is_oa'] = elem['oa_details'][observation_date].get('is_oa')
-            new_elem['is_oa_hal'] = elem['oa_details'][observation_date].get('is_oa_hal')
-            new_elem['oa_host_type'] = elem['oa_details'][observation_date].get('oa_host_type')
-            if new_elem['oa_host_type']:
-                new_elem['oa_host_type'] = new_elem['oa_host_type'].replace(';', '-')
-            new_elem['journal_is_in_doaj'] = elem['oa_details'][observation_date].get('journal_is_in_doaj')
-            new_elem['journal_is_oa'] = elem['oa_details'][observation_date].get('journal_is_oa')
-            new_elem['unpaywall_oa_status'] = elem['oa_details'][observation_date].get('unpaywall_oa_status')
-
-            new_elem['oa_colors'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('oa_colors', []))
-            new_elem['licence_publisher'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('licence_publisher', []))
-            new_elem['licence_repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('licence_repositories', []))
-            new_elem['repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('repositories', []))
+    for f in array_fields:
+        if isinstance(elem.get(f), list):
+            new_elem[f] = INSIDE_FIELD_SEP.join(elem[f])
         else:
-            #print(f'no oa_details for {id_elem}')
-            for f in ['is_oa', 'oa_host_type', 'journal_is_in_doaj', 'journal_is_oa', 'unpaywall_oa_status',
-                     'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
-                new_elem[f] = None
+            new_elem[f] = None
 
-        for g in ['bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
-            new_elem[g] = False
-            if elem.get(g):
-                new_elem[g] = elem[g]
+    funding_anr, funding_europe = [], []
+    grants = elem.get('grants')
+    if isinstance(grants, list):
+        for g in grants:
+            assert(isinstance(g, dict))
+            if g.get('agency') == 'ANR' and g.get('grantid'):
+                funding_anr.append(g.get('grantid'))
+            if g.get('agency') == 'H2020' and g.get('grantid'):
+                funding_europe.append(g.get('grantid'))
+    new_elem['funding_anr'] = INSIDE_FIELD_SEP.join(list(set(funding_anr)))
+    new_elem['funding_europe'] = INSIDE_FIELD_SEP.join(list(set(funding_europe)))
 
-        new_elem['software_mentions'] = None
-        new_elem['data_mentions'] = None
-        for g in ['software', 'data']:
-            for t in ['used', 'shared', 'created']:
-                new_elem[f'{g}_{t}'] = None
+    if isinstance(elem.get('bsso_classification'), dict) and isinstance(elem['bsso_classification'].get('field'), list):
+        new_elem['bsso_classification'] = "###".join(elem['bsso_classification'].get('field'))
+    else:
+        new_elem['bsso_classification'] = None
 
-        if isinstance(elem.get('softcite_details'), dict):
-            new_elem['software_used'] = elem['softcite_details'].get('has_used')
-            new_elem['software_shared'] = elem['softcite_details'].get('has_shared')
-            new_elem['software_created'] = elem['softcite_details'].get('has_created')
-            mentions = elem['softcite_details'].get('mentions')
-            if isinstance(mentions, list):
-                new_elem['software_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
-        if isinstance(elem.get('datastet_details'), dict):
-            new_elem['data_used'] = elem['datastet_details'].get('has_used')
-            new_elem['data_shared'] = elem['datastet_details'].get('has_shared')
-            new_elem['data_created'] = elem['datastet_details'].get('has_created')
-            mentions = elem['datastet_details'].get('mentions')
-            if isinstance(mentions, list):
-                new_elem['data_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
+    if 'oa_details' in elem and observation_date in elem['oa_details']:
+        new_elem['is_oa'] = elem['oa_details'][observation_date].get('is_oa')
+        new_elem['is_oa_hal'] = elem['oa_details'][observation_date].get('is_oa_hal')
+        new_elem['oa_host_type'] = elem['oa_details'][observation_date].get('oa_host_type')
+        if new_elem['oa_host_type']:
+            new_elem['oa_host_type'] = new_elem['oa_host_type'].replace(';', '-')
+        new_elem['journal_is_in_doaj'] = elem['oa_details'][observation_date].get('journal_is_in_doaj')
+        new_elem['journal_is_oa'] = elem['oa_details'][observation_date].get('journal_is_oa')
+        new_elem['unpaywall_oa_status'] = elem['oa_details'][observation_date].get('unpaywall_oa_status')
 
-        if 'year' not in new_elem or not isinstance(new_elem['year'], int) or new_elem['year']<2013:
-            continue
+        new_elem['oa_colors'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('oa_colors', []))
+        new_elem['licence_publisher'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('licence_publisher', []))
+        new_elem['licence_repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('licence_repositories', []))
+        new_elem['repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('repositories', []))
+    else:
+        #print(f'no oa_details for {id_elem}')
+        for f in ['is_oa', 'oa_host_type', 'journal_is_in_doaj', 'journal_is_oa', 'unpaywall_oa_status',
+                    'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
+            new_elem[f] = None
 
-        flatten_data.append(new_elem)
+    for g in ['bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
+        new_elem[g] = False
+        if elem.get(g):
+            new_elem[g] = elem[g]
+
+    new_elem['software_mentions'] = None
+    new_elem['data_mentions'] = None
+    for g in ['software', 'data']:
+        for t in ['used', 'shared', 'created']:
+            new_elem[f'{g}_{t}'] = None
+
+    if isinstance(elem.get('softcite_details'), dict):
+        new_elem['software_used'] = elem['softcite_details'].get('has_used')
+        new_elem['software_shared'] = elem['softcite_details'].get('has_shared')
+        new_elem['software_created'] = elem['softcite_details'].get('has_created')
+        mentions = elem['softcite_details'].get('mentions')
+        if isinstance(mentions, list):
+            new_elem['software_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
+    if isinstance(elem.get('datastet_details'), dict):
+        new_elem['data_used'] = elem['datastet_details'].get('has_used')
+        new_elem['data_shared'] = elem['datastet_details'].get('has_shared')
+        new_elem['data_created'] = elem['datastet_details'].get('has_created')
+        mentions = elem['datastet_details'].get('mentions')
+        if isinstance(mentions, list):
+            new_elem['data_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
+
+    if 'year' not in new_elem or not isinstance(new_elem['year'], int) or new_elem['year']<2013:
+        return None
+
+    #flatten_data.append(new_elem)
+    flatten_data = [new_elem]
     final_cols = ['observation_date', 'id', 'doi', 'pmid', 'hal_id', 'year', 'title',
        'journal_issns', 'journal_issn_l', 'journal_name', 'publisher',
        'publisher_dissemination', 'bso_classification', 'lang', 'genre', 'bso_country_corrected',
@@ -162,17 +162,6 @@ def pandas_to_csv(df, observation_date, filename, write_header=True, split_year 
         df_flatten.to_csv(filename, sep=';', index=False)
     else:
         df_flatten.to_csv(filename, sep=';', index=False, header=False, mode='a')
-
-    if split_year:
-        first_year = 2013
-        last_year = int(observation_date[0:4])
-        for y in range(first_year, last_year+1):
-            df_flatten_year = df_flatten[df_flatten.year==y]
-            filename_year = filename.replace('.csv', f'_{y}.csv')
-            if write_header:
-                df_flatten_year.to_csv(filename_year, sep=';', index=False)
-            else:
-                df_flatten_year.to_csv(filename_year, sep=';', index=False, header=False, mode='a')
 
 
 def remove_wrong_match(publi):

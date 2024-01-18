@@ -15,7 +15,7 @@ from bso.server.main.unpaywall_feed import download_daily, download_snapshot, sn
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file, get_hash
-from bso.server.main.extract_transform import extract_all
+from bso.server.main.etl import etl
 from bso.server.main.affiliation_matcher import get_query_from_affiliation
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
@@ -217,26 +217,4 @@ def create_task_load_mongo(args: dict) -> None:
         os.remove(path)
 
 def create_task_et(args: dict) -> None:
-    index_name = args.get('index', 'bso-publications-NODATE')
-    observations = args.get('observations', [])
-    reset_file = args.get('reset_file', True)
-    extract = args.get('extract', True)
-    transform = args.get('transform', True)
-    load = args.get('load', True)
-    affiliation_matching = args.get('affiliation_matching', False)
-    entity_fishing = args.get('entity_fishing', False)
-    skip_download = args.get('skip_download', False)
-    chunksize = args.get('chunksize', 5000)
-    reload_index_only = args.get('reload_index_only', False)
-    datasources = args.get('datasources', [])
-    start_chunk = args.get('start_chunk', 0)
-    if len(datasources) == 0:
-        datasources = ['medline', 'parsed_fr', 'crossref_fr', 'theses', 'hal', 'fixed', 'local']
-        if 'scanr' in index_name:
-            datasources += ['orcid', 'sudoc', 'manual']
-        if 'bso' in index_name:
-            datasources += ['bso3']
-    hal_date = args.get('hal_date', ['20221201'])
-    theses_date = args.get('theses_date', '20220720')
-    save_to_mongo = args.get('save_to_mongo', True)
-    extract_all(index_name, observations, reset_file, extract, transform, load, affiliation_matching, entity_fishing, skip_download, chunksize, datasources, hal_date, theses_date, start_chunk, reload_index_only, save_to_mongo)
+    etl(args)

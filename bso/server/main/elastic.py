@@ -211,7 +211,7 @@ def reset_index_scanr(index: str) -> None:
 
     mappings["vector_text"]: {
         "type": "dense_vector",
-        "dims": 768,
+        "dims": 512,
         "index": True,
         "similarity": "dot_product"
       }

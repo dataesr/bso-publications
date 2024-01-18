@@ -22,6 +22,7 @@ MIN_YEAR_PUBLISHED = 1960
 NB_MAX_CO_ELEMENTS = 20
 
 idref_sudoc_only = {}
+vip_dict = {}
 
 def clean_sudoc_extra(p):
     if 'sudoc' not in p['id']:
@@ -148,7 +149,31 @@ def to_scanr_patents(patents, df_orga, denormalize=False):
 
     return res
 
+def get_vip_dict():
+    global vip_dict
+    assert(len(vip_dict) == 0)
+    df_vip = pd.read_json('/upw_data/vip.jsonl', lines=True)
+    for ix, row in df_vip.iterrows():
+        current_idref = 'idref'+row['idref']
+        elt = {}
+        for f in ['lastName', 'firstName', 'orcid', 'id_hal']:
+            if isinstance(row[f], str):
+                elt[f] = row[f]
+        if elt.get('lastName') and elt.get('firstName'):
+            elt['fullName'] = elt['firstName'] + ' ' + elt['lastName']
+        for f in ['prizes']:
+            if isinstance(row[f], list):
+                elt[f] = row[f]
+        assert(current_idref not in vip_dict)
+        vip_dict[current_idref] = elt
+    logger.debug(f'vip dict loaded with {len(vip_dict)} idrefs')
+    return
+
+
 def to_scanr(publications, df_orga, df_project, denormalize = False):
+    global vip_dict
+    if len(vip_dict)==0:
+        get_vip_dict()
     scanr_publications = []
     for p in publications:
         elt = {'id': p['id']}
@@ -384,16 +409,14 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     author['fullName'] = a['full_name']
                 elif potentialFullName:
                     author['fullName'] = potentialFullName
-
-                if a.get('id'):
-                    author['person'] = a['id']
-                    if denormalize:
-                        author['id_name'] = a['id']+'###'+author.get('fullName', 'NO_FULLNAME')
+                isFrench = 'NOT_FR'
                 affiliations = []
                 denormalized_affiliations = []
                 if isinstance(a.get('affiliations'), list):
                     denormalized_affiliations = a['affiliations']
                     for aff in a['affiliations']:
+                        if aff.get('isFrench', False):
+                            isFrench = 'FR'
                         if isinstance(aff.get('ids'), list):
                             for x in aff['ids']:
                                 if x.get('id'):
@@ -407,6 +430,17 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                 affiliations.append(aff[t])
                         if isinstance(aff.get('name'), str) and len(aff['name'])>3000:
                             del aff['name']
+                if a.get('id'):
+                    author['person'] = a['id']
+                    fullName = author.get('fullName', 'NO_FULLNAME')
+                    if denormalize:
+                        if a['id'] in vip_dict:
+                            extra_info = vip_dict[a['id']]
+                            fullName = extra_info.get('fullName', 'NO_FULLNAME')
+                            for f in ['orcid', 'id_hal']:
+                                if extra_info.get(f):
+                                    author['person'][f] = extra_info[f]
+                        author['id_name'] = a['id']+'###'+fullName+'###'+isFrench
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
