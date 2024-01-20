@@ -347,20 +347,28 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     existing_publis = get_from_mongo('all_ids', ids_to_check, collection_name)
     for p in existing_publis:
         for identifier in p.get('all_ids'):
-            existing_publis_all_ids_to_main_id[identifier] = p['id']
-            existing_publis_dict[p['id']] = p
+            if identifier not in existing_publis_all_ids_to_main_id:
+                existing_publis_all_ids_to_main_id[identifier] = []
+            existing_publis_all_ids_to_main_id[identifier].append(p['id'])
+            if p['id'] not in existing_publis_dict:
+                existing_publis_dict[p['id']] = []
+            existing_publis_dict[p['id']].append(p)
     for p in new_publications:
         # on cherche si la publication est déjà en base pour lui ajouter des infos complémentaires
         existing_publi = None
+        has_changed = False
         for f in p['all_ids']:
             if f in existing_publis_all_ids_to_main_id:
-                current_id = existing_publis_all_ids_to_main_id[f]
-                existing_publi = existing_publis_dict[current_id]
-                existing_publi, change = merge_publications(existing_publi, p, locals_data)
-                if change:
-                    to_add.append(existing_publi)
-                    to_delete.append(current_id)
-                break
+                current_ids = existing_publis_all_ids_to_main_id[f]
+                for current_id in current_ids:
+                    existing_publis = existing_publis_dict[current_id]
+                    for existing_publi in existing_publis:
+                        existing_publi, change = merge_publications(existing_publi, p, locals_data)
+                        if change:
+                            has_changed = True
+                            to_delete.append(current_id)
+        if has_changed:
+            to_add.append(existing_publi)
         if existing_publi is None:
             to_add.append(p)
     for p in to_add:
@@ -412,6 +420,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                 current_local_rors.append(current_ror)
         p['rors'] = current_local_rors
     if to_delete:
+        to_delete = list(set(to_delete))
         delete_from_mongo(to_delete, collection_name)
     to_mongo(to_add, collection_name)
     nb_add = len(to_add)

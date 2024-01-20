@@ -122,6 +122,7 @@ def etl(args):
             if 'medline/' in d:
                 medline_year = d.split('/')[1].strip()
                 logger.debug(f'medline year = {medline_year}')
+                skip_download_medline = skip_download
                 if 'scanr' in index_name:
                     skip_download_medline = False
                 extract_container('medline', bso_local_dict, skip_download_medline, download_prefix=f'parsed/{medline_year}/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name, locals_data=locals_data) #always fr
