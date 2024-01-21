@@ -286,9 +286,9 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
 
-    # init (rm files for local affiliations)
+    # init (rm files for local affiliations) - all files with lower affiliation id
     for local_affiliation in local_bso_filenames:
-        local_affiliation = local_affiliation.split('.')[0]
+        local_affiliation = local_affiliation.split('.')[0].lower()
         local_filename = enriched_output_file.replace('.jsonl', f'_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
         current_len_filename[local_filename] = 0
         os.system(f'rm -rf {local_filename}.jsonl')
@@ -307,8 +307,9 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
             dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
             current_len_filename[current_file] += 1
             for local_affiliation in p.get('bso_local_affiliations', []):
-                if local_affiliation.lower() in local_bso_lower:
-                    current_file = enriched_output_file.replace('.jsonl', f'_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
+                local_affiliation = local_affiliation.lower()
+                current_file = enriched_output_file.replace('.jsonl', f'_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
+                if current_file in current_len_filename:
                     to_jsonl([p], f'{current_file}.jsonl', 'a')
                     dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
                     current_len_filename[current_file] += 1
