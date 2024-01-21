@@ -193,7 +193,7 @@ def etl(args):
             transformed_publications = transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_date)
         
         if 'bso' in index_name:
-            elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 1000 --noRefresh --ignore-es-write-errors=false " + "--transform='doc._source=Object.assign({},doc)'"
+            elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 100 --noRefresh --ignore-es-write-errors=false " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
             create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
     
@@ -224,7 +224,7 @@ def etl(args):
             save_to_mongo_publi(relevant_infos)
 
         if 'scanr' in index_name:
-            elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{index_name} --type=data --limit 500 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
+            elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
 
     # finalize
