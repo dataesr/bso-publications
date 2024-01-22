@@ -107,7 +107,7 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
         new_elem['repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('repositories', []))
     else:
         #print(f'no oa_details for {id_elem}')
-        for f in ['is_oa', 'oa_host_type', 'journal_is_in_doaj', 'journal_is_oa', 'unpaywall_oa_status',
+        for f in ['is_oa', 'is_oa_hal', 'oa_host_type', 'journal_is_in_doaj', 'journal_is_oa', 'unpaywall_oa_status',
                     'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
             new_elem[f] = None
 
@@ -129,6 +129,10 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
         mentions = elem['softcite_details'].get('mentions')
         if isinstance(mentions, list):
             new_elem['software_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
+    else:
+        for f in ['software_used', 'software_shared', 'software_created', 'software_mentions']:
+            new_elem[f] = None
+
     if isinstance(elem.get('datastet_details'), dict):
         new_elem['data_used'] = elem['datastet_details'].get('has_used')
         new_elem['data_shared'] = elem['datastet_details'].get('has_shared')
@@ -136,6 +140,9 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
         mentions = elem['datastet_details'].get('mentions')
         if isinstance(mentions, list):
             new_elem['data_mentions'] = INSIDE_FIELD_SEP.join(list(set([k['name'] for k in mentions if 'name' in k])))
+    else:
+        for f in ['data_used', 'data_shared', 'data_created', 'data_mentions']:
+            new_elem[f] = None
 
     if 'year' not in new_elem or not isinstance(new_elem['year'], int) or new_elem['year']<2013:
         return None
@@ -154,7 +161,11 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
        'software_used', 'software_created', 'software_shared',
        'data_used', 'data_created', 'data_shared'
        ]
-    df_flatten = pd.DataFrame(flatten_data)[final_cols]
+    df_flatten = pd.DataFrame(flatten_data)
+    for f in final_cols:
+        if f not in list(df_flatten.columns):
+            df_flatten[f]=None
+    df_flatten = df_flatten[final_cols]
     df_flatten['bso_country'] = df_flatten['bso_country_corrected']
     del df_flatten['bso_country_corrected']
 
