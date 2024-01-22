@@ -45,7 +45,8 @@ pre_tokenizer = pre_tokenizers.Sequence([Whitespace()])
 
 def normalize(x, min_length = 0):
     normalized = normalizer.normalize_str(x)
-    normalized = normalized.replace('\n', ' ')
+    for c in ['\n', '<', '>', '$']:
+        normalized = normalized.replace(c, ' ')
     normalized = re.sub(' +', ' ', normalized)
     # keep if digit alone
     return " ".join([e[0] for e in pre_tokenizer.pre_tokenize_str(normalized) if (len(e[0]) > min_length) or (e[0] in string.digits)])
