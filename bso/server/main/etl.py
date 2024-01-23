@@ -364,8 +364,10 @@ def collect_splitted_files(index_name, output_dir):
         filemap[f'/upw_data/{index_name}.jsonl'] = filemap[f'/upw_data/bso-publications-latest.jsonl']
         filemap[f'/upw_data/{index_name}.csv'] = filemap[f'/upw_data/bso-publications-latest.csv']
 
+    target_ix = 0
     for target in filemap:
         logger.debug(f'concat {filemap[target]} into {target}')
+        logger.debug(f'{target_ix} / {len(filemap)}')
         assert(' ' not in target)
         assert('.csv' in target or '.jsonl' in target)
         os.system(f'rm -rf {target}')
@@ -378,6 +380,7 @@ def collect_splitted_files(index_name, output_dir):
         if 'scanr' in index_name and target == f'{output_dir}/{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl':
             os.system(f'mv {target} /upw_data/scanr/publications_denormalized.jsonl && cd /upw_data/scanr/ && rm -rf publications_denormalized.jsonl.gz && gzip -k publications_denormalized.jsonl')
             upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications_denormalized.jsonl.gz', destination='production/publications_denormalized.jsonl.gz')
+        target_ix += 1
         
 
 def zip_upload(a_file, delete=True):
