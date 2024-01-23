@@ -136,7 +136,7 @@ def merge_publications(current_publi, new_publi, locals_data):
     if current_sources:
         current_publi['sources'] = current_sources
     # title
-    for f in ['title', 'title_first_author_raw', 'title_first_author']:
+    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id']:
         if current_publi.get(f) is None and isinstance(new_publi.get(f), str):
             current_publi[f] = new_publi[f]
             logger.debug(f"new {f} for publi {current_publi['id']} from {new_publi['id']} : {new_publi[f]}")
@@ -357,16 +357,31 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     for p in new_publications:
         # on cherche si la publication est déjà en base pour lui ajouter des infos complémentaires
         existing_publi = None
+        #for f in p['all_ids']:
+        #    if f in existing_publis_all_ids_to_main_id:
+        #        current_id = existing_publis_all_ids_to_main_id[f]
+        #        existing_publi = existing_publis_dict[current_id]
+        #        existing_publi, change = merge_publications(existing_publi, p, locals_data)
+        #        if change:
+        #            to_add.append(existing_publi)
+        #            to_delete.append(current_id)
+        #        break
+        existing_publi_after_merge = None
+        has_changed = False
         for f in p['all_ids']:
             if f in existing_publis_all_ids_to_main_id:
                 current_id = existing_publis_all_ids_to_main_id[f]
                 existing_publi = existing_publis_dict[current_id]
-                existing_publi, change = merge_publications(existing_publi, p, locals_data)
+                if existing_publi_after_merge is None:
+                    existing_publi_after_merge, change = merge_publications(existing_publi, p, locals_data)
+                else:
+                    existing_publi_after_merge, change = merge_publications(existing_publi_after_merge, p, locals_data)
                 if change:
-                    to_add.append(existing_publi)
+                    has_changed = True
                     to_delete.append(current_id)
-                break
-        if existing_publi is None:
+        if has_changed:
+            to_add.append(existing_publi_after_merge)
+        if existing_publi_after_merge is None:
             to_add.append(p)
     for p in to_add:
         if p.get('id') is None:
