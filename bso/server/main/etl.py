@@ -348,13 +348,12 @@ def collect_splitted_files(index_name, output_dir):
             target = f'/upw_data/bso-publications-latest{current_suffix}.{current_extension}'
         else:
             target = f'/upw_data/{index_name}{current_suffix}.{current_extension}'
-
         if target not in filemap:
             filemap[target] = []
-        filemap[target].append(f)
+        filemap[target].append(f'{output_dir}/{f}')
     if 'bso' in index_name:
-        filemap[f'/upw_data/{index_name}{current_suffix}.jsonl'] = filemap[f'/upw_data/bso-publications-latest{current_suffix}.jsonl']
-        filemap[f'/upw_data/{index_name}{current_suffix}.csv'] = filemap[f'/upw_data/bso-publications-latest{current_suffix}.csv']
+        filemap[f'/upw_data/{index_name}.jsonl'] = filemap[f'/upw_data/bso-publications-latest.jsonl']
+        filemap[f'/upw_data/{index_name}.csv'] = filemap[f'/upw_data/bso-publications-latest.csv']
 
     for target in filemap:
         logger.debug(f'concat {filemap[target]} into {target}')
