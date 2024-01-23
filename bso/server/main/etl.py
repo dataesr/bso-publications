@@ -21,7 +21,7 @@ from bso.server.main.inventory import update_inventory
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
 from bso.server.main.enrich_parallel import enrich_parallel
-from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos, get_dois_meta
+from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
 from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd, clean_container_by_prefix
 from bso.server.main.utils_upw import chunks, get_millesime
@@ -193,11 +193,14 @@ def etl(args):
             transformed_publications = transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_date)
         
         if 'bso' in index_name:
+            assert('scanr' not in index_name)
             elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 100 --noRefresh --ignore-es-write-errors=false " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
             create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
     
     if transform_scanr:
+        assert('bso' not in index_name)
+        assert('scanr' in index_name)
         df_orga = get_orga_data()
         df_project = get_projects_data()
         #scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
@@ -223,9 +226,8 @@ def etl(args):
                 relevant_infos.append(new_elt)
             save_to_mongo_publi(relevant_infos)
 
-        if 'scanr' in index_name:
-            elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
-            os.system(elasticimport)
+        elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
+        os.system(elasticimport)
 
     # finalize
     if finalize:
