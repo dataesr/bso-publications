@@ -306,20 +306,29 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
         publications = [{k:v for k, v in x.items() if v == v } for x in c.to_dict(orient='records')]
         for p in publications:
             current_file = global_filename
-            dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
+            write_header_global = False
+            if ((split_idx == 0) and (current_len_filename[current_file] == 0)):
+                write_header_global = True
+            dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_global)
             current_len_filename[current_file] += 1
             for local_affiliation in p.get('bso_local_affiliations', []):
                 local_affiliation = local_affiliation.lower()
                 current_file = enriched_output_file.replace('.jsonl', f'_SPLITLOCALAFF{local_affiliation}SPLITLOCALAFF')
                 if current_file in current_len_filename:
                     to_jsonl([p], f'{current_file}.jsonl', 'a')
-                    dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
+                    write_header_aff = False
+                    if ((split_idx == 0) and (current_len_filename[current_file] == 0)):
+                        write_header_aff = True
+                    dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_aff)
                     current_len_filename[current_file] += 1
             if isinstance(p.get('year'), int) and year_min <= p['year'] <= year_max:
                 year = p['year']
                 current_file = enriched_output_file.replace('.jsonl', f'_SPLITYEAR{year}SPLITYEAR')
                 to_jsonl([p], f'{current_file}.jsonl', 'a')
-                dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=(current_len_filename[current_file] == 0))
+                write_header_year = False
+                if ((split_idx == 0) and (current_len_filename[current_file] == 0)):
+                    write_header_year = True
+                dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_year)
                 current_len_filename[current_file] += 1
         ix += 1
    
@@ -360,7 +369,9 @@ def collect_splitted_files(index_name, output_dir):
         assert(' ' not in target)
         assert('.csv' in target or '.jsonl' in target)
         os.system(f'rm -rf {target}')
-        for f in filemap[target]:
+        files_to_concat = filemap[target]
+        files_to_concat.sort()
+        for f in files_to_concat:
             os.system(f'cat {f} >> {target}')
         if 'bso' in index_name:
             zip_upload(target)
