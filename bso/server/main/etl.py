@@ -123,9 +123,11 @@ def etl(args):
                 medline_year = d.split('/')[1].strip()
                 logger.debug(f'medline year = {medline_year}')
                 skip_download_medline = skip_download
+                medline_path = f'aggregated_recent/{medline_year}/fr'
                 if 'scanr' in index_name:
                     skip_download_medline = False
-                extract_container('medline', bso_local_dict, skip_download_medline, download_prefix=f'parsed/{medline_year}/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name, locals_data=locals_data) #always fr
+                    medline_path = f'aggregated/{medline_year}/fr'
+                extract_container('medline', bso_local_dict, skip_download_medline, download_prefix=medline_path, one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name, locals_data=locals_data) #always fr
         #if 'medline' in datasources:
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:

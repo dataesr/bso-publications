@@ -146,7 +146,17 @@ def reset_index(index: str) -> None:
     # attention l'analyzer .keyword ne sera pas présent pour ce champs !
 
     if 'bso-' in index:
-        for f in ['title', 'affiliations.name', 'authors.first_name', 'authors.last_name', 'authors.full_name', 'authors.affiliations.name']:
+        for f in ['affiliations.name', 'authors.full_name']:
+            mappings['properties'][f] = { 
+                    'type': 'text',
+                    'analyzer': 'light',
+                    'fields': {
+                        'keyword': {
+                            'type':  'keyword'
+                        }
+                    }
+                }
+        for f in ['title', 'authors.first_name', 'authors.last_name']:
             mappings['properties'][f] = { 
                     'type': 'text',
                     'analyzer': 'light' 
