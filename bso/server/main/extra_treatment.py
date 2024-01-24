@@ -6,13 +6,48 @@ from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import download_object, upload_object, delete_object, delete_objects, init_cmd
 from bso.server.main.bso_utils import get_ror_from_local
 from bso.server.main.utils import to_jsonl
+from bso.server.main.utils_upw import chunks
 from bso.server.main.extract_transform import load_scanr_publications
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo, load_collection_from_object_storage
 from bso.server.main.scanr import clean_sudoc_extra, get_person_ids
+from bso.server.main.etl import create_split_and_csv_files, collect_splitted_files
 import hashlib
+import json
 
 logger = get_logger(__name__)
 
+def aggregate_pubmed_data(pubmed_year, min_year = None):
+    all_pubmed = []
+    all_pubmed_paths = []
+    for directory in os.listdir(f'/upw_data/medline/parsed/{pubmed_year}/fr/'):
+        for current_file in os.listdir(f'/upw_data/medline/parsed/{pubmed_year}/fr/{directory}'):
+            current_file_path = f'/upw_data/medline/parsed/{pubmed_year}/fr/{directory}/{current_file}'
+            all_pubmed_paths.append(current_file_path)
+    all_pubmed_paths.sort(reverse=True)
+    known_pmids = set()
+    all_data = []
+    for c_ix, current_file_path in enumerate(all_pubmed_paths):
+        if c_ix % 100==0:
+            logger.debug(f'{c_ix} / {len(all_pubmed_paths)}')
+        current_data = pd.read_json(current_file_path).to_dict(orient='records')
+        for d in current_data:
+            if d.get('pmid') not in known_pmids:
+                known_pmids.add(d['pmid'])
+                if isinstance(min_year, int) and isinstance(d.get('publication_year'), int) and d['publication_year']>=min_year:
+                    all_data.append(d)
+                elif min_year is None:
+                    all_data.append(d)
+    print(f'{len(all_data)} publications from PubMed')
+    output_path = f'/upw_data/medline/aggregated/{pubmed_year}/fr/all'
+    if min_year:
+        output_path = f'/upw_data/medline/aggregated_recent/{pubmed_year}/fr/all'
+    os.system(f'mkdir -p {output_path}')
+    chunk_ix=0
+    for data_chunked in chunks(all_data, 25000):
+        output_pubmed_chunk = f'{output_path}/all_pubmed_{chunk_ix}.json'
+        logger.debug(output_pubmed_chunk)
+        json.dump(data_chunked, open(output_pubmed_chunk, 'w'))
+        chunk_ix += 1
 
 def get_hash(x):
     return hashlib.md5(x.encode('utf-8')).hexdigest()
@@ -41,11 +76,22 @@ def tmp(args):
 
 def compute_extra(args):
 
-    cmd0 = f'{init_cmd} delete --prefix parsed sudoc'
-    os.system(cmd0)
+    index_name = args.get('index_name')
+    output_dir = '/upw_data/bso-split'
+    collect_splitted_files(index_name, output_dir )
+    #split_idx = args.get('split_idx')
+    #last_oa_details = '2023Q4'
+    #bso_local_filenames = []
+    #for filename in os.listdir(f'/upw_data/bso_local'):
+    #    bso_local_filenames.append(filename)
 
-    cmd1 = f'cd /upw_data/sudoc && {init_cmd} upload sudoc json_parsed --skip-identical'
-    os.system(cmd1)
+    #create_split_and_csv_files('/upw_data/bso-split', index_name, split_idx, last_oa_details, bso_local_filenames)    
+
+    #cmd0 = f'{init_cmd} delete --prefix parsed sudoc'
+    #os.system(cmd0)
+
+    #cmd1 = f'cd /upw_data/sudoc && {init_cmd} upload sudoc json_parsed --skip-identical'
+    #os.system(cmd1)
 
 
     #index_name = args.get('index')

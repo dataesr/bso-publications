@@ -48,7 +48,7 @@ def run_extra():
     args = request.get_json(force=True)
     assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
-        q = Queue('scanr-publications', default_timeout=216000)
+        q = Queue('bso-publications', default_timeout=216000)
         task = q.enqueue(compute_extra, args)
     response_object = {
         "status": "success",
