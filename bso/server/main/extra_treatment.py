@@ -37,7 +37,7 @@ def aggregate_pubmed_data(pubmed_year, min_year = None):
                     all_data.append(d)
                 elif min_year is None:
                     all_data.append(d)
-    print(f'{len(all_data)} publications from PubMed')
+    logger.debug(f'{len(all_data)} publications from PubMed')
     output_path = f'/upw_data/medline/aggregated/{pubmed_year}/fr/all'
     if min_year:
         output_path = f'/upw_data/medline/aggregated_recent/{pubmed_year}/fr/all'
@@ -47,6 +47,31 @@ def aggregate_pubmed_data(pubmed_year, min_year = None):
         output_pubmed_chunk = f'{output_path}/all_pubmed_{chunk_ix}.json'
         logger.debug(output_pubmed_chunk)
         json.dump(data_chunked, open(output_pubmed_chunk, 'w'))
+        chunk_ix += 1
+
+
+def aggregate_parsed_data(prefix):
+    all_parsed_paths = []
+    for directory in os.listdir(f'/upw_data/{prefix}_fr'):
+        for current_file in os.listdir(f'/upw_data/{prefix}_fr/{directory}'):
+            current_file_path = f'/upw_data/{prefix}_fr/{directory}/{current_file}'
+            all_parsed_paths.append(current_file_path)
+    all_data = []
+    for c_ix, current_file_path in enumerate(all_parsed_paths):
+        if c_ix % 100==0:
+            logger.debug(f'{c_ix} / {len(all_parsed_paths)}')
+        current_data = pd.read_json(current_file_path).to_dict(orient='records')
+        for d in current_data:
+            all_data.append(d)
+    print(f'{len(all_data)} publications from {prefix}')
+    output_path = f'/upw_data/all_{prefix}_fr/aggregated'
+    assert(' ' not in output_path)
+    os.system(f'rm -rf {output_path} && mkdir -p {output_path}')
+    chunk_ix=0
+    for data_chunked in chunks(all_data, 25000):
+        output_chunk = f'{output_path}/all_{prefix}_fr_{chunk_ix}.json'
+        logger.debug(output_chunk)
+        json.dump(data_chunked, open(output_chunk, 'w'))
         chunk_ix += 1
 
 def get_hash(x):
