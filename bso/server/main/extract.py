@@ -139,7 +139,7 @@ def merge_publications(current_publi, new_publi, locals_data):
     for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id']:
         if current_publi.get(f) is None and isinstance(new_publi.get(f), str):
             current_publi[f] = new_publi[f]
-            logger.debug(f"new {f} for publi {current_publi['id']} from {new_publi['id']} : {new_publi[f]}")
+            #logger.debug(f"new {f} for publi {current_publi['id']} from {new_publi['id']} : {new_publi[f]}")
     # bso3
     for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
         if f in new_publi:
@@ -242,7 +242,7 @@ def merge_publications(current_publi, new_publi, locals_data):
         change = True
 
     # merge authors, affiliations and ids
-    for f in new_publi:
+    for f in new_publi.copy():
         if 'authors' in f:
             current_publi[f+'_'+new_datasource] = new_publi[f]
             change = True
@@ -300,6 +300,8 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                 del p['doi']
         for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
             if f in p:
+                if not isinstance(p[f], str):
+                    p[f] = str(p[f])
                 if not is_valid(p[f], f):
                     logger.debug(f'invalid {f} detected: {p[f]}')
                     del p[f]
@@ -321,7 +323,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
         for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id', 'natural_id']:
             if isinstance(p.get(f), str):
                 p['all_ids'].append(f.replace('_id', '')+p[f])
-            ids_to_check += p['all_ids']
+        ids_to_check += p['all_ids']
         if isinstance(p.get('grants'), list):
             new_grants = []
             for g in p['grants']:
@@ -352,8 +354,9 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     existing_publis = get_from_mongo('all_ids', ids_to_check, collection_name)
     for p in existing_publis:
         for identifier in p.get('all_ids'):
-            existing_publis_all_ids_to_main_id[identifier] = p['id']
-            existing_publis_dict[p['id']] = p
+            if identifier not in existing_publis_all_ids_to_main_id:
+                existing_publis_all_ids_to_main_id[identifier] = p['id']
+                existing_publis_dict[p['id']] = p
     for p in new_publications:
         # on cherche si la publication est déjà en base pour lui ajouter des infos complémentaires
         existing_publi = None
@@ -375,7 +378,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                 if existing_publi_after_merge is None:
                     existing_publi_after_merge, change = merge_publications(existing_publi, p, locals_data)
                 else:
-                    existing_publi_after_merge, change = merge_publications(existing_publi_after_merge, p, locals_data)
+                    existing_publi_after_merge, change = merge_publications(existing_publi, existing_publi_after_merge, locals_data)
                 if change:
                     has_changed = True
                     to_delete.append(current_id)
