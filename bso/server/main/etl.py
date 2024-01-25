@@ -122,24 +122,19 @@ def etl(args):
             if 'medline/' in d:
                 medline_year = d.split('/')[1].strip()
                 logger.debug(f'medline year = {medline_year}')
-                skip_download_medline = skip_download
+                skip_download_medline = True
                 medline_path = f'aggregated_recent/{medline_year}/fr'
                 if 'scanr' in index_name:
-                    skip_download_medline = False
                     medline_path = f'aggregated/{medline_year}/fr'
                 extract_container('medline', bso_local_dict, skip_download_medline, download_prefix=medline_path, one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name, locals_data=locals_data) #always fr
         #if 'medline' in datasources:
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
-            skip_download_parsed = skip_download
-            if 'scanr' in index_name:
-                skip_download_parsed = False
-            extract_container('parsed_fr', bso_local_dict, skip_download_parsed, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+            skip_download_parsed = True
+            extract_container('all_parsed_fr', bso_local_dict, skip_download_parsed, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'crossref_fr' in datasources:
-            skip_download_crossref = skip_download
-            if 'scanr' in index_name:
-                skip_download_crossref = False
-            extract_container('crossref_fr', bso_local_dict, skip_download_crossref, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+            skip_download_crossref = True
+            extract_container('all_crossref_fr', bso_local_dict, skip_download_crossref, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'orcid' in datasources:
             extract_orcid(bso_local_dict=bso_local_dict, collection_name=collection_name, locals_data=locals_data)
         if 'theses' in datasources:
