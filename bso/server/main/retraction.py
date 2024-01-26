@@ -29,8 +29,7 @@ def get_retraction_data():
             retraction_doi = row['RetractionDOI'].lower().strip()
         except:
             retraction_doi = None
-            #print(f'no retraction_doi for retraction {retraction_id}')
- 
+
         try:
             original_doi = row['OriginalPaperDOI'].lower().strip()
         except:
@@ -44,9 +43,10 @@ def get_retraction_data():
         if 'RetractionNature' in row:
             retraction_details['retraction_nature'] = row['RetractionNature']
         if 'Reason' in row:
-            retraction_details['retraction_reason'] = row['Reason']
+            retraction_details['retraction_reason'] = list(filter(None, row['Reason'].split(';')))
         if 'RetractionDate' in row: 
             retraction_details['retraction_date'] = row['RetractionDate']
+            retraction_details['retraction_year'] = row['RetractionDate'].split(' ')[0].split('/')[-1]
         if 'Notes' in row:
             retraction_details['retraction_notes'] = row['Notes']
         retraction_details['retraction_doi'] = retraction_doi
