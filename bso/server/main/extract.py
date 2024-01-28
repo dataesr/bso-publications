@@ -672,6 +672,12 @@ def extract_orcid(bso_local_dict, collection_name, locals_data):
             elt['authors'].append(current_author)
         update_publications_infos(list(publications.values()), bso_local_dict, 'orcid', collection_name, locals_data)
 
+def get_bso_local_filenames():
+    bso_local_filenames = []
+    for filename in os.listdir(f'{MOUNTED_VOLUME}/bso_local'):
+        bso_local_filenames.append(filename)
+    return  list(set(bso_local_filenames))
+
 def build_bso_local_dict():
     bso_local_dict = {}
     bso_local_dict_aff = {}

@@ -34,7 +34,7 @@ from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_f
 from bso.server.main.s3 import upload_s3
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
 
-from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict 
+from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict, get_bso_local_filenames 
 from bso.server.main.transform import transform_publications
 
 logger = get_logger(__name__)
@@ -101,10 +101,10 @@ def etl(args):
         output_dir = '/upw_data/scanr-split'
         nb_lines_transform = 600000
 
-    bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
     
     # extract
     if extract:
+        bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
         collection_name = get_collection_name(index_name)
 
         drop_collection('scanr', 'publications_before_enrichment')
@@ -178,6 +178,8 @@ def etl(args):
     es_url_without_http = ES_URL.replace('https://','').replace('http://','')
     es_host = f'https://{ES_LOGIN_BSO_BACK}:{parse.quote(ES_PASSWORD_BSO_BACK)}@{es_url_without_http}'
     if transform:
+        if '_0' in enriched_output_file:
+            reset_index(index=index_name)
         logger.debug(f'reading {before_transform_file} for transform and saving results into {enriched_output_file}')
         df_chunks = pd.read_json(before_transform_file, lines=True, chunksize = chunksize)
         os.system(f'rm -rf {enriched_output_file}')
@@ -191,8 +193,9 @@ def etl(args):
         
         if 'bso' in index_name:
             assert('scanr' not in index_name)
-            elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 100 --noRefresh --ignore-es-write-errors=false " + "--transform='doc._source=Object.assign({},doc)'"
+            elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
+            bso_local_filenames = get_bso_local_filenames()
             create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
     
     if transform_scanr:
