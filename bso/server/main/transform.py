@@ -77,8 +77,11 @@ def remove_fields_bso(res):
 def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode, hal_date):
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
+    # corrections 
+    publications = [clean_softcite(p) for p in publications]
     # correct detected countries from previous affiliation-matcher
     publications = [remove_wrong_match(p) for p in publications]
+    publications = [remove_too_long_affiliation(p) for p in publications]
     # publis_chunks = list(chunks(publications, 20000))
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
         entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_date=hal_date, index_name=index_name)
@@ -454,4 +457,29 @@ def tag_affiliations(p, datasource):
     return p
 
 
+def remove_too_long_affiliation(publi):
+    if not isinstance(publi.get('affiliations'), list):
+        return publi
+    for a in publi['affiliations']:
+        if isinstance(a.get('name'), str) and len(a['name']) > 2000:
+            a['name'] = a['name'][0:2000]
+    return publi
 
+def clean_softcite(publi):
+    for d in ['softcite_details', 'datastet_details']:
+        if isinstance(publi.get(d), dict) and isinstance(publi[d].get('raw_mentions'), list):
+            for r in publi[d]['raw_mentions']:
+                for s in ['references', 'url', 'language', 'publisher']:
+                    if isinstance(r.get(s), dict):
+                        for g in ['boundingBoxes', 'offsetEnd', 'offsetStart', 'refKey']:
+                            if g in r[s]:
+                                print(f'1 -- {d}, {s} {g}')
+                                del r[s][g]
+                    elif isinstance(r.get(s), list):
+                        for e in r[s]:
+                            for g in ['boundingBoxes', 'offsetEnd', 'offsetStart', 'refKey']:
+                                if g in e:
+                                    print(f'2 -- {d}, {s} {g}')
+                                    del e[g]
+
+    return publi
