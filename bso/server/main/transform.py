@@ -473,13 +473,11 @@ def clean_softcite(publi):
                     if isinstance(r.get(s), dict):
                         for g in ['boundingBoxes', 'offsetEnd', 'offsetStart', 'refKey']:
                             if g in r[s]:
-                                print(f'1 -- {d}, {s} {g}')
                                 del r[s][g]
                     elif isinstance(r.get(s), list):
                         for e in r[s]:
                             for g in ['boundingBoxes', 'offsetEnd', 'offsetStart', 'refKey']:
                                 if g in e:
-                                    print(f'2 -- {d}, {s} {g}')
                                     del e[g]
 
     return publi
