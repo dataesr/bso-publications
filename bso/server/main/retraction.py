@@ -15,12 +15,8 @@ def get_retraction_data():
         df = pd.read_csv(url, sep=',')
         logger.debug(f'{len(df)} records downloaded from retractionwatch')
     except:
-        try:
-            df = pd.read_csv(url, sep=',', encoding='iso-8859-1')
-            logger.debug(f'{len(df)} records downloaded from retractionwatch')
-        except:
-            logger.debug(f'PROBLEM WITH retraction watch DATA download ! {url}')
-            return {}, {}
+        df = pd.read_csv(url, sep=',', encoding='iso-8859-1')
+        logger.debug(f'{len(df)} records downloaded from retractionwatch with encoding iso-8859-1')
     retracted = {}
     retraction_notes = {}
     for i, row in df.iterrows():
