@@ -81,12 +81,12 @@ def transform_publications(publications, index_name, observations, affiliation_m
     publications = [clean_softcite(p) for p in publications]
     # correct detected countries from previous affiliation-matcher
     publications = [remove_wrong_match(p) for p in publications]
-    publications = [remove_too_long_affiliation(p) for p in publications]
     # publis_chunks = list(chunks(publications, 20000))
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
         entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_date=hal_date, index_name=index_name)
     if 'bso-publications' in index_name:
         enriched_publications = [remove_fields_bso(p) for p in enriched_publications if p['oa_details']]
+    enriched_publications = [remove_too_long_affiliation(p) for p in enriched_publications]
     to_jsonl(enriched_publications, enriched_output_file, write_mode)
 
 def get_collection_name(index_name):
@@ -462,6 +462,7 @@ def remove_too_long_affiliation(publi):
         return publi
     for a in publi['affiliations']:
         if isinstance(a.get('name'), str) and len(a['name']) > 2000:
+            logger.debug(f"shorten affiliation for {publi['id']} from {len(a['name'])} to 2000")
             a['name'] = a['name'][0:2000]
     return publi
 
