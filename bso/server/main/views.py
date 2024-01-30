@@ -293,6 +293,8 @@ def run_task_et_scanr_all():
     args_extract = args.copy()
     args_extract['reset_file'] = True
     args_extract['extract'] = True
+    args_extract['transform'] = False
+    args_extract['transform_scanr'] = False
     extract_task = []
     with Connection(redis.from_url(current_app.config['REDIS_URL'])):
         q = Queue(name='scanr-publications', default_timeout=default_timeout)
@@ -304,6 +306,10 @@ def run_task_et_scanr_all():
     args_transform['reset_file'] = False
     args_transform['extract'] = False
     args_transform['transform'] = True
+    if args.get('transform_scanr') is True:
+        args_transform['transform_scanr'] = True
+    else:
+        args_transform['transform_scanr'] = False
     
     for idx in range(0, 8):
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
