@@ -440,7 +440,8 @@ def merge_authors_affiliations(p, index_name):
 
     # for bso no need to work on authors data
     #if 'scanr' in index_name:
-    p['has_fr_corresponding'] = False
+    if 'has_fr_corresponding' not in p:
+        p['has_fr_corresponding'] = False
     if True:
         for f in p:
             if ('authors' in f) and (isinstance(p[f], list)) and f != target_name:
@@ -456,6 +457,8 @@ def merge_authors_affiliations(p, index_name):
                                 for k in aut:
                                     if k not in aut_target:
                                         aut_target[k] = aut[k]
+                                    if aut.get('corresponding') is True:
+                                        aut_target['corresponding'] = True
                                     if aut.get('affiliations'):
                                         current_aff = aut_target.get('affiliations', [])
                                         for aff in aut['affiliations']:
@@ -467,7 +470,9 @@ def merge_authors_affiliations(p, index_name):
         # if thesis or single-author publication, first author has all the affiliations
         target_authors[0]['affiliations'] = affiliations
         target_authors[0]['corresponding'] = True
-        p['has_fr_corresponding'] = True
+        if isinstance(p.get('bso_country_corrected'), list):
+            if 'fr' in p.get('bso_country_corrected'):
+                p['has_fr_corresponding'] = True
 
     p['affiliations'] = affiliations
     p['authors'] = target_authors
