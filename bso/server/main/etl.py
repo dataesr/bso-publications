@@ -229,12 +229,17 @@ def etl(args):
         elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         os.system(elasticimport)
 
-    # finalize
-    if finalize:
-        refresh_index(index_name)
-        collect_splitted_files(index_name, output_dir)
-        if 'scanr' in index_name:
-            save_to_mongo_publi_indexes()
+def finalize(args):
+    index_name = args.get('index_name')
+    if 'bso-' in index_name:
+        output_dir = '/upw_data/bso-split'
+    if 'scanr' in index_name:
+        output_dir = '/upw_data/scanr-split'
+    refresh_index(index_name)
+    collect_splitted_files(index_name, output_dir)
+    if 'scanr' in index_name:
+        save_to_mongo_publi_indexes()
+
 
 def drop_collection(db, collection_name):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')

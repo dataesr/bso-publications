@@ -13,6 +13,7 @@ from bso.server.main.extract_transform import load_scanr_publications, upload_sw
 from bso.server.main.zotero import make_file_ANR
 from bso.server.main.extra_treatment import compute_extra
 from bso.server.main.genre_these import compute_genre
+from bso.server.main.etl import finalize
 
 default_timeout = 43200000
 logger = get_logger(__name__)
@@ -276,12 +277,12 @@ def run_task_et_bso_all():
             transform_tasks.append(task)
             response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     
-    #args_finalize = args.copy()
-    #with Connection(redis.from_url(current_app.config['REDIS_URL'])):
-    #    q = Queue(name='bso-publications', default_timeout=default_timeout)
-    #    task = q.enqueue(create_task_et, args_finalize, depends_on=transform_tasks)
-    #    extract_task.append(task)
-    #response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    args_finalize = args.copy()
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name='bso-publications', default_timeout=default_timeout)
+        task = q.enqueue(finalize, args_finalize, depends_on=transform_tasks)
+        extract_task.append(task)
+    response_extract_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
 
     return jsonify(response_extract_object), 202
 
