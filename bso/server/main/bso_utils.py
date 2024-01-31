@@ -213,7 +213,7 @@ def remove_wrong_match(publi):
         if ';france;' in aff_name_normalized and ';dieu;de;france;' not in aff_name_normalized:
             has_fr = True
             continue
-        for f in [';paris;', 'é', ';cnrs;', ';inserm;', ';umr;', '.fr;', ';ehess;', ';cea;', ';inra', 'lyon', 'marseille', 'bordeaux', 'nancy', 'strasbourg', 'rennes', 'lille', 'nantes', 'french']:
+        for f in [';paris;', 'é', ';cnrs;', ';inserm;', ';umr;', '.fr;', ';ehess;', ';cea;', ';inra', 'lyon', 'marseille', 'bordeaux', 'nancy', 'strasbourg', 'rennes', 'lille', 'nantes', 'french', 'inrae', 'onera', 'montpellier', 'toulouse', 'clermont', 'cirad', 'avignon', ';inra;']:
             if f in aff_name_normalized:
                 has_fr = True
                 continue
@@ -225,6 +225,15 @@ def remove_wrong_match(publi):
                 aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
         if ';di;' in aff_name_normalized and ';e;' in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
             #logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
+            aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
+        if ';other;paper' in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
+            logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
+            aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
+        if ';search;for' in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
+            logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
+            aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
+        if ';smart;' in aff_name_normalized and ';e;' in aff_name_normalized and isinstance(previous_detected_countries, list) and len(previous_detected_countries) > 0:
+            logger.debug(f"REMOVE {aff_name_normalized} for {publi.get('id')}")
             aff['detected_countries'] = [c for c in previous_detected_countries if c not in FRENCH_ALPHA2]
     if has_fr:
         return publi
