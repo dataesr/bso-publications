@@ -213,7 +213,7 @@ def remove_wrong_match(publi):
         if ';france;' in aff_name_normalized and ';dieu;de;france;' not in aff_name_normalized:
             has_fr = True
             continue
-        for f in [';paris;', 'é', ';cnrs;', ';inserm;', ';umr;', '.fr;', ';ehess;', ';cea;', ';inra', 'lyon', 'marseille', 'bordeaux', 'nancy', 'strasbourg', 'rennes', 'lille', 'nantes', 'french', 'inrae', 'onera', 'montpellier', 'toulouse', 'clermont', 'cirad', 'avignon', ';inra;']:
+        for f in [';paris;', ';université;', 'orléans;', ';cnrs;', ';inserm;', ';umr;', '.fr;', ';ehess;', ';cea;', ';inra', 'lyon', 'marseille', 'bordeaux', 'nancy', 'strasbourg', 'rennes', 'lille', 'nantes', 'french', 'inrae', 'onera', 'montpellier', 'toulouse', 'clermont', 'cirad', 'avignon', ';inra;']:
             if f in aff_name_normalized:
                 has_fr = True
                 continue

@@ -99,7 +99,7 @@ def etl(args):
         nb_lines_transform = 500000
     if 'scanr' in index_name:
         output_dir = '/upw_data/scanr-split'
-        nb_lines_transform = 1000000
+        nb_lines_transform = 900000
 
     
     # extract
