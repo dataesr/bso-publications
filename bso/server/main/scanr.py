@@ -434,12 +434,13 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     author['person'] = a['id']
                     fullName = author.get('fullName', 'NO_FULLNAME')
                     if denormalize:
+                        author['denormalized'] = {'id': a['id']}
                         if a['id'] in vip_dict:
                             extra_info = vip_dict[a['id']]
                             fullName = extra_info.get('fullName', 'NO_FULLNAME')
                             for f in ['orcid', 'id_hal']:
                                 if extra_info.get(f):
-                                    author['person'][f] = extra_info[f]
+                                    author['denormalized'][f] = extra_info[f]
                         author['id_name'] = a['id']+'###'+fullName+'###'+isFrench
                 author['role'] = a.get('role', 'author')
                 if author['role'][0:3] == 'aut':

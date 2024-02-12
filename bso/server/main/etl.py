@@ -199,6 +199,13 @@ def etl(args):
             create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
     
     if transform_scanr:
+        assert('-' in index_name)
+        assert('scanr' in index_name)
+        index_name_suffix = index_name.split('-')[-1]
+        full_index_name = f'scanr-publications-{index_name_suffix}'
+        if '_0' in enriched_output_file:
+            drop_collection('scanr', 'publi_meta')
+            reset_index_scanr(index=full_index_name)
         assert('bso' not in index_name)
         assert('scanr' in index_name)
         df_orga = get_orga_data()
@@ -224,9 +231,9 @@ def etl(args):
                     if p.get(f):
                         new_elt[f] = p[f]
                 relevant_infos.append(new_elt)
-            save_to_mongo_publi(relevant_infos)
+            save_to_mongo_publi(relevant_infos, split_idx)
 
-        elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
+        elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{full_index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         os.system(elasticimport)
 
 def finalize(args):
@@ -248,10 +255,10 @@ def drop_collection(db, collection_name):
     mycoll.drop()
     myclient.close()
 
-def save_to_mongo_publi(relevant_infos):
+def save_to_mongo_publi(relevant_infos, split_idx):
     #myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     #mydb = myclient['scanr']
-    output_json = f'{MOUNTED_VOLUME}publi-current.jsonl'
+    output_json = f'{MOUNTED_VOLUME}publi-current-{split_idx}.jsonl'
     pd.DataFrame(relevant_infos).to_json(output_json, lines=True, orient='records')
     collection_name = 'publi_meta'
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
