@@ -126,6 +126,7 @@ def get_dois_meta(dois):
         ans[doi] = final_res
     return ans
 
+@retry(delay=120, tries=5)
 def get_unpaywall_history(dois: list, observations: list, last_observation_date_only: bool) -> dict:
     logger.debug(f'Getting doi info for {len(dois)} dois')
     db = get_database()
