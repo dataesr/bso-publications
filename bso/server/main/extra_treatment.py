@@ -10,7 +10,7 @@ from bso.server.main.utils_upw import chunks
 from bso.server.main.extract_transform import load_scanr_publications
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo, load_collection_from_object_storage
 from bso.server.main.scanr import clean_sudoc_extra, get_person_ids
-from bso.server.main.etl import create_split_and_csv_files, collect_splitted_files
+from bso.server.main.etl import create_split_and_csv_files, collect_splitted_files, finalize
 from bso.server.main.elastic import refresh_index
 import hashlib
 import json
@@ -101,11 +101,7 @@ def tmp(args):
     print(len(dois_to_clean))
 
 def compute_extra(args):
-
-    index_name = args.get('index_name')
-    output_dir = '/upw_data/bso-split'
-    refresh_index(index_name)
-    collect_splitted_files(index_name, output_dir )
+    finalize(args)
     #split_idx = args.get('split_idx')
     #last_oa_details = '2023Q4'
     #bso_local_filenames = []

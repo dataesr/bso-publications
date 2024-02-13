@@ -345,11 +345,14 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
         ix += 1
    
 def collect_splitted_files(index_name, output_dir):
+    logger.debug(f'collecting files for {index_name} from {output_dir}')
     filemap={}
     for f in os.listdir(f'{output_dir}'):
         if index_name not in f:
             continue
         if '_extract.jsonl' in f:
+            continue
+        if 'scanr' in index_name and 'export' not in f:
             continue
         current_extension = f.split('.')[-1]
         current_suffix = ''
@@ -368,7 +371,7 @@ def collect_splitted_files(index_name, output_dir):
         if 'bso' in index_name:
             target = f'/upw_data/bso-publications-latest{current_suffix}.{current_extension}'
         else:
-            target = f'/upw_data/{index_name}{current_suffix}.{current_extension}'
+            target = f'/upw_data/{index_name}_export_scanr_denormalized.jsonl'
         if target not in filemap:
             filemap[target] = []
         filemap[target].append(f'{output_dir}/{f}')
@@ -382,14 +385,17 @@ def collect_splitted_files(index_name, output_dir):
         logger.debug(f'{target_ix} / {len(filemap)}')
         assert(' ' not in target)
         assert('.csv' in target or '.jsonl' in target)
+        logger.debug(f'removing {target}')
         os.system(f'rm -rf {target}')
         files_to_concat = filemap[target]
         files_to_concat.sort()
         for f in files_to_concat:
+            logger.debug(f'cat {f} >> {target}')
             os.system(f'cat {f} >> {target}')
         if 'bso' in index_name:
             zip_upload(target)
-        if 'scanr' in index_name and target == f'{output_dir}/{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl':
+        if 'scanr' in index_name and target == f'/upw_data/{index_name}_export_scanr_denormalized.jsonl':
+            logger.debug('moving file and gzip')
             os.system(f'mv {target} /upw_data/scanr/publications_denormalized.jsonl && cd /upw_data/scanr/ && rm -rf publications_denormalized.jsonl.gz && gzip -k publications_denormalized.jsonl')
             upload_s3(container='scanr-data', source = f'{MOUNTED_VOLUME}scanr/publications_denormalized.jsonl.gz', destination='production/publications_denormalized.jsonl.gz')
         target_ix += 1

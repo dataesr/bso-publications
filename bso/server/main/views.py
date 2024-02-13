@@ -47,9 +47,12 @@ def run_task_load_collection_from_object_storage():
 @main_blueprint.route("/extra", methods=["POST"])
 def run_extra():
     args = request.get_json(force=True)
+    queue = args.get('queue')
+    if queue is None:
+        return
     assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
-        q = Queue('bso-publications', default_timeout=216000)
+        q = Queue(queue, default_timeout=216000)
         task = q.enqueue(compute_extra, args)
     response_object = {
         "status": "success",
