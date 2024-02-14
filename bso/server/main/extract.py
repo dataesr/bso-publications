@@ -247,12 +247,18 @@ def merge_publications(current_publi, new_publi, locals_data):
     # merge authors, affiliations and ids
     for f in new_publi.copy():
         if 'authors' in f:
-            current_publi[f+'_'+new_datasource] = new_publi[f]
+            if f=='authors' and 'authors' not in current_publi:
+                current_publi['authors'] = new_publi['authors']
+            else:
+                current_publi[f+'_'+new_datasource] = new_publi[f]
             change = True
         if 'affiliations' in f and f != 'bso_local_affiliations':
-            current_publi[f+'_'+new_datasource] = new_publi[f]
+            if f=='affiliations' and 'affiliations' not in current_publi:
+                current_publi['affiliations'] = new_publi['affiliations']
+            else:
+                current_publi[f+'_'+new_datasource] = new_publi[f]
             change = True
-        if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and f not in current_publi:
+        if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and not isinstance(current_publi.get(f)):
             current_publi[f] = new_publi[f]
             change = True
         for f in new_publi['all_ids']:
