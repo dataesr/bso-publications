@@ -136,10 +136,13 @@ def merge_publications(current_publi, new_publi, locals_data):
     if current_sources:
         current_publi['sources'] = current_sources
     # title
-    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id']:
+    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id', 'genre', 'hal_docType', 'doi']:
         if current_publi.get(f) is None and isinstance(new_publi.get(f), str):
             current_publi[f] = new_publi[f]
             #logger.debug(f"new {f} for publi {current_publi['id']} from {new_publi['id']} : {new_publi[f]}")
+    for f in ['year']:
+        if current_publi.get(f) is None and new_publi.get(f):
+            current_publi[f] = new_publi[f]
     # bso3
     for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
         if f in new_publi:
@@ -148,7 +151,7 @@ def merge_publications(current_publi, new_publi, locals_data):
                 current_publi[f] = int(current_publi[f])
             change = True
     # hal
-    for f in ['hal_collection_code']:
+    for f in ['hal_collection_code', 'hal_struct_id']:
         if f in new_publi:
             existing_list = current_publi.get(f)
             if not isinstance(existing_list, list):
