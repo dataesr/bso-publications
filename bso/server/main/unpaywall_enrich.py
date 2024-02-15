@@ -18,6 +18,7 @@ from bso.server.main.retraction import detect_retraction
 from bso.server.main.strings import dedup_sort, normalize, normalize2, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_unpaywall_history
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
+from bso.server.main.bso_utils import has_fr
 from bso.server.main.scanr import to_light
 from bso.server.main.utils_upw import chunks, format_upw_millesime
 from bso.server.main.entity_fishing import get_entity_fishing
@@ -110,13 +111,6 @@ def compute_affiliations_types(affiliations: list) -> list:
     return result
 
 
-def has_fr(countries: list) -> bool:
-    if not countries or not isinstance(countries, list):
-        return False
-    for country in countries:
-        if country.lower() in FRENCH_ALPHA2:
-            return True
-    return False
 
 
 def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_name: str, myclient) -> list:

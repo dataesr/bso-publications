@@ -29,7 +29,7 @@ from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids
 from bso.server.main.funding import normalize_grant
 from bso.server.main.scanr import to_light
-from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv
+from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv, has_fr
 from bso.server.main.s3 import upload_s3
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
 
@@ -136,13 +136,19 @@ def merge_publications(current_publi, new_publi, locals_data):
     if current_sources:
         current_publi['sources'] = current_sources
     # title
-    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id', 'genre', 'hal_docType', 'doi']:
+    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id', 'genre', 'hal_docType']:
         if current_publi.get(f) is None and isinstance(new_publi.get(f), str):
             current_publi[f] = new_publi[f]
+            change = True
             #logger.debug(f"new {f} for publi {current_publi['id']} from {new_publi['id']} : {new_publi[f]}")
-    for f in ['year']:
+    for f in ['year', 'published_date']:
         if current_publi.get(f) is None and new_publi.get(f):
             current_publi[f] = new_publi[f]
+            change = True
+    #corresponding
+    if new_publi.get('has_fr_corresponding') is True:
+        current_publi['has_fr_corresponding'] = True
+        change = True
     # bso3
     for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
         if f in new_publi:
@@ -258,7 +264,7 @@ def merge_publications(current_publi, new_publi, locals_data):
             else:
                 current_publi[f+'_'+new_datasource] = new_publi[f]
             change = True
-        if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and not isinstance(current_publi.get(f)):
+        if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and not isinstance(current_publi.get(f), str):
             current_publi[f] = new_publi[f]
             change = True
         for f in new_publi['all_ids']:
@@ -562,6 +568,14 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                                     current_local.append(new_local)
                                     publi['bso_local_affiliations'] = list(set(current_local))
 
+
+                if isinstance(publi.get('authors'), list):
+                    for a in publi.get('authors'):
+                        if a.get('corresponding'):
+                            for aff in a.get('affiliations', []):
+                                if has_fr(aff.get('detected_countries', [])):
+                                    publi['has_fr_corresponding'] = True
+                                    break
 
                 if filter_fr:
                     # si filter_fr, on ajoute bso_country fr seulement pour les fr
