@@ -442,10 +442,9 @@ def merge_authors_affiliations(p, index_name):
                     affiliations.append(new_aff)
 
     # for bso no need to work on authors data
-    #if 'scanr' in index_name:
     if 'has_fr_corresponding' not in p:
         p['has_fr_corresponding'] = False
-    if True:
+    if 'scanr' in index_name:
         for f in p:
             if ('authors' in f) and (isinstance(p[f], list)) and f != target_name:
                 current_authors = p[f]
