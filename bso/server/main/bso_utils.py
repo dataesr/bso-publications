@@ -31,13 +31,6 @@ def get_ror_from_local(aff, locals_data):
         pass
         #logger.debug(f'{aff} not in locals data from bso-ui')
 
-def has_fr(countries: list) -> bool:
-    if not countries or not isinstance(countries, list):
-        return False
-    for country in countries:
-        if country.lower() in FRENCH_ALPHA2:
-            return True
-    return False
 
 def json_to_csv(json_file, observation_date, split_year = False):
     logger.debug(f'start json to csv for {json_file} split_year={split_year}')
