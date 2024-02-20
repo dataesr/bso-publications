@@ -357,7 +357,6 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
     return final
 
 def treat_affiliations_authors(res):
-    logger.debug('start treat_affiliations_authors')
     # Affiliations
     affiliations = res.get('affiliations', [])
     affiliations = [] if affiliations is None else affiliations
@@ -381,7 +380,6 @@ def treat_affiliations_authors(res):
     author_useful_rank_fr = has_fr(author_useful_rank_countries)
     res['author_useful_rank_fr'] = author_useful_rank_fr
     res['author_useful_rank_countries'] = author_useful_rank_countries
-    logger.debug('end treat_affiliations_authors')
     return res
 
 def get_author_key(a):
@@ -425,7 +423,6 @@ def merge_element(elt1, elt2):
     return elt1
 
 def merge_authors_affiliations(p, index_name):
-    logger.debug('start merge_authors_affiliations')
     target_authors = []
     target_name = ''
     for f in ['authors', 'z_authors']:
@@ -486,7 +483,6 @@ def merge_authors_affiliations(p, index_name):
                     p['has_fr_corresponding'] = True
                     break
 
-    logger.debug('end merge_authors_affiliations')
     return p
 
 
