@@ -278,7 +278,7 @@ def save_to_mongo_publi_indexes():
     mycol = mydb[collection_name]
     mycol.create_index('id')
     mycol.create_index('authors.person')
-    mycol.create_index('affiliations.id')
+    mycol.create_index('affiliations')
     mycol.create_index('projects.id')
     myclient.close()
 
