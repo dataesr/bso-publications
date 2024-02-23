@@ -203,8 +203,12 @@ def etl(args):
         assert('scanr' in index_name)
         index_name_suffix = index_name.split('-')[-1]
         full_index_name = f'scanr-publications-{index_name_suffix}'
+        update_mongo = args.get('update_mongo', False)
+        if args.get('new_index_name'):
+            full_index_name = args.get('new_index_name')
         if '_0' in enriched_output_file:
-            drop_collection('scanr', 'publi_meta')
+            if update_mongo:
+                drop_collection('scanr', 'publi_meta')
             reset_index_scanr(index=full_index_name)
         assert('bso' not in index_name)
         assert('scanr' in index_name)
@@ -224,14 +228,15 @@ def etl(args):
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
             # elements to be re-used in the person file
-            relevant_infos = []
-            for p in publications_scanr:
-                new_elt = {'id': p['id']}
-                for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title', 'source', 'projects']:
-                    if p.get(f):
-                        new_elt[f] = p[f]
-                relevant_infos.append(new_elt)
-            save_to_mongo_publi(relevant_infos, split_idx)
+            if update_mongo:
+                relevant_infos = []
+                for p in publications_scanr:
+                    new_elt = {'id': p['id']}
+                    for f in ['authors', 'domains', 'keywords', 'year', 'affiliations', 'title', 'source', 'projects']:
+                        if p.get(f):
+                            new_elt[f] = p[f]
+                    relevant_infos.append(new_elt)
+                save_to_mongo_publi(relevant_infos, split_idx)
 
         elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{full_index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         os.system(elasticimport)
