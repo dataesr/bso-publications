@@ -176,7 +176,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         get_vip_dict()
     scanr_publications = []
     for p in publications:
+        text_to_autocomplete =[]
         elt = {'id': p['id']}
+        text_to_autocomplete.append(p['id'])
         title_lang = None
         if 'lang' in p and isinstance(p['lang'], str) and len(p['lang'])==2:
             title_lang = p['lang']
@@ -184,6 +186,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             elt['title'] = {'default': p['title']}
             if title_lang:
                 elt['title'][title_lang] = p['title']
+                text_to_autocomplete.append(p['title'])
         else:
             continue
         #field abstract / abstracts 
@@ -224,6 +227,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 external_ids.append({'type': 'nnt', 'id': idi[3:]})
         if external_ids:
             elt['externalIds'] = external_ids
+            for ext_id in external_ids:
+                text_to_autocomplete.append(ext_id['id'])
         # dates
         if p.get('year') and p['year']==p['year']:
             elt['year'] = int(p['year'])
@@ -474,6 +479,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         
         if denormalize:
 
+            if text_to_autocomplete:
+                elt['autocompleted'] = text_to_autocomplete
+
             # orga
             denormalized_affiliations = []
             affiliations = elt.get('affiliations')
@@ -525,12 +533,18 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 co_institutions = get_co_occurences(institutions_to_combine, 'id_name')
                 if co_institutions:
                     elt['co_institutions'] = co_institutions
-            # wikidate network
+            # wikidata network
             if domains:
                 domains_to_combine = [a for a in domains if ((a.get('type') == 'wikidata') and (a.get('count', 0) > 1))]
                 co_domains = get_co_occurences(domains_to_combine, 'id_name')
                 if co_domains:
                     elt['co_domains'] = co_domains
+            # software from softcite
+            if isinstance(p.get('softcite_details'), dict) and isinstance(p['softcite_details'].get('used'), list):
+                software_to_combine = [{'id_name': s} for s in p['softcite_details']['used']]
+                co_software = get_co_occurences(software_to_combine, 'id_name')
+                if co_software:
+                    elt['co_software'] = co_software
         elt = clean_json(elt)
         if elt:
             if elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:

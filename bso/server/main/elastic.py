@@ -111,6 +111,16 @@ def get_analyzers() -> dict:
                 'french_elision',
                 'icu_folding'
             ]
+        },
+        "autocomplete": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            'french_elision',
+            'icu_folding',
+            "autocomplete_filter"
+          ]
         }
     }
 
@@ -200,6 +210,12 @@ def reset_index_scanr(index: str) -> None:
     }
     
     mappings = { 'properties': {} }
+    mappings['properties']['autocompleted'] = {
+                'type': 'search_as_you_type',
+                'analyzer': 'light'
+                #'type': 'text',
+                #'analyzer': 'autocomplete'
+            }
     for f in ['title.default', 'affiliations.label.default', 'authors.firstName', 'authors.lastName', 'authors.fullName', 'authors.affiliations.name', 
               'source.title', 'keywords.default', 'domains.label.default', 'project.label.default']: 
         mappings['properties'][f] = { 
