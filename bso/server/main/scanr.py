@@ -253,12 +253,20 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             elt['productionType'] = 'publication'
         # journal
         source = {}
+        autocompletedJournal = []
+        autocompletedPublisher = []
         if p.get('journal_name') and isinstance(p['journal_name'], str) and p['journal_name'] not in ['unknown']:
             source['title'] = p['journal_name']
+            autocompletedJournal.append(p['journal_name'])
         if p.get('publisher_dissemination') and isinstance(p['publisher_dissemination'], str) and p['publisher_dissemination'] not in ['unknown']:
             source['publisher'] = p['publisher_dissemination']
+            autocompletedPublisher.append(p['publisher_dissemination'])
         if p.get('journal_issns') and isinstance(p['journal_issns'], str):
             source['journalIssns'] = str(p['journal_issns']).split(',')
+            autocompletedJournal += source['journalIssns']
+        if denormalize:
+            elt['autocompletedJournal'] = autocompletedJournal
+            elt['autocompletedPublisher'] = autocompletedPublisher
         # OA
         elt['isOa'] = False
         if p.get('oa_details') and isinstance(p['oa_details'], dict):
@@ -338,7 +346,6 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             elt['keywords'] = {'default': keywords}
         if domains:
             elt['domains'] = domains
-        
         if denormalize:
             map_code = {}
             for d in domains:
@@ -391,6 +398,22 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     affiliations.append(aff)
         if affiliations:
             elt['affiliations'] = list(set(affiliations))
+        
+        denormalized_affiliations_dict = {} 
+        if denormalize:
+
+            # orga
+            denormalized_affiliations = []
+            affiliations = elt.get('affiliations')
+            if isinstance(affiliations, list) and len(affiliations) > 0:
+                for aff in affiliations:
+                    denormalized = get_orga(df_orga, aff)
+                    if denormalized and (denormalized not in denormalized_affiliations):
+                        denormalized_affiliations.append(denormalized)
+                        assert(isinstance(denormalized, dict))
+            if denormalized_affiliations:
+                elt['affiliations'] = denormalized_affiliations
+                denormalized_affiliations_dict[aff['id']] = aff
 
         ## authors
         authors=[]
@@ -415,26 +438,27 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 elif potentialFullName:
                     author['fullName'] = potentialFullName
                 isFrench = 'NOT_FR'
-                affiliations = []
-                denormalized_affiliations = []
+                affiliations_ids = []
+                raw_affiliations = []
                 if isinstance(a.get('affiliations'), list):
-                    denormalized_affiliations = a['affiliations']
-                    for aff in a['affiliations']:
-                        if aff.get('isFrench', False):
-                            isFrench = 'FR'
+                    raw_affiliations = a['affiliations']
+                    for current_aff in a['affiliations']:
                         if isinstance(aff.get('ids'), list):
                             for x in aff['ids']:
                                 if x.get('id'):
-                                    affiliations.append(x['id'])
+                                    affiliations_ids.append(x['id'])
                         for t in ['grid', 'ror', 'rnsr', 'sirene', 'siren', 'siret']:
                             if isinstance(aff.get(t), list):
                                 for x in aff[t]:
-                                    if x not in affiliations:
-                                        affiliations.append(x)
-                            if isinstance(aff.get(t), str) and aff[t] not in affiliations:
-                                affiliations.append(aff[t])
+                                    if x not in affiliations_ids:
+                                        affiliations_ids.append(x)
+                            if isinstance(aff.get(t), str) and aff[t] not in affiliations_ids:
+                                affiliations_ids.append(aff[t])
                         if isinstance(aff.get('name'), str) and len(aff['name'])>3000:
                             del aff['name']
+                        for aff_id in affiliations_ids:
+                            if aff_id in denormalized_affiliations_dict and denormalized_affiliations_dict[aff_id].get('isFrench', False):
+                                isFrench = 'FR'
                 if a.get('id'):
                     author['person'] = a['id']
                     fullName = author.get('fullName', 'NO_FULLNAME')
@@ -442,7 +466,10 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         author['denormalized'] = {'id': a['id']}
                         if a['id'] in vip_dict:
                             extra_info = vip_dict[a['id']]
-                            fullName = extra_info.get('fullName', 'NO_FULLNAME')
+                            if 'fullName' in extra_info:
+                                fullName = extra_info.get['fullName']
+                            if 'firstName' in extra_info and 'lastName' in extra_info:
+                                fullName = f"{extra_info['firstName']} {extra_info['lastName']}"
                             for f in ['orcid', 'id_hal']:
                                 if extra_info.get(f):
                                     author['denormalized'][f] = extra_info[f]
@@ -457,8 +484,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                 affiliations.append(x)
                 if affiliations and (denormalize == False):
                     author['affiliations'] = affiliations
-                if denormalized_affiliations and denormalize:
-                    author['affiliations'] = denormalized_affiliations
+                if raw_affiliations and denormalize:
+                    author['affiliations'] = raw_affiliations
                 if author and (isinstance(author.get('fullName'), str) or isinstance(author.get('lastName'), str)):
                     authors.append(author)
             if authors:
@@ -476,24 +503,10 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
 
 
-        
         if denormalize:
 
             if text_to_autocomplete:
                 elt['autocompleted'] = text_to_autocomplete
-
-            # orga
-            denormalized_affiliations = []
-            affiliations = elt.get('affiliations')
-            if isinstance(affiliations, list) and len(affiliations) > 0:
-                for aff in affiliations:
-                    denormalized = get_orga(df_orga, aff)
-                    if denormalized and (denormalized not in denormalized_affiliations):
-                        denormalized_affiliations.append(denormalized)
-                        assert(isinstance(denormalized, dict))
-            if denormalized_affiliations:
-                elt['affiliations'] = denormalized_affiliations
-
             # projects
             denormalized_projects = []
             projects = elt.get('projects')
@@ -541,7 +554,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     elt['co_domains'] = co_domains
             # software from softcite
             if isinstance(p.get('softcite_details'), dict) and isinstance(p['softcite_details'].get('used'), list):
-                software_to_combine = [{'id_name': s} for s in p['softcite_details']['used']]
+                software_to_combine = [{'id_name': normalize_software(s)} for s in p['softcite_details']['used']]
                 co_software = get_co_occurences(software_to_combine, 'id_name')
                 if co_software:
                     elt['co_software'] = co_software
@@ -560,3 +573,9 @@ def get_co_occurences(my_list, my_field):
         res = [f'{a}---{b}' for (a,b) in combinations]
         return res
     return None
+
+def normalize_software(s):
+    if s.lower().strip() in ['script', 'scripts']:
+        return 'scripts'
+    return s.capitalize()
+    

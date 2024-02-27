@@ -216,6 +216,12 @@ def reset_index_scanr(index: str) -> None:
                 #'type': 'text',
                 #'analyzer': 'autocomplete'
             }
+    for f in ['autocompletedJournal', 'autocompletedPublisher']:
+        mappings['properties']['autocompleted'] = {
+                'type': 'text',
+                'analyzer': 'autocomplete'
+            }
+    
     for f in ['title.default', 'affiliations.label.default', 'authors.firstName', 'authors.lastName', 'authors.fullName', 'authors.affiliations.name', 
               'source.title', 'keywords.default', 'domains.label.default', 'project.label.default']: 
         mappings['properties'][f] = { 
@@ -243,7 +249,7 @@ def reset_index_scanr(index: str) -> None:
       }
     mappings["_source"] = {
       "excludes": [
-        "vector_*"
+        "vector_text"
       ]
     }
 
