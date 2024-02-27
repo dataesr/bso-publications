@@ -339,7 +339,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         keywords = []
         if isinstance(p.get('keywords'), list):
             for k in p['keywords']:
-                if k.get('keyword'):
+                if k.get('keyword') and k['keywords'] not in keywords:
                     keywords.append(k['keyword'])
                     domains.append({'label': {'default': k['keyword']}, 'type': 'keyword'})
         if keywords:
