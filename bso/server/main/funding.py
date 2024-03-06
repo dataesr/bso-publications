@@ -1,6 +1,6 @@
-import requests
-import re
 import pandas as pd
+import re
+
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
@@ -17,7 +17,7 @@ def get_anr_open_data():
     for elt in urls:
         anr_type = 'ANR '+elt['type']
         url = elt['url']
-        print(f'getting open data from {url} for {anr_type}')
+        logger.debug(f'Getting open data from {url} for {anr_type}')
         try:
             df = pd.read_csv(url, sep=';')
         except:
@@ -27,11 +27,12 @@ def get_anr_open_data():
         for i, row in df.iterrows():
             code = row['Projet.Code_Decision_ANR']
             code_clean = code.strip().upper()
-            code_details[code_clean] = {'sub_agency': anr_type,
-                                        'agency': 'ANR',
-                                        'grantid': code_clean,
-                                        'funding_year': int('20'+code_clean.split('-')[1])
-                                       }
+            code_details[code_clean] = {
+                'sub_agency': anr_type,
+                'agency': 'ANR',
+                'grantid': code_clean,
+                'funding_year': int('20'+code_clean.split('-')[1])
+            }
             if 'Programme.Acronyme' in row and isinstance(row['Programme.Acronyme'], str):
                 code_details[code_clean]['program'] = get_anr_program(row['Programme.Acronyme'].strip())
             elif 'Action.Titre.Francais' in row and isinstance(row['Action.Titre.Francais'], str):
@@ -54,14 +55,18 @@ def get_anr_details(code):
     if code in code_details:
         return code_details[code]
     else:
-        logger.debug(f'code {code} not in ANR open data')
+        logger.debug(f'Code {code} not in ANR open data')
         if isinstance(code, str):
-            code_clean = code.strip().upper()
-            res = {'sub_agency': 'unknown',
+            code_clean = code.strip().upper() # ANR-10-BLANC-0417-01-SOLICRISTAL
+            res = {
+                'sub_agency': 'unknown',
                 'agency': 'ANR',
-                'grantid': code.strip().upper()}
+                'grantid': code.strip().upper()
+            }
             try:
-                res['funding_year'] = int('20'+code_clean.split('-')[1])
+                funding_year = int('20'+code_clean.split('-')[1])
+                if len(funding_year) == 4 and funding_year.isdigit():
+                    res['funding_year'] = funding_year
             except:
                 pass
             return res

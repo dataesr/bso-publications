@@ -1,22 +1,20 @@
 import datetime
-import os
-import pandas as pd
-import re
-import requests
-import shutil
 import hashlib
 import json
+import os
+import pandas as pd
+from pyzotero import zotero
+import re
+import shutil
 
 from bso.server.main.logger import get_logger
 from bso.server.main.utils import clean_doi
-from bso.server.main.utils_swift import download_object, upload_object, get_objects_by_page
+from bso.server.main.utils_swift import upload_object
 
 logger = get_logger(__name__)
 
-from pyzotero import zotero
 library_type = 'group'
 ZOTERO_KEY = os.getenv('ZOTERO_KEY')
-#ANR_LIBRARY_ID = os.getenv('ANR_LIBRARY_ID')
 
 def parse_zotero(items, code_type, group_type):
     elts = []
@@ -31,7 +29,6 @@ def parse_zotero(items, code_type, group_type):
                     elt['doi'] = doi
         if not doi:
             continue
-            #logger.debug(f'no valid doi for item {item}')
         source = None
         for tag_elem in data.get('tags', []):
             tag = tag_elem['tag']
@@ -83,7 +80,7 @@ def get_open_data():
         for code in df['Projet.Code_Decision_ANR'].tolist():
             code_clean = code.strip().upper()
             code_type[code_clean] = anr_type
-            group = '-'.join(code_clean.split('-')[0:3]) #ANR-22-XXXX
+            group = '-'.join(code_clean.split('-')[0:3]) # ANR-22-XXXX
             if group not in group_type:
                 group_type[group] = anr_type
             elif code_type[code_clean] != group_type[group]:
