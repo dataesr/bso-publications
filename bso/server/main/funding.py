@@ -30,9 +30,11 @@ def get_anr_open_data():
             code_details[code_clean] = {
                 'sub_agency': anr_type,
                 'agency': 'ANR',
-                'grantid': code_clean,
-                'funding_year': int('20'+code_clean.split('-')[1])
+                'grantid': code_clean
             }
+            funding_year = get_funding_year(code_clean)
+            if funding_year:
+                code_details[code_clean]['funding_year'] = funding_year
             if 'Programme.Acronyme' in row and isinstance(row['Programme.Acronyme'], str):
                 code_details[code_clean]['program'] = get_anr_program(row['Programme.Acronyme'].strip())
             elif 'Action.Titre.Francais' in row and isinstance(row['Action.Titre.Francais'], str):
@@ -47,6 +49,15 @@ def get_anr_program(x):
     if x in ['JC', 'JCJC']:
         return 'JCJC'
     return x
+
+def get_funding_year(code):
+    try:
+        funding_year = '20'+code.split('-')[1]
+        if len(funding_year) == 4:
+            res = int(funding_year)
+            return res
+    except:
+        return None
 
 def get_anr_details(code):
     global code_details
@@ -63,12 +74,9 @@ def get_anr_details(code):
                 'agency': 'ANR',
                 'grantid': code.strip().upper()
             }
-            try:
-                funding_year = int('20'+code_clean.split('-')[1])
-                if len(funding_year) == 4 and funding_year.isdigit():
-                    res['funding_year'] = funding_year
-            except:
-                pass
+            funding_year = get_funding_year(code_clean)
+            if funding_year:
+                res['funding_year'] = funding_year
             return res
     return None
 
