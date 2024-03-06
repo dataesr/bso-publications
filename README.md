@@ -14,7 +14,7 @@ Running example below
 ```
 from elasticsearch import Elasticsearch
 
-ES_HOST = "https://cluster.elasticsearch.dataesr.ovh/"
+ES_HOST = "https://cluster-production.elasticsearch.dataesr.ovh/"
 ES_INDEX = "bso-publications"
 
 es = Elasticsearch(ES_HOST, http_auth=(ES_USER, ES_PASSWORD))
@@ -71,6 +71,16 @@ To create a new release:
 ```shell
 make release VERSION=X.X.X
 ```
+
+## Commands
+
+To build a Docker image:
+
+`make docker-build`
+
+To publish the previously built image:
+
+`make docker-push`
 
 ## Generate publication
 ```shell
