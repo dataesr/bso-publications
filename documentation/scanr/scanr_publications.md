@@ -1,26 +1,5 @@
-**`summary.default`** , **`summary.en`**, **`summary.fr`**  
-String
-
-Abstract or summary of the publication 
-
-`.default` for preferred language (or unknown language), `.en` for english, `.fr` for french`
-
-
-**`publicationDate`**  
-String for publication date
-
-Formatted as "YYYY-MM-DDT00:00:00",
-
-When available, the `published_date` from Unpaywall is used.
-
-When not avaiable (no DOI Crossref), if data comes from HAL, these fields from HAL are used, in this priority order: `publicationDate_s`, `ePublicationDate_s`, `defenseDate_s`, `producedDate_s`.
-
-
-**`year`**  
-Int for year of publication
-
-Year part of the publication Date
-
+**`id`**  
+String. Main PID of the production. This id is a concatenation of the id type (e.g `doi` and the id itself).
 
 **`externalIds`**  
 Array of objects
@@ -36,12 +15,30 @@ Lists the known external identifiers with
  -  **`externalIds.id`** Corresponding PID 
 
 
+**`publicationDate`**  
+String for publication date
+
+Formatted as "YYYY-MM-DDT00:00:00",
+
+When available, the `published_date` from Unpaywall is used.
+
+When not avaiable (no DOI Crossref), if data comes from HAL, these fields from HAL are used, in this priority order: `publicationDate_s`, `ePublicationDate_s`, `defenseDate_s`, `producedDate_s`.
+
+**`year`**  
+Int for year of publication
+
+Year part of the publication Date
+
+
 **`productionType`**  
 String for type of production. Possible values: `publications`, `thesis`.
 
 
 **`type`**  
 String for more fine-grained type. Possible values: `journal-article`, `proceedings`, `book-chapter`, `book`, `preprint`, `thesis` and `other`. 
+
+**`keywords.default`**
+List of string. Keywords (not normalized) chosen by the authors. These keywords are also present in the `domains` with type=`keyword`.
 
 
 **`domains`**  
@@ -70,12 +67,6 @@ Lists all detected affiliations with
 
   - `mainAddress`, `label`, `acronym`, `kind`, `level`, `status`, `isFrench`, `id_name`. See the documention of the organization index for more details on these fields.
 
-**`isOa`**  
-Boolean. Is Open Access ? 
-Computed with Unpaywall data if DOI crossref, with HAL and theses.fr otherwise.
-
-**`id`**  
-String. Main PID of the production. This id is a concatenation of the id type (e.g `doi` and the id itself).
 
 **`authorsCount`**  
 Int. Number of authors.
@@ -99,6 +90,10 @@ Object. Describe the source (generally journal) of the production, with
   
   - **`isInDOAJ`** Boolean. Is it indexed in DOAJ? (source Unpaywall)
 
+**`isOa`**  
+Boolean. Is Open Access ? 
+Computed with Unpaywall data if DOI crossref, with HAL and theses.fr otherwise.
+
 **`oaEvidence`**
 Object. Describes the open access version (if any), with
 
@@ -115,10 +110,36 @@ Object. Describes the open access version (if any), with
   - **`landingPageUrl`** Open Access version (from Unpaywall data)
 
 
-**`keywords.default`**
-List of string. Keywords (not normalized) chosen by the authors. These keywords are also present in the `domains` with type=`keyword`.
-
 
 **`authors`**  
+Array of object. List the authors / contributors, with
+
+  - **`firstName`**, **`lastName`**, **`fullName`** Strings
+
+  - **`denormalized`**  Object with PID of the author (`id` (with idref prefix), `id_hal`, `orcid`)
+
+  - **`id_name`** String. Concatenation of the `id` and `fullName` separated by `###`.
+
+  - **`role`** String. Role of the contributor. Default value is `author`. A different value only if present in source (theses.fr or HAL).
+
+  - **`affiliations`** Array of object describing the authors's affiliations, with
+
+    - **`name`** Raw affiliation string
+    
+    - **`datasource`** Source of the raw affiliation string
+    
+    - **`ids`** List of automatic match PIDS (object with field `id` and `type`).
 
 
+**`summary.default`** , **`summary.en`**, **`summary.fr`**  
+String
+
+Abstract or summary of the publication 
+
+`.default` for preferred language (or unknown language), `.en` for english, `.fr` for french`
+
+**`autocompleted`**  
+Array of stings used for autocompletion.
+
+**`vector_text`**  
+Embeddings of the `domains` labels with the `distiluse-base-multilingual-cased-v1` model (dim 512)
