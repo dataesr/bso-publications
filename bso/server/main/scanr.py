@@ -9,7 +9,7 @@ from retry import retry
 
 from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2
-from bso.server.main.utils import clean_json
+from bso.server.main.utils import clean_json, is_valid
 from bso.server.main.denormalize_affiliations import get_orga, get_project
 from bso.server.main.fields.field_detect import get_embeddings
 from bso.server.main.utils_swift import delete_object
@@ -210,17 +210,22 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             if current_lang[0:2] == 'fr':
                 elt['summary']['fr'] = current_abs
             if current_lang[0:2] == 'en':
-                elt['summary']['en'] = current_abs    
+                elt['summary']['en'] = current_abs
+        landingPage = None
+        pdfUrl = None
         # identifiers
         if isinstance(p.get('doi'), str):
             elt['doiUrl'] = f"http://doi.org/{p['doi']}"
+            landingPage = elt['doiUrl']
         external_ids = []
         for idi in p.get('all_ids', []):
             if idi[0:3] == 'doi':
-                external_ids.append({'type': 'scanr', 'id': idi[3:]})
-                external_ids.append({'type': 'doi', 'id': idi[3:]})
+                currentId = idi[3:]
+                external_ids.append({'type': 'doi', 'id': currentId})
             if idi[0:3] == 'hal':
                 external_ids.append({'type': 'hal', 'id': idi[3:]})
+                if landingPage is not None:
+                    landingPage = f"https://hal.science/{idi[3:]}"
             if idi[0:4] == 'pmid':
                 external_ids.append({'type': 'pmid', 'id': idi[4:]})
             if idi[0:3] == 'nnt':
@@ -241,13 +246,18 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 break
         # genre
         for e in p.get('all_ids'):
-            if e[0:3] == 'nnt' or e[0:7]=='haltel-':
+            if e[0:3] == 'nnt':
+                p['genre'] = 'these'
+                landingPage = f"https://theses.fr/{e[3:]}"
+            if e[0:7]=='haltel-':
                 p['genre'] = 'these'
         if isinstance(p.get('genre'), str):
             elt['type'] = p['genre']
+            if p['genre'] == 'these':
+                elt['type'] = 'thesis'
         else:
             elt['type'] = 'other'
-        if p.get('genre') == 'these':
+        if elt.get('type') == 'thesis':
             elt['productionType'] = 'thesis'
         else:
             elt['productionType'] = 'publication'
@@ -291,12 +301,16 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     oa_evidence['license'] = oaloc.get('license')
                     oa_evidence['url'] = oaloc.get('url')
                     oa_evidence['pdfUrl'] = oaloc.get('url_for_pdf')
+                    pdfUrl = oa_evidence['pdfUrl']
+                    if pdfUrl is None:
+                        pdfUrl = oa_evidence['url']
                     oa_evidence['landingPageUrl'] = oaloc.get('url_for_landing_page')
                 for f in ['hostType', 'version', 'license', 'url', 'pdfUrl', 'landingPageUrl']:
                     if f in oa_evidence and oa_evidence[f] is None:
                         del oa_evidence[f]
             if oa_evidence:
                 elt['oaEvidence'] = oa_evidence
+
         
         elt['source'] = source      
         
@@ -339,7 +353,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         keywords = []
         if isinstance(p.get('keywords'), list):
             for k in p['keywords']:
-                if k.get('keyword') and k['keywords'] not in keywords:
+                if k.get('keyword') and k['keyword'] not in keywords:
                     keywords.append(k['keyword'])
                     domains.append({'label': {'default': k['keyword']}, 'type': 'keyword'})
         if keywords:
@@ -355,9 +369,11 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     code = d.get('label', {}).get('default', '')
                 if isinstance(d.get('code'), str) and isinstance(d.get('label', {}).get('default'), str):
                     d['id_name'] = f"{d['code']}###{d['label']['default']}"
+                domain_key = normalize2(d.get('label', {}).get('default', '').lower(), remove_space=True)
                 if code not in map_code:
                     map_code[code] = d
                     map_code[code]['count'] = 1
+                    map_code[code]['naturalKey'] = domain_key
                 else:
                     map_code[code]['count'] += 1
             domains_with_count = list(map_code.values())
@@ -401,7 +417,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         
         denormalized_affiliations_dict = {} 
         if denormalize:
-
+            elt['landingPage'] = landingPage
+            elt['pdfUrl'] = pdfUrl
             # orga
             denormalized_affiliations = []
             affiliations = elt.get('affiliations')
@@ -413,7 +430,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         assert(isinstance(denormalized, dict))
             if denormalized_affiliations:
                 elt['affiliations'] = denormalized_affiliations
-                denormalized_affiliations_dict[aff['id']] = aff
+                for aff in denormalized_affiliations:
+                    denormalized_affiliations_dict[aff['id']] = aff
 
         ## authors
         authors=[]
@@ -442,7 +460,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 raw_affiliations = []
                 if isinstance(a.get('affiliations'), list):
                     raw_affiliations = a['affiliations']
-                    for current_aff in a['affiliations']:
+                    for aff in a['affiliations']:
                         if isinstance(aff.get('ids'), list):
                             for x in aff['ids']:
                                 if x.get('id'):
@@ -467,7 +485,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         if a['id'] in vip_dict:
                             extra_info = vip_dict[a['id']]
                             if 'fullName' in extra_info:
-                                fullName = extra_info.get['fullName']
+                                fullName = extra_info.get('fullName')
                             if 'firstName' in extra_info and 'lastName' in extra_info:
                                 fullName = f"{extra_info['firstName']} {extra_info['lastName']}"
                             for f in ['orcid', 'id_hal']:
@@ -518,6 +536,27 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         assert(isinstance(denormalized, dict))
             if denormalized_projects:
                 elt['projects'] = denormalized_projects
+
+            if isinstance(p.get('softcite_details'), dict) and isinstance(p['softcite_details'].get('raw_mentions'), list):
+                softwares = {}
+                for raw_m in p['softcite_details'].get('raw_mentions'):
+                    if 'software-name' in raw_m:
+                        current_key = None
+                        if 'normalizedForm' in raw_m['software-name']:
+                            current_key = raw_m['software-name']['normalizedForm']
+                        elif 'rawForm' in raw_m['software-name']:
+                            current_key = raw_m['software-name']['rawForm']
+                        current_key = normalize_software(current_key)
+                        if current_key:
+                            if current_key not in softwares:
+                                softwares[current_key] = {'softwareName': current_key, 'contexts':[], 'id_name': f'{current_key}###NO_ID'}
+                                if 'wikidataId' in raw_m:
+                                    softwares[current_key]['wikidata'] = raw_m['wikidataId']
+                                    softwares[current_key]['id_name'] = f"{current_key}###{raw_m['wikidataId']}"
+                            if 'context' in raw_m:
+                                softwares[current_key]['contexts'].append(raw_m['context'])
+                if softwares:
+                    elt['softwares'] = list(softwares.values())
             
             # embeddings
             # TODO remove
@@ -553,9 +592,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 if co_domains:
                     elt['co_domains'] = co_domains
             # software from softcite
-            if isinstance(p.get('softcite_details'), dict) and isinstance(p['softcite_details'].get('used'), list):
-                software_to_combine = [{'id_name': normalize_software(s)} for s in p['softcite_details']['used']]
-                co_software = get_co_occurences(software_to_combine, 'id_name')
+            if elt.get('softwares'):
+                co_software = get_co_occurences(elt['softwares'], 'id_name')
                 if co_software:
                     elt['co_software'] = co_software
         elt = clean_json(elt)
