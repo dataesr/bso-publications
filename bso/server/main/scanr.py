@@ -224,7 +224,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 external_ids.append({'type': 'doi', 'id': currentId})
             if idi[0:3] == 'hal':
                 external_ids.append({'type': 'hal', 'id': idi[3:]})
-                if landingPage is not None:
+                if landingPage is None:
                     landingPage = f"https://hal.science/{idi[3:]}"
             if idi[0:4] == 'pmid':
                 external_ids.append({'type': 'pmid', 'id': idi[4:]})
