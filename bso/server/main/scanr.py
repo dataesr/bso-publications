@@ -193,15 +193,15 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         abstracts = []
         if isinstance(p.get('abstracts'), list):
             abstracts = p['abstracts']
-        elif isinstance(p.get('abstract'), list):
+        elif len(abstracts) == 0 and isinstance(p.get('abstract'), list):
             abstracts = p['abstract']
         for ix, abstr in enumerate(abstracts):
             current_abs = None
             current_lang = ''
-            if isinstance(abstr, dict):
+            if isinstance(abstr, dict) and isinstance(abstr.get('abstract'), str) and len(abstr.get('abstract')) > 10:
                 current_abs = abstr.get('abstract')
                 current_lang = abstr.get('lang', '')
-            elif isinstance(abstr, str):
+            elif isinstance(abstr, str) and len(abstr) > 10:
                 current_abs = abstr
             if current_abs is None:
                 continue
