@@ -549,10 +549,10 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         current_key = normalize_software(current_key)
                         if current_key:
                             if current_key not in softwares:
-                                softwares[current_key] = {'softwareName': current_key, 'contexts':[], 'id_name': f'{current_key}###NO_ID'}
+                                softwares[current_key] = {'softwareName': current_key, 'contexts':[], 'id_name': f'NO_ID###{current_key}'}
                                 if 'wikidataId' in raw_m:
                                     softwares[current_key]['wikidata'] = raw_m['wikidataId']
-                                    softwares[current_key]['id_name'] = f"{current_key}###{raw_m['wikidataId']}"
+                                    softwares[current_key]['id_name'] = f"{raw_m['wikidataId']}###{current_key}"
                             if 'context' in raw_m:
                                 softwares[current_key]['contexts'].append(raw_m['context'])
                 if softwares:
