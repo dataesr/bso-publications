@@ -250,6 +250,18 @@ def run_task_et_scanr():
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
+@main_blueprint.route('/finalize_scanr', methods=['POST'])
+def run_task_finalize_scanr():
+    logger.debug('Starting task finalize scanr')
+    args = request.get_json(force=True)
+    assert(args.get('PUBLIC_API_PASSWORD') == PUBLIC_API_PASSWORD)
+    queue = args.get('queue', 'scanr-publications')
+    with Connection(redis.from_url(current_app.config['REDIS_URL'])):
+        q = Queue(name=queue, default_timeout=default_timeout)
+        task = q.enqueue(finalize, args)
+    response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
+    return jsonify(response_object), 202
+
 @main_blueprint.route('/et_bso_all', methods=['POST'])
 def run_task_et_bso_all():
     logger.debug('Starting task et bso all')

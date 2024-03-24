@@ -27,9 +27,8 @@ from bso.server.main.utils_swift import download_object, get_objects_by_page, ge
 from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
 from bso.server.main.strings import dedup_sort, normalize
-from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids
+from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids, get_manual_matches, to_light
 from bso.server.main.funding import normalize_grant
-from bso.server.main.scanr import to_light
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv
 from bso.server.main.s3 import upload_s3
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
@@ -219,9 +218,10 @@ def etl(args):
         scanr_output_file_denormalized =  f'{output_dir}/{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
         os.system(f'rm -rf {scanr_output_file_denormalized}')
         df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
+        manual_matches = get_manual_matches()
         for c in df_chunks:
             publications = c.to_dict(orient='records')
-            publications = get_person_ids(publications)
+            publications = get_person_ids(publications, manual_matches)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             #to_jsonl(publications_scanr, scanr_output_file) #to del
             #denormalized

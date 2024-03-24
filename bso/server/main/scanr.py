@@ -97,7 +97,7 @@ def get_matches_for_publication(publi_ids):
     myclient.close()
     return data
 
-def get_person_ids(publications):
+def get_person_ids(publications, manual_matches):
     publi_ids = [e['id'] for e in publications]
     matches = get_matches_for_publication(publi_ids)
     for p in publications:
@@ -114,6 +114,9 @@ def get_person_ids(publications):
             publi_author_key = f'{publi_id};{author_key}'
             if publi_author_key in matches:
                 res = matches[publi_author_key]
+                a['id'] = res
+            if publi_author_key in manual_matches:
+                res = manual_matches[publi_author_key]
                 a['id'] = res
     return publications
 
@@ -481,7 +484,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     author['person'] = a['id']
                     fullName = author.get('fullName', 'NO_FULLNAME')
                     if denormalize:
-                        author['denormalized'] = {'id': a['id']}
+                        author['denormalized'] = {'id': a['id'], 'idref': a['id'].replace('idref', '')}
                         if a['id'] in vip_dict:
                             extra_info = vip_dict[a['id']]
                             if 'fullName' in extra_info:
@@ -549,7 +552,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         current_key = normalize_software(current_key)
                         if current_key:
                             if current_key not in softwares:
-                                softwares[current_key] = {'softwareName': current_key, 'contexts':[], 'id_name': f'NO_ID###{current_key}'}
+                                softwares[current_key] = {'softwareName': current_key, 'contexts':[], 'id_name': f'{current_key}###{current_key}'}
                                 if 'wikidataId' in raw_m:
                                     softwares[current_key]['wikidata'] = raw_m['wikidataId']
                                     softwares[current_key]['id_name'] = f"{raw_m['wikidataId']}###{current_key}"
@@ -616,4 +619,25 @@ def normalize_software(s):
     if s.lower().strip() in ['script', 'scripts']:
         return 'scripts'
     return s.capitalize()
-    
+
+def get_manual_matches():
+    publi_author_dict = {}
+    manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv').to_dict(orient='records')
+    infos = manual_infos
+    for a in infos:
+        author_key = None
+        if normalize2(a.get('first_name'), remove_space=True) and normalize2(a.get('last_name'), remove_space=True):
+            author_key = normalize2(a.get('first_name'), remove_space=True)[0]+normalize2(a.get('last_name'), remove_space=True)
+        elif normalize2(a.get('full_name'), remove_space=True):
+            author_key = normalize2(a.get('full_name'), remove_space=True)
+        publi_id = a.get('publi_id')
+        if not isinstance(publi_id, str):
+            continue
+        publi_id = publi_id.lower().strip()
+        person_id = a.get('person_id')
+        if not isinstance(person_id, str):
+            continue
+        person_id = person_id.strip()
+        publi_author_key = f'{publi_id};{author_key}'
+        publi_author_dict[publi_author_key] = person_id
+    return publi_author_dict
