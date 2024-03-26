@@ -641,3 +641,41 @@ def get_manual_matches():
         publi_author_key = f'{publi_id};{author_key}'
         publi_author_dict[publi_author_key] = person_id
     return publi_author_dict
+
+def get_wrong_affiliations():
+    infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTod30o8KW4oPitQkyUQ3gha7cpPy8wINBPVyByv3Gxmk0-yhcq555iisTd3oGcDYk_BADh4IqPiHuz/pub?gid=0&single=true&output=csv').to_dict(orient='records')
+    forbidden_link = {}
+    for a in infos:
+        aff = a['raw_affiliation']
+        if aff:
+            forbidden_link[aff] = set([k.strip() for k in a['wrong_ids'].split(';')])
+    return forbidden_link
+
+
+def remove_wrong_affiliations_links(publications, wrong_dict):
+    IDENTIFIED_PB = set(['200117270X'])
+    for ix, p in enumerate(publications):
+        check_author = False
+        affiliations = p.get('affiliations')
+        if isinstance(affiliations, list):
+            for aff in p.get('affiliations'):
+                if isinstance(aff, dict):
+                    if 'ids' in aff and len(aff['ids']) > 0:
+                        aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
+                        if aff.get('name') in wrong_dict:
+                            logger.debug(f"remove wrong affiliation link for {aff['name']}")
+                            check_author = True
+                            aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_dict[aff['name']]]
+        if check_author:
+            authors = p.get('authors')
+            if isinstance(authors, list):
+                for aut in p.get('authors'):
+                    current_affiliations = aut.get('affiliations')
+                    if isinstance(current_affiliations, list):
+                        for aff in current_affiliations:
+                            if isinstance(aff, dict):
+                                if 'ids' in aff and len(aff['ids']) > 0:
+                                    aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
+                                    if aff.get('name') in wrong_dict:
+                                        aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_dict[aff['name']]]
+    return publications
