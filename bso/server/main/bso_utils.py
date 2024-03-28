@@ -53,7 +53,7 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
     simple_fields = ['id','doi', 'pmid', 'hal_id', 'year', 'title',
                      'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
                      'bso_classification', 'lang', 'genre',
-                    'amount_apc_EUR', 'apc_source']
+                    'amount_apc_EUR', 'apc_source', 'has_crossref', 'has_hal_id']
     array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected', 'rors']
     INSIDE_FIELD_SEP = '|'
     flatten_data = []

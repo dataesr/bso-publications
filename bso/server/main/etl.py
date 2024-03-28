@@ -39,6 +39,8 @@ from bso.server.main.transform import transform_publications
 logger = get_logger(__name__)
     
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+
+FUNDING_AGENCIES = ['anr'] # lowercase
             
 def get_collection_name(index_name):
     if 'scanr' in index_name:
@@ -245,7 +247,10 @@ def etl(args):
 
 def finalize(args):
     index_name = args.get('index_name')
-    refresh_index(index_name)
+    new_index_name = index_name
+    if args.get('new_index_name'):
+        new_index_name = args.get('new_index_name')
+    refresh_index(new_index_name)
     output_dir = '/upw_data/bso-split'
     if 'scanr' in index_name:
         save_to_mongo_publi_indexes()
@@ -304,6 +309,12 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
         current_len_filename[local_filename] = 0
         os.system(f'rm -rf {local_filename}.jsonl')
         os.system(f'rm -rf {local_filename}.csv')
+    
+    for agency in FUNDING_AGENCIES:
+        local_filename = enriched_output_file.replace('.jsonl', f'_SPLITAGENCY{agency}SPLITAGENCY')
+        current_len_filename[local_filename] = 0
+        os.system(f'rm -rf {local_filename}.jsonl')
+        os.system(f'rm -rf {local_filename}.csv')
 
     # init (rm files for local affiliations) - all files with lower affiliation id
     for local_affiliation in local_bso_filenames:
@@ -347,6 +358,22 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
                     write_header_year = True
                 dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_year)
                 current_len_filename[current_file] += 1
+            
+            current_agencies = []
+            if isinstance(p.get('grants'), list):
+                for g in p['grants']:
+                    if isinstance(g.get('agency'), str):
+                        current_agencies.append(g['agency'].strip().lower())
+            current_agencies = set(current_agencies)
+            for agency in current_agencies:
+                if agency in FUNDING_AGENCIES:
+                    current_file = enriched_output_file.replace('.jsonl', f'_SPLITAGENCY{agency}SPLITAGENCY')
+                    to_jsonl([p], f'{current_file}.jsonl', 'a')
+                    write_header_agency = False
+                    if ((split_idx == 0) and (current_len_filename[current_file] == 0)):
+                        write_header_agency = True
+                    dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_year)
+                    current_len_filename[current_file] += 1
         ix += 1
    
 def collect_splitted_files(index_name, output_dir):

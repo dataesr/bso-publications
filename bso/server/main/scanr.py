@@ -251,7 +251,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         for e in p.get('all_ids'):
             if e[0:3] == 'nnt':
                 p['genre'] = 'these'
-                landingPage = f"https://theses.fr/{e[3:]}"
+                nnt = e[3:].upper()
+                landingPage = f"https://theses.fr/{nnt}"
             if e[0:7]=='haltel-':
                 p['genre'] = 'these'
         if isinstance(p.get('genre'), str):
@@ -264,6 +265,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             elt['productionType'] = 'thesis'
         else:
             elt['productionType'] = 'publication'
+        if isinstance(p.get('hal_docType'), str) and p['hal_docType'].lower() == 'hdr':
+            elt['productionType'] = 'thesis'
+            elt['type'] = 'HDR'
         # journal
         source = {}
         autocompletedJournal = []

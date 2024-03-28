@@ -352,6 +352,16 @@ def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_n
                 res[field] = False
             elif res.get(field, 1) == 1:
                 res[field] = True
+        has_crossref = False
+        has_hal_id = False
+        if isinstance(res.get('external_ids'), list):
+            for ext in res['external_ids']:
+                if ext.get('id_type') == 'hal_id':
+                    has_hal_id = True
+                if ext.get('id_type') == 'crossref':
+                    has_crossref = True
+        res['has_hal_id'] = has_hal_id
+        res['has_crossref'] = has_crossref
         final.append(res)
     logger.debug(f'format_upw DONE')
     return final

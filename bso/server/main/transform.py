@@ -137,6 +137,8 @@ def save_to_mongo_publi_indexes():
     myclient.close()
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
+    assert(FALSE)
+    # TODO remove code
     year_min = 2013
     year_max = 2025
 
