@@ -372,7 +372,7 @@ def create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_detail
                     write_header_agency = False
                     if ((split_idx == 0) and (current_len_filename[current_file] == 0)):
                         write_header_agency = True
-                    dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_year)
+                    dict_to_csv(p, last_oa_details, f'{current_file}.csv', write_header=write_header_agency)
                     current_len_filename[current_file] += 1
         ix += 1
    
@@ -398,6 +398,12 @@ def collect_splitted_files(index_name, output_dir):
             if 'bso' in index_name:
                 custom_aff = f.split('SPLITLOCALAFF')[1]
                 current_suffix = f'_{custom_aff}_enriched'
+            else:
+                continue
+        if 'SPLITAGENCY' in f:
+            if 'bso' in index_name:
+                custom_agency = f.split('SPLITAGENCY')[1]
+                current_suffix = f'_agency_{custom_agency}_enriched'
             else:
                 continue
         if 'bso' in index_name:
