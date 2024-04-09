@@ -11,6 +11,14 @@ def get_default_name(e):
             return e[f]
     return None
 
+def get_name_by_lang(e, lang):
+    assert(lang in ['fr', 'en'])
+    if not isinstance(e, dict):
+        return None
+    if isinstance(e.get(lang), str):
+        return e[lang]
+    return None
+
 def compute_is_french(elt_id, mainAddress):
     isFrench = True
     if 'grid' in elt_id or 'ror' in elt_id:
@@ -40,17 +48,25 @@ def get_orga_data():
     for elt in data:
         res = {}
         for e in ['id', 'label', 'acronym', 'kind', 'level', 'status']:
-            if elt.get(e):
+            if elt.get(e) and (isinstance(elt[e], str) or isinstance(elt[e], dict) or isinstance(elt[e], list)):
                 res[e] = elt[e]
             if isinstance(elt.get('address'), list):
                 res['mainAddress'] = get_main_address(elt['address'])
         res['isFrench'] = compute_is_french(elt['id'], res.get('mainAddress'))
         if 'label' not in res:
             continue
-        default = get_default_name(res['label'])
-        if default is None:
-            continue
-        res['id_name'] = f"{elt['id']}###{default}"
+        fr_label = get_name_by_lang(res['label'], 'fr')
+        en_label = get_name_by_lang(res['label'], 'en')
+        default_label = get_default_name(res['label'])
+        encoded_labels = []
+        if fr_label:
+            encoded_labels.append('FR_'+fr_label)
+        if en_label:
+            encoded_labels.append('EN_'+en_label)
+        encoded_label = '|||'.join(encoded_labels)
+        if len(encoded_labels)==0 and default_label:
+            encoded_label = 'DEFAULT_' + default_label
+        res['id_name'] = f"{elt['id']}###{encoded_label}"
         orga_map[elt['id']] = res
     return orga_map
 

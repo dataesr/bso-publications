@@ -657,7 +657,10 @@ def get_wrong_affiliations():
 
 
 def remove_wrong_affiliations_links(publications, wrong_dict):
-    IDENTIFIED_PB = set(['200117270X'])
+    # 200117270X ville /architecture
+    # 201722498K Joliot
+    # 200919205R UR2
+    IDENTIFIED_PB = set(['200117270X', '201722498K', '200919205R'])
     for ix, p in enumerate(publications):
         check_author = False
         affiliations = p.get('affiliations')
