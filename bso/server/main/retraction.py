@@ -38,7 +38,7 @@ def get_retraction_data():
 
         retraction_details = {}
         retraction_details['is_retracted'] = True
-        if 'RetractionNature' in rowi and isinstance(row['RetractionNature'], str):
+        if 'RetractionNature' in row and isinstance(row['RetractionNature'], str):
             retraction_details['retraction_nature'] = row['RetractionNature']
         if 'Reason' in row and isinstance(row['Reason'], str):
             retraction_details['retraction_reason'] = list(filter(None, row['Reason'].split(';')))
