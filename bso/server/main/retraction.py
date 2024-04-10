@@ -33,17 +33,19 @@ def get_retraction_data():
             if retraction_doi:
                 original_doi = retraction_doi
                 retraction_doi = None
-        
+        if (not isinstance(original_doi, str)) and ((not isinstance(retraction_doi, str))):
+            continue
+
         retraction_details = {}
         retraction_details['is_retracted'] = True
-        if 'RetractionNature' in row:
+        if 'RetractionNature' in rowi and isinstance(row['RetractionNature'], str):
             retraction_details['retraction_nature'] = row['RetractionNature']
-        if 'Reason' in row:
+        if 'Reason' in row and isinstance(row['Reason'], str):
             retraction_details['retraction_reason'] = list(filter(None, row['Reason'].split(';')))
-        if 'RetractionDate' in row: 
+        if 'RetractionDate' in row and isinstance(row['RetractionDate'], str): 
             retraction_details['retraction_date'] = row['RetractionDate']
             retraction_details['retraction_year'] = row['RetractionDate'].split(' ')[0].split('/')[-1]
-        if 'Notes' in row:
+        if 'Notes' in row and isinstance(row['Notes'], str):
             retraction_details['retraction_notes'] = row['Notes']
         retraction_details['retraction_doi'] = retraction_doi
         retraction_details['retraction_id'] = str(retraction_id)
