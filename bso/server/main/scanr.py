@@ -398,29 +398,29 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         if projects:
             elt['projects'] = list(set(projects))
         # affiliations
-        affiliations = []
+        global_affiliations = []
         if isinstance(p.get('affiliations'), list):
             for aff in p['affiliations']:
                 #data from matcher
                 if isinstance(aff.get('ids'), list):
                     for x in aff['ids']:
                         if x.get('id'):
-                            affiliations.append(x['id'])
+                            global_affiliations.append(x['id'])
                 #data scraped
                 for t in ['grid', 'rnsr', 'ror', 'sirene', 'siren', 'siret']:
                     if isinstance(aff.get(t), list):
                         for x in aff[t]:
-                            if x not in affiliations:
-                                affiliations.append(x)
-                    if isinstance(aff.get(t), str) and aff[t] not in affiliations:
-                        affiliations.append(aff[t])
+                            if x not in global_affiliations:
+                                global_affiliations.append(x)
+                    if isinstance(aff.get(t), str) and aff[t] not in global_affiliations:
+                        global_affiliations.append(aff[t])
         #data from local bso
         if isinstance(p.get('bso_local_affiliations'), list):
             for aff in p['bso_local_affiliations']:
-                if aff not in affiliations:
-                    affiliations.append(aff)
-        if affiliations:
-            elt['affiliations'] = list(set(affiliations))
+                if aff not in global_affiliations:
+                    global_affiliations.append(aff)
+        if global_affiliations:
+            elt['affiliations'] = list(set(global_affiliations))
         
         denormalized_affiliations_dict = {} 
         if denormalize:
@@ -445,29 +445,29 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         if isinstance(p.get('authors'), list):
             nb_authors = len([a for a in p['authors'] if a.get('role', 'author')[0:3] == 'aut'])
             elt['authorsCount'] = nb_authors
-            for ix_aut, a in enumerate(p['authors']):
+            for ix_aut, aut in enumerate(p['authors']):
                 # max auteurs
                 if ix_aut > NB_MAX_AUTHORS:
                     continue
                 author = {}
                 potentialFullName = ''
-                if a.get('first_name'):
-                    author['firstName'] = a['first_name']
-                    potentialFullName += a['first_name']
-                if a.get('last_name'):
-                    author['lastName'] = a['last_name']
-                    potentialFullName += ' '+ a['last_name']
+                if aut.get('first_name'):
+                    author['firstName'] = aut['first_name']
+                    potentialFullName += aut['first_name']
+                if aut.get('last_name'):
+                    author['lastName'] = aut['last_name']
+                    potentialFullName += ' '+ aut['last_name']
                     potentialFullName = potentialFullName.strip()
-                if a.get('full_name'):
-                    author['fullName'] = a['full_name']
+                if aut.get('full_name'):
+                    author['fullName'] = aut['full_name']
                 elif potentialFullName:
                     author['fullName'] = potentialFullName
                 isFrench = 'NOT_FR'
                 affiliations_ids = []
                 raw_affiliations = []
-                if isinstance(a.get('affiliations'), list):
-                    raw_affiliations = a['affiliations']
-                    for aff in a['affiliations']:
+                if isinstance(aut.get('affiliations'), list):
+                    raw_affiliations = aut['affiliations']
+                    for aff in aut['affiliations']:
                         if isinstance(aff.get('ids'), list):
                             for x in aff['ids']:
                                 if x.get('id'):
@@ -484,13 +484,13 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         for aff_id in affiliations_ids:
                             if aff_id in denormalized_affiliations_dict and denormalized_affiliations_dict[aff_id].get('isFrench', False):
                                 isFrench = 'FR'
-                if a.get('id'):
-                    author['person'] = a['id']
+                if aut.get('id'):
+                    author['person'] = aut['id']
                     fullName = author.get('fullName', 'NO_FULLNAME')
                     if denormalize:
-                        author['denormalized'] = {'id': a['id'], 'idref': a['id'].replace('idref', '')}
-                        if a['id'] in vip_dict:
-                            extra_info = vip_dict[a['id']]
+                        author['denormalized'] = {'id': aut['id'], 'idref': aut['id'].replace('idref', '')}
+                        if aut['id'] in vip_dict:
+                            extra_info = vip_dict[aut['id']]
                             if 'fullName' in extra_info:
                                 fullName = extra_info.get('fullName')
                             if 'firstName' in extra_info and 'lastName' in extra_info:
@@ -498,17 +498,12 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                             for f in ['orcid', 'id_hal']:
                                 if extra_info.get(f):
                                     author['denormalized'][f] = extra_info[f]
-                        author['id_name'] = a['id']+'###'+fullName+'###'+isFrench
-                author['role'] = a.get('role', 'author')
+                        author['id_name'] = aut['id']+'###'+fullName+'###'+isFrench
+                author['role'] = aut.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
-                    # si monoauteur => affiliations publi = affiliation auteur
-                    if nb_authors == 1:
-                        for x in elt.get('affiliations', []):
-                            if x not in affiliations:
-                                affiliations.append(x)
-                if affiliations and (denormalize == False):
-                    author['affiliations'] = affiliations
+                if affiliations_ids and (denormalize == False):
+                    author['affiliations'] = affiliations_ids
                 if raw_affiliations and denormalize:
                     author['affiliations'] = raw_affiliations
                 if author and (isinstance(author.get('fullName'), str) or isinstance(author.get('lastName'), str)):

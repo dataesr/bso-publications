@@ -279,7 +279,7 @@ def tag_affiliations(p, datasource):
     return p
 
 
-
+# TODO handle a "main" doi if crossref / datacite
 def update_publications_infos(new_publications, bso_local_dict, datasource, collection_name, locals_data):
     existing_publis_all_ids_to_main_id = {}
     existing_publis_dict = {}
