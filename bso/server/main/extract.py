@@ -728,7 +728,9 @@ def build_bso_local_dict():
                     bso_local_dict_aff[local_affiliation] = []
                 if elt_id not in bso_local_dict_aff[local_affiliation]:
                     bso_local_dict_aff[local_affiliation].append(elt_id)
-    return bso_local_dict, bso_local_dict_aff, list(set(bso_local_filenames)), hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict
+    bso_local_filenames = list(set(bso_local_filenames))
+    bso_local_filenames.sort()
+    return bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict
 
 def extract_one_bso_local(bso_local_filename, bso_local_dict, collection_name, locals_data):
     local_affiliations = bso_local_filename.split('.')[0].split('_')
