@@ -123,6 +123,8 @@ def get_dois_meta(dois):
         if authors:
             final_res['authors'] = authors
         final_res['title'] = res.get('title')
+        #final_res['genre'] = res.get('genre')
+        #final_res['year'] = res.get('year')
         ans[doi] = final_res
     return ans
 

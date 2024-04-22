@@ -118,19 +118,39 @@ def has_fr(countries: list) -> bool:
             return True
     return False
 
+def compute_main_doi(p, dois_infos):
+    possible_dois = [{'doi': k[3:], 'year': 9999} for k in p.get('all_ids', []) if isinstance(k, str) and k[0:3]=='doi']
+    if len(possible_dois) == 0:
+        return None
+    if len(possible_dois) == 1:
+        assert(possible_dois[0]['doi'] == p['doi'])
+        return p['doi']
+    for ix, elt in enumerate(possible_dois):
+        doi = elt['doi']
+        if (doi in dois_infos) and ('global' in dois_infos[doi]):
+            possible_dois[ix].update(dois_infos[doi]['global'])
+    possible_dois = sorted(possible_dois, key=lambda d: d['year'])
+    for elt in possible_dois:
+        if elt.get('genre') in ['journal-article', 'book', 'monograph', 'proceedings', 'book-chapter']:
+            return elt['doi']
+    possible_dois = sorted(possible_dois, key=lambda d: d['doi'])
+    doi = possible_dois[0]['doi']
+    logger.debug(f"no real main DOI found for {p['all_ids']} - return first {doi}")
+    return doi
 
-def format_upw(dois_infos: dict, extra_data: dict, entity_fishing: bool, index_name: str, myclient) -> list:
+
+def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_name: str, myclient) -> list:
     logger.debug('start format_upw')
     # dois_infos contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
-    # extra_data contains info for all publi, even if no DOI crossref
+    # publis_dict contains info for all publi, even if no DOI crossref
     final = []
     identifier_idx = 0
-    for identifier in extra_data:
+    for identifier in publis_dict:
         identifier_idx += 1
         if identifier_idx % 2500 == 0:
-            logger.debug(f'format_upw {identifier_idx} / {len(extra_data)}')
-        res = extra_data[identifier]
-        doi = res.get('doi')
+            logger.debug(f'format_upw {identifier_idx} / {len(publis_dict)}')
+        res = publis_dict[identifier]
+        doi = compute_main_doi(res, dois_infos)
         if isinstance(doi, str) and (doi in dois_infos) and ('global' in dois_infos[doi]):
             res.update(dois_infos[doi]['global'])
             if 'external_ids' not in res:
@@ -512,7 +532,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         logger.debug(f'{len(publi_chunk)} / {len(publications)} to enrich')
         
         # list doi
-        doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str)]
+        #doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str)]
+        #use all_ids instead of the doi field
+        doi_chunk = list(set([k[3:] for p in publi_chunk for k in p.get('all_ids', []) if isinstance(k, str) and k[0:3]=='doi']))
+        doi_chunk.sort()
         # get infos for the DOI, data_unpaywall contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
         data_unpaywall = get_unpaywall_history(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # list hal_id without doi
@@ -527,7 +550,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
 
         # publis_dict contains info for all publi, even if no DOI crossref
         myclient = pymongo.MongoClient('mongodb://mongo:27017/')
-        new_updated = format_upw(dois_infos=data, extra_data=publis_dict, entity_fishing=entity_fishing, index_name = index_name, myclient=myclient)
+        new_updated = format_upw(dois_infos=data, publis_dict=publis_dict, entity_fishing=entity_fishing, index_name = index_name, myclient=myclient)
         myclient.close()
 
         for d in new_updated:
