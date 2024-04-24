@@ -41,10 +41,14 @@ for i, row in df_doi.iterrows():
 def detect_publisher(raw_input, published_date, doi):
     raw_input_to_normalize = raw_input
     if isinstance(doi, str):
-        doi_prefix = doi.lower().strip().split('/')[0]
-        if doi_prefix in doi_map:
-            publisher_doi_prefix = doi_map[doi_prefix]
-            raw_input_to_normalize = publisher_doi_prefix
+        doi_prefix_short = doi.lower().strip().split('/')[0]
+        doi_prefix_long = '.'.join(doi.lower().strip().split('.')[0:2])
+        # order is important ; doi_prefix_long to catch openedition books with 10.4000/books.*
+        for doi_prefix in [doi_prefix_long, doi_prefix_short]:
+            if doi_prefix in doi_map:
+                publisher_doi_prefix = doi_map[doi_prefix]
+                raw_input_to_normalize = publisher_doi_prefix
+                break
     if not isinstance(raw_input, str):
         return {'publisher_normalized': raw_input_to_normalize, 'publisher_group': raw_input_to_normalize, 'publisher_dissemination': raw_input_to_normalize}
     unaccented_string = unidecode.unidecode(raw_input_to_normalize).replace(',', ' ').replace('  ', ' ')
