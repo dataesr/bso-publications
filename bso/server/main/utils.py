@@ -25,9 +25,9 @@ def clean_json(elt):
             elt[f] = clean_json(elt[f])
         elif (not elt[f] == elt[f]) or (elt[f] is None):
             del elt[f]
-        elif (isinstance(elt[f], str) and len(elt[f])==0:
+        elif (isinstance(elt[f], str) and len(elt[f])==0):
             del elt[f]
-        elif (isinstance(elt[f], list) and len(elt[f])==0:
+        elif (isinstance(elt[f], list) and len(elt[f])==0):
             del elt[f]
     return elt
 
