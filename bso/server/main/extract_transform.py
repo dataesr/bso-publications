@@ -633,13 +633,17 @@ def merge_publications(current_publi, new_publi, locals_data):
             current_oa_details[obs_date] = new_oa_details[obs_date]
             change = True
         else:
-            if current_oa_details[obs_date]['is_oa'] is False and new_oa_details[obs_date]['is_oa'] is True:
+            if current_oa_details[obs_date]["is_oa"] is False and new_oa_details[obs_date]["is_oa"] is True:
                 current_oa_details[obs_date] = new_oa_details[obs_date]
                 change = True
-            elif current_oa_details[obs_date]['is_oa'] is True and new_oa_details[obs_date]['is_oa'] is True:
-                current_oa_details[obs_date]['repositories'] += new_oa_details[obs_date]['repositories']
-                current_oa_details[obs_date]['repositories'] = dedup_sort(current_oa_details[obs_date]['repositories'])
-                current_oa_details[obs_date]['oa_locations'] += new_oa_details[obs_date]['oa_locations']
+            elif current_oa_details[obs_date]["is_oa"] is True and new_oa_details[obs_date]["is_oa"] is True:
+                if "repositories" not in current_oa_details[obs_date]:
+                    current_oa_details[obs_date]["repositories"] = []
+                current_oa_details[obs_date]["repositories"] += new_oa_details[obs_date]["repositories"]
+                current_oa_details[obs_date]["repositories"] = dedup_sort(current_oa_details[obs_date]["repositories"])
+                if "oa_locations" not in current_oa_details[obs_date]:
+                    current_oa_details[obs_date]["oa_locations"] = []
+                current_oa_details[obs_date]["oa_locations"] += new_oa_details[obs_date]["oa_locations"]
                 change = True
     # abstract, keywords, classifications
     # hal_classif to use for bso_classif
