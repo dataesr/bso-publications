@@ -129,6 +129,11 @@ def compute_main_doi(p, dois_infos):
         doi = elt['doi']
         if (doi in dois_infos) and ('global' in dois_infos[doi]):
             possible_dois[ix].update(dois_infos[doi]['global'])
+        current_year = elt.get('year')
+        if isinstance(current_year, str) and len(current_year)==4:
+            possible_dois[ix]['year'] = int(current_year)
+        elif not isinstance(current_year, int):
+            possible_dois[ix]['year'] = 9999
     possible_dois = sorted(possible_dois, key=lambda d: d['year'])
     for elt in possible_dois:
         if elt.get('genre') in ['journal-article', 'book', 'monograph', 'proceedings', 'book-chapter']:
