@@ -79,32 +79,3 @@ def get_anr_details(code):
                 res['funding_year'] = funding_year
             return res
     return None
-
-def normalize_grant(grant):
-    grants = []
-    if not isinstance(grant.get('grantid'), str):
-        return [grant]
-    for grantid in re.split(';|,| ', grant['grantid']):
-        grantid = grantid.strip()
-        if not grantid:
-            continue
-        current_grant = grant.copy()
-        current_grant['grantid'] = grantid
-        if 'funding_year' in grant and not isinstance(grant['funding_year'], int):
-            current_grant['funding_year'] = int(grant['funding_year'])
-        if grantid[0:4].upper()=='ANR-':
-            current_grant = get_anr_details(grantid)
-            if current_grant:
-                grants.append(current_grant)
-        elif isinstance(grant.get('agency'), str):
-            agency = grant['agency']
-            if 'NIH HHS' in agency:
-                current_grant['agency'] = 'NIH HHS'
-                current_grant['sub_agency'] = agency
-                grants.append(current_grant)
-            if 'H2020' in agency:
-                current_grant['agency'] = 'H2020'
-                current_grant['sub_agency'] = 'H2020'
-                grants.append(current_grant)
-    return grants
-
