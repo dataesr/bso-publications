@@ -1,7 +1,7 @@
 import pandas as pd
 import re
-from bso.server.main.funding.anr import get_anr_details
-from bso.server.main.funding.anses import get_anses_details
+from bso.server.main.funders.anr import get_anr_details
+from bso.server.main.funders.anses import get_anses_details
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
