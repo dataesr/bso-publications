@@ -28,7 +28,7 @@ from bso.server.main.utils_upw import chunks, get_millesime
 from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
 from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids, get_manual_matches, to_light, get_wrong_affiliations, remove_wrong_affiliations_links
-from bso.server.main.funding import normalize_grant
+from bso.server.main.funders.funding import normalize_grant
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv
 from bso.server.main.s3 import upload_s3
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
