@@ -6,27 +6,27 @@ on:
       - '*'
 
 env:
-  MM_NOTIFICATION_CHANNEL: 'bots'
+  MM_NOTIFICATION_CHANNEL: bots
 
 jobs:
   publish-ghcr:
-    name: Docker image
+    name: Build & publish Docker image
     runs-on: ubuntu-latest
     steps:
       - name: 🏁 Checkout
         uses: actions/checkout@v4
 
-      - name: 🔑 Login docker
+      - name: 🔑 Login ghcr.io
         run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🐋 Build docker image
+      - name: 🐋 Build Docker image
         run: make docker-build
 
-      - name: 📦 Push docker image
+      - name: 📦 Push Docker image
         run: make docker-push
 
   release:
-    name: Release new version
+    name: Create new release
     runs-on: ubuntu-latest
     needs: publish-ghcr
     steps:
@@ -52,7 +52,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: dataesr/mm-notifier-action@v1.0.2
+      - name: 📢 Notify
+        uses: dataesr/mm-notifier-action@v1.0.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN}}
           mattermost_channel: ${{ env.MM_NOTIFICATION_CHANNEL}}
