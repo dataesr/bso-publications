@@ -158,7 +158,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
         doi = compute_main_doi(res, dois_infos)
         if isinstance(doi, str) and (doi in dois_infos) and ('global' in dois_infos[doi]):
             res.update(dois_infos[doi]['global'])
-            res['id'] = 'doi{doi}'
+            res['id'] = f'doi{doi}'
             if 'external_ids' not in res:
                 res['external_ids'] = []
             res['external_ids'].append({'id_type': 'crossref', 'id_value': doi})
