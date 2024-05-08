@@ -393,6 +393,13 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                 if change:
                     has_changed = True
                     to_delete.append(current_id)
+        # Create flag "missing_doi_in_hal" that is True if this publication has DOI(s) that is not in HAL
+        if datasource == "hal":
+            has_changed = True
+            has_hal_id = "hal_id" in p
+            has_hal_doi = "doi" in existing_publi_after_merge
+            has_doi = "doi" in existing_publis
+            p["missing_doi_in_hal"] = has_hal_id and not has_hal_doi and has_doi
         if has_changed:
             to_add.append(existing_publi_after_merge)
         if existing_publi_after_merge is None:

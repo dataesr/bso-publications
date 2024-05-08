@@ -53,7 +53,7 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
     simple_fields = ['id', 'doi', 'pmid', 'hal_id', 'year', 'title',
                      'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
                      'bso_classification', 'lang', 'genre',
-                    'amount_apc_EUR', 'apc_source', 'has_crossref', 'has_hal_id', 'has_doi_and_halid']
+                    'amount_apc_EUR', 'apc_source', 'has_crossref', 'has_hal_id', 'missing_doi_in_hal']
     array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected', 'rors']
     INSIDE_FIELD_SEP = '|'
     flatten_data = []
@@ -159,7 +159,7 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
        'licence_publisher', 'licence_repositories', 'repositories',
        'software_mentions', 'data_mentions',
        'software_used', 'software_created', 'software_shared',
-       'data_used', 'data_created', 'data_shared'
+       'data_used', 'data_created', 'data_shared', 'missing_doi_in_hal'
        ]
     df_flatten = pd.DataFrame(flatten_data)
     for f in final_cols:

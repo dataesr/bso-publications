@@ -612,12 +612,5 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
                     field_to_del.append(field)
         for field in field_to_del:
             del p[field]
-        if "bso-" in index_name:
-            # Get all DOIs
-            dois = list(set([k[3:] for p in publi_chunk for k in p.get("all_ids", []) if isinstance(k, str) and k[0:3]=="doi"]))
-            # Get all HAL ids
-            hal_ids = list(set([k[3:] for p in publi_chunk for k in p.get("all_ids", []) if isinstance(k, str) and k[0:3]=="hal"]))
-            # Create flag "has_doi_and_halid" that is True if this publication has DOI(s) and HAL id(s)
-            p["has_doi_and_halid"] = len(dois) > 0 and len(hal_ids) > 0
 
     return all_updated
