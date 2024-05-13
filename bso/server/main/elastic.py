@@ -119,7 +119,6 @@ def get_analyzers() -> dict:
             "lowercase",
             'french_elision',
             'icu_folding',
-            "autocomplete_filter"
           ]
         }
     }

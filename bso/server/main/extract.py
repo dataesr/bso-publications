@@ -344,7 +344,8 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
                 else:
                     logger.debug(f'UNEXPECTED grant {g} not string neither dict')
                 if new_grant:
-                    new_grant['datasource'] = datasource
+                    for new_g in new_grant:
+                        new_g['datasource'] = datasource
                     new_grants += new_grant
             p['grants'] = new_grants
         existing_affiliations = p.get('affiliations', [])

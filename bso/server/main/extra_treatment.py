@@ -7,7 +7,7 @@ from bso.server.main.utils_swift import download_object, upload_object, delete_o
 from bso.server.main.bso_utils import get_ror_from_local
 from bso.server.main.utils import to_jsonl
 from bso.server.main.utils_upw import chunks
-from bso.server.main.extract_transform import load_scanr_publications
+#from bso.server.main.extract_transform import load_scanr_publications
 from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo, load_collection_from_object_storage
 from bso.server.main.scanr import clean_sudoc_extra, get_person_ids
 from bso.server.main.etl import create_split_and_csv_files, collect_splitted_files, finalize

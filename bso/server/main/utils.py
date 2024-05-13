@@ -122,6 +122,22 @@ def clean_doi(doi):
         return doi_match.group().strip()
     return None
 
+def clean_hal_id(hal_id):
+    res = hal_id.lower().strip()
+    res = res.replace('%2f', '/')
+    if '-' not in res:
+        return None
+    if res[-2] == 'v':
+        return res[0:-2]
+    return res
+
+def get_clean_id(e):
+    res = str(e).replace('.0','').strip().lower()
+    res = res.split(',')[0].strip()
+    if 'hal-' in res and res[-2] == 'v':
+        res = res[0:-2]
+    return res
+
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
     logger.debug(f'reading {target}')
@@ -154,19 +170,23 @@ def get_dois_from_input(filename: str) -> list:
     elts_with_id = []
     grant_ids = []
     for row in df[filtered_columns].itertuples():
+        clean_id = None
         if isinstance(row.doi, str):
             clean_id = clean_doi(row.doi)
-            if clean_id is None or len(clean_id)<5:
-                continue
             elt = {'id': f'doi{clean_id}', 'doi': clean_id}
-            if 'project_id' in filtered_columns:
-                if isinstance(row.project_id, str):
-                    current_grant = {'grantid': str(row.project_id), 'agency': row.agency}
-                    if 'funding_year' in filtered_columns:
-                        current_grant['funding_year'] = row.funding_year
-                    elt['grants'] = [current_grant]
-                    elt['has_grant'] = True
-                    grant_ids.append(row.project_id)
+        #elif isinstance(row.hal_id, str):
+        #    clean_id = clean_hal_id(row.hal_id)
+        #    elt = {'id': f'hal{clean_id}', 'hal_id': clean_id}
+        if clean_id is None or len(clean_id)<5:
+            continue
+        if 'project_id' in filtered_columns:
+            if isinstance(row.project_id, str):
+                current_grant = {'grantid': str(row.project_id), 'agency': row.agency}
+                if 'funding_year' in filtered_columns:
+                    current_grant['funding_year'] = row.funding_year
+                elt['grants'] = [current_grant]
+                elt['has_grant'] = True
+                grant_ids.append(row.project_id)
             elt['bso_country'] = ['fr']
             if 'bso_country' in filtered_columns:
                 if isinstance(row.bso_country, str):
@@ -177,7 +197,7 @@ def get_dois_from_input(filename: str) -> list:
     res = {'doi': elts_with_id}
     for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt_id', 'hal_id']:
         if f in df.columns:
-            data_column = [str(e).replace('.0','').strip().lower() for e in df[f].dropna().tolist()]
+            data_column = [get_clean_id(e) for e in df[f].dropna().tolist()]
             res[f] = data_column
             logger.debug(f'{len(data_column)} {f} for {filename}')
     logger.debug(f'doi column: {doi_column} for {filename} with {len(elts_with_id)} dois and {nb_grants} funding')
