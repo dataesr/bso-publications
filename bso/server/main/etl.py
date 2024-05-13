@@ -158,7 +158,11 @@ def etl(args):
         if '_0' in enriched_output_file:
             reset_index(index=index_name)
         logger.debug(f'reading {before_transform_file} for transform and saving results into {enriched_output_file}')
-        df_chunks = pd.read_json(before_transform_file, lines=True, chunksize = chunksize)
+        if os.path.isfile(before_transform_file):
+            df_chunks = pd.read_json(before_transform_file, lines=True, chunksize=chunksize)
+        else:
+            df_chunks = []
+            logger.debug(f'The file {before_transform_file} does not exists.')
         os.system(f'rm -rf {enriched_output_file}')
  
         ix = -1
@@ -166,7 +170,7 @@ def etl(args):
             ix += 1
             logger.debug(f'chunk {ix}')
             publications = c.to_dict(orient='records')
-            transformed_publications = transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_date)
+            transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_date)
         
         if 'bso' in index_name:
             assert('scanr' not in index_name)
@@ -195,7 +199,11 @@ def etl(args):
         #os.system(f'rm -rf {scanr_output_file}')
         scanr_output_file_denormalized =  f'{output_dir}/{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
         os.system(f'rm -rf {scanr_output_file_denormalized}')
-        df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize = chunksize)
+        if os.path.isfile(enriched_output_file):
+            df_chunks = pd.read_json(enriched_output_file, lines=True, chunksize=chunksize)
+        else:
+            df_chunks = []
+            logger.debug(f'The file {enriched_output_file} does not exists.')
         manual_matches = get_manual_matches()
         wrong_affiliations = get_wrong_affiliations()
         for c in df_chunks:
