@@ -17,7 +17,7 @@ def get_anses_open_data():
         url = elt['url']
         logger.debug(f'Getting open data from {url} for {anses_type}')
         try:
-            df = pd.read_csv(url, sep=';')
+            df = pd.read_csv(url, sep=';', encoding='iso-8859-1')
         except:
             logger.debug(f'PROBLEM WITH ANSES DATA download ! {elt}')
             continue
