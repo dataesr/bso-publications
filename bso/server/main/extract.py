@@ -1,40 +1,29 @@
-import datetime
 import ast
+import datetime
 import gzip
 import json
 import jsonlines
-import multiprocess as mp
 import os
 import pandas as pd
 import pymongo
-import pysftp
-import requests
 
 import dateutil.parser
 from retry import retry
 
-from os.path import exists
-from urllib import parse
-from bso.server.main.inventory import update_inventory
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
-from bso.server.main.unpaywall_enrich import enrich
-from bso.server.main.enrich_parallel import enrich_parallel
-from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos, get_dois_meta
-from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd, clean_container_by_prefix
-from bso.server.main.utils_upw import chunks, get_millesime
-from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
+from bso.server.main.unpaywall_mongo import get_dois_meta
+from bso.server.main.utils_swift import download_object, get_objects_by_prefix, init_cmd
+from bso.server.main.utils_upw import chunks
+from bso.server.main.utils import get_dois_from_input, is_valid, clean_doi, get_hash, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
 from bso.server.main.strings import dedup_sort, normalize
-from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids
 from bso.server.main.funders.funding import normalize_grant
 from bso.server.main.scanr import to_light
-from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv
-from bso.server.main.s3 import upload_s3
-from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
+from bso.server.main.bso_utils import get_ror_from_local, remove_too_long
 
 logger = get_logger(__name__)
-    
+
+
 @retry(delay=200, tries=3)
 def to_mongo(input_list, collection_name):
     input_filtered = []
@@ -43,29 +32,24 @@ def to_mongo(input_list, collection_name):
         if p.get('id') is None:
             continue
         if p['id'] in known_ids:
-            #logger.debug(f"{p['id']} was in duplicate, inserted only once")
             continue
         input_filtered.append(p)
         known_ids.add(p['id'])
     if len(input_filtered) == 0:
         return
-    #logger.debug(f'importing {len(input_filtered)} publications')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}{collection_name}.jsonl'
-    #pd.DataFrame(input_list).to_json(output_json, lines=True, orient='records')
     to_jsonl(input_filtered, output_json, 'w')
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
                   f' --collection {collection_name}'
-    #logger.debug(f'{mongoimport}')
     os.system(mongoimport)
-    #logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     for f in ['id', 'doi', 'nnt_id', 'hal_id', 'pmid', 'sudoc_id', 'natural_id', 'all_ids']:
         mycol.create_index(f)
-    #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
     myclient.close()
+
 
 @retry(delay=200, tries=3)
 def get_from_mongo(identifier_type, identifiers, collection_name):
@@ -81,6 +65,7 @@ def get_from_mongo(identifier_type, identifiers, collection_name):
     myclient.close()
     return res
 
+
 @retry(delay=200, tries=3)
 def delete_from_mongo(identifiers, collection_name):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -89,6 +74,7 @@ def delete_from_mongo(identifiers, collection_name):
     logger.debug(f'removing {len(identifiers)} publis for {identifiers[0:10]} ...')
     mycoll.delete_many({ 'id' : { '$in': identifiers } })
     myclient.close()
+
 
 def get_natural_id(res):
     title_info = ""
@@ -111,6 +97,7 @@ def get_natural_id(res):
     if len(title_info)> 10 and len(str(res.get('title')).split(' '))>4 and len(first_author)>3:
         return res['title_first_author']
     return None
+
 
 def get_common_id(p):
     for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
@@ -139,7 +126,6 @@ def merge_publications(current_publi, new_publi, locals_data):
     for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id']:
         if current_publi.get(f) is None and isinstance(new_publi.get(f), str):
             current_publi[f] = new_publi[f]
-            #logger.debug(f"new {f} for publi {current_publi['id']} from {new_publi['id']} : {new_publi[f]}")
     # bso3
     for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
         if f in new_publi:
@@ -148,12 +134,19 @@ def merge_publications(current_publi, new_publi, locals_data):
                 current_publi[f] = int(current_publi[f])
             change = True
     # hal
-    for f in ['hal_collection_code']:
-        if f in new_publi:
-            existing_list = current_publi.get(f)
-            if not isinstance(existing_list, list):
-                existing_list = []
-            current_publi[f] = list(set(existing_list + new_publi[f]))
+    for field in ["hal_collection_code", "has_doi_in_hal", "doi_in_hal"]:
+        if field in new_publi:
+            field_value = new_publi.get(field)
+            if field == "hal_collection_code":
+                if not isinstance(field_value, list):
+                    field_value = []
+                current_publi[field] = list(set(current_publi[field] + field_value))
+            else:
+                if field == "has_doi_in_hal" and not isinstance(field_value, bool):
+                    field_value = False
+                if field == "doi_in_hal" and not isinstance(field_value, str):
+                    field_value = None
+                current_publi[field] = field_value
             change = True
     # domains
     current_domains = current_publi.get('domains', [])
@@ -200,7 +193,6 @@ def merge_publications(current_publi, new_publi, locals_data):
     # abstract, keywords, classifications
     # hal_classif to use for bso_classif
     for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references', 'hal_classification']:
-    #for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references']:
         current_field = current_publi.get(field, [])
         if not isinstance(current_field, list):
             current_field = []
@@ -213,6 +205,7 @@ def merge_publications(current_publi, new_publi, locals_data):
                 change = True
         if current_field:
             current_publi[field] = current_field
+
     # merge grants
     if 'grants' in current_publi and not isinstance(current_publi['grants'], list):
         del current_publi['grants']
@@ -224,10 +217,10 @@ def merge_publications(current_publi, new_publi, locals_data):
             if 'grants' not in current_publi:
                 current_publi['grants'] = []
             if grant not in current_publi['grants']:
-                #logger.debug(f"merging grant {grant} into {current_publi['id']}")
                 current_publi['grants'].append(grant)
                 current_publi['has_grant'] = True
                 change = True
+
     # merge bso country
     assert(isinstance(current_publi['bso_country'], list))
     assert(isinstance(new_publi.get('bso_country', []), list))
@@ -235,6 +228,7 @@ def merge_publications(current_publi, new_publi, locals_data):
         if bso_country not in current_publi['bso_country']:
             current_publi['bso_country'].append(bso_country)
             change = True
+
     # bso local affiliations
     current_bso_local_aff = current_publi.get('bso_local_affiliations', [])
     current_local_rors = current_publi.get('rors', [])
@@ -266,6 +260,7 @@ def merge_publications(current_publi, new_publi, locals_data):
             if f not in current_publi['all_ids']:
                 current_publi['all_ids'].append(f)
                 change = True
+
     return current_publi, change
 
 
@@ -285,7 +280,6 @@ def tag_affiliations(p, datasource):
                 for aff in affiliations:
                     if 'name_in_document' in aff:
                         aff['name'] = aff['name_in_document']
-                #aff['datasource'] = datasource
     return p
 
 
@@ -300,7 +294,6 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     for p in new_publications:
         p['datasource'] = datasource
         if p.get('doi') in missing_metadata:
-                # logger.debug(f"getting metadata from crossref for doi {p['doi']}")
                 p.update(missing_metadata[p['doi']])
         p = tag_affiliations(p, datasource)
         p['all_ids'] = []
@@ -523,7 +516,13 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     if k in publi and publi[k]:
                         publi_id = publi[k]
                         break
-                publi=remove_too_long(publi, publi_id, jsonfilename)
+                # Create new fields to flag if there is a DOI in HAL, and which one
+                if container == "hal":
+                    doi_in_hal = publi.get("doi")
+                    doi_in_hal = doi_in_hal if is_valid(doi_in_hal, "doi") else None
+                    publi["has_doi_in_hal"] = doi_in_hal is not None
+                    publi["doi_in_hal"] = doi_in_hal
+                publi = remove_too_long(publi, publi_id, jsonfilename)
                 # code etab NNT
                 nnt_id = publi.get('nnt_id')
                 if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
@@ -564,7 +563,6 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                                 if new_local not in current_local:
                                     current_local.append(new_local)
                                     publi['bso_local_affiliations'] = list(set(current_local))
-
 
                 if filter_fr:
                     # si filter_fr, on ajoute bso_country fr seulement pour les fr

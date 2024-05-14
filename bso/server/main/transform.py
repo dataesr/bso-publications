@@ -110,8 +110,6 @@ def split_file(input_dir, file_to_split, nb_lines, split_prefix, output_dir, spl
     logger.debug(f'{input_dir}/{file_to_split} has been splitted into {idx_split} files of {nb_lines} lines from {output_dir}/{split_prefix}0{split_suffix} to {output_dir}/{split_prefix}{idx_split - 1}{split_suffix}')
 
 def save_to_mongo_publi(relevant_infos):
-    #myclient = pymongo.MongoClient('mongodb://mongo:27017/')
-    #mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}publi-current.jsonl'
     pd.DataFrame(relevant_infos).to_json(output_json, lines=True, orient='records')
     collection_name = 'publi_meta'
@@ -119,10 +117,8 @@ def save_to_mongo_publi(relevant_infos):
                   f' --collection {collection_name}'
     logger.debug(f'{mongoimport}')
     os.system(mongoimport)
-    #logger.debug(f'Checking indexes on collection {collection_name}')
-    #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
-    #myclient.close()
+
 
 def save_to_mongo_publi_indexes():
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -135,6 +131,7 @@ def save_to_mongo_publi_indexes():
     mycol.create_index('affiliations.id')
     mycol.create_index('projects.id')
     myclient.close()
+
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
     assert(FALSE)
@@ -212,11 +209,13 @@ def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enrich
         except:
             logger.debug(f'ERROR in file creation for {local_filename_json}')
 
+
 def zip_upload(a_file, delete=True):
     os.system(f'gzip {a_file}')
     upload_object(container='bso_dump', filename=f'{a_file}.gz')
     if delete:
         os.system(f'rm -rf {a_file}.gz')
+
 
 @retry(delay=200, tries=3)
 def to_mongo(input_list, collection_name):
@@ -226,29 +225,24 @@ def to_mongo(input_list, collection_name):
         if p.get('id') is None:
             continue
         if p['id'] in known_ids:
-            #logger.debug(f"{p['id']} was in duplicate, inserted only once")
             continue
         input_filtered.append(p)
         known_ids.add(p['id'])
     if len(input_filtered) == 0:
         return
-    #logger.debug(f'importing {len(input_filtered)} publications')
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
     output_json = f'{MOUNTED_VOLUME}{collection_name}.jsonl'
-    #pd.DataFrame(input_list).to_json(output_json, lines=True, orient='records')
     to_jsonl(input_filtered, output_json, 'w')
     mongoimport = f'mongoimport --numInsertionWorkers 2 --uri mongodb://mongo:27017/scanr --file {output_json}' \
                   f' --collection {collection_name}'
-    #logger.debug(f'{mongoimport}')
     os.system(mongoimport)
-    #logger.debug(f'Checking indexes on collection {collection_name}')
     mycol = mydb[collection_name]
     for f in ['id', 'doi', 'nnt_id', 'hal_id', 'pmid', 'sudoc_id', 'natural_id', 'all_ids']:
         mycol.create_index(f)
-    #logger.debug(f'Deleting {output_json}')
     os.remove(output_json)
     myclient.close()
+
 
 @retry(delay=200, tries=3)
 def get_from_mongo(identifier_type, identifiers, collection_name):
@@ -264,6 +258,7 @@ def get_from_mongo(identifier_type, identifiers, collection_name):
     myclient.close()
     return res
 
+
 @retry(delay=200, tries=3)
 def delete_from_mongo(identifiers, collection_name):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
@@ -272,7 +267,6 @@ def delete_from_mongo(identifiers, collection_name):
     logger.debug(f'removing {len(identifiers)} publis for {identifiers[0:10]} ...')
     mycoll.delete_many({ 'id' : { '$in': identifiers } })
     myclient.close()
-
 
 
 def get_natural_id(res):
@@ -297,150 +291,12 @@ def get_natural_id(res):
         return res['title_first_author']
     return None
 
+
 def get_common_id(p):
     for f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id']:
         if isinstance(p.get(f), str):
             id_type = f.replace('_id', '')
             return {'id': f'{id_type}{p[f]}', 'id_type': id_type}
-
-
-def merge_publications(current_publi, new_publi, locals_data):
-    change = False
-    new_datasource = new_publi['datasource']
-    # source
-    new_sources = new_publi.get('sources', [])
-    if not isinstance(new_sources, list):
-        new_sources = []
-    current_sources = current_publi.get('sources', [])
-    if not isinstance(current_sources, list):
-        current_sources = []
-    for s in new_sources:
-        if s not in current_sources:
-            current_sources.append(s)
-            change = True
-    if current_sources:
-        current_publi['sources'] = current_sources
-    # bso3
-    for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
-        if f in new_publi:
-            current_publi[f] = new_publi[f]
-            if ('details' not in f) and (current_publi[f]):
-                current_publi[f] = int(current_publi[f])
-            change = True
-    # hal
-    for f in ['hal_collection_code']:
-        if f in new_publi:
-            existing_list = current_publi.get(f)
-            if not isinstance(existing_list, list):
-                existing_list = []
-            current_publi[f] = list(set(existing_list + new_publi[f]))
-            change = True
-    # domains
-    current_domains = current_publi.get('domains', [])
-    for e in new_publi.get('domains', []):
-        if e not in current_domains:
-            current_domains.append(e)
-            change = True
-    if current_domains:
-        current_publi['domains'] = current_domains
-    # external ids
-    current_external = current_publi.get('external_ids', [])
-    for e in new_publi.get('external_ids', []):
-        if e not in current_external:
-            current_external.append(e)
-            change = True
-    if current_external:
-        current_publi['external_ids'] = current_external
-    # oa_details
-    current_oa_details = current_publi.get('oa_details', {})
-    new_oa_details = new_publi.get('oa_details', {})
-    for obs_date in new_oa_details:
-        if obs_date not in current_oa_details:
-            current_oa_details[obs_date] = new_oa_details[obs_date]
-            change = True
-        else:
-            if current_oa_details[obs_date]["is_oa"] is False and new_oa_details[obs_date]["is_oa"] is True:
-                current_oa_details[obs_date] = new_oa_details[obs_date]
-                change = True
-            elif current_oa_details[obs_date]["is_oa"] is True and new_oa_details[obs_date]["is_oa"] is True:
-                if "repositories" not in current_oa_details[obs_date]:
-                    current_oa_details[obs_date]["repositories"] = []
-                current_oa_details[obs_date]["repositories"] += new_oa_details[obs_date]["repositories"]
-                current_oa_details[obs_date]["repositories"] = dedup_sort(current_oa_details[obs_date]["repositories"])
-                if "oa_locations" not in current_oa_details[obs_date]:
-                    current_oa_details[obs_date]["oa_locations"] = []
-                current_oa_details[obs_date]["oa_locations"] += new_oa_details[obs_date]["oa_locations"]
-                change = True
-    # abstract, keywords, classifications
-    # hal_classif to use for bso_classif
-    for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references', 'hal_classification']:
-    #for field in ['abstract', 'keywords', 'classifications', 'acknowledgments', 'references']:
-        current_field = current_publi.get(field, [])
-        if not isinstance(current_field, list):
-            current_field = []
-        new_field = new_publi.get(field, [])
-        if not isinstance(new_field, list):
-            new_field = []
-        for k in new_field:
-            if k not in current_field:
-                current_field.append(k)
-                change = True
-        if current_field:
-            current_publi[field] = current_field
-    # merge grants
-    if 'grants' in current_publi and not isinstance(current_publi['grants'], list):
-        del current_publi['grants']
-    if 'grants' in new_publi and not isinstance(new_publi['grants'], list):
-        del new_publi['grants']
-    grants = new_publi.get('grants', [])
-    if isinstance(grants, list) and grants:
-        for grant in new_publi['grants']:
-            if 'grants' not in current_publi:
-                current_publi['grants'] = []
-            if grant not in current_publi['grants']:
-                #logger.debug(f"merging grant {grant} into {current_publi['id']}")
-                current_publi['grants'].append(grant)
-                current_publi['has_grant'] = True
-                change = True
-    # merge bso country
-    assert(isinstance(current_publi['bso_country'], list))
-    assert(isinstance(new_publi.get('bso_country', []), list))
-    for bso_country in new_publi.get('bso_country', []):
-        if bso_country not in current_publi['bso_country']:
-            current_publi['bso_country'].append(bso_country)
-            change = True
-    # bso local affiliations
-    current_bso_local_aff = current_publi.get('bso_local_affiliations', [])
-    current_local_rors = current_publi.get('rors', [])
-    for aff in new_publi.get('bso_local_affiliations', []):
-        if aff not in current_bso_local_aff:
-            current_bso_local_aff.append(aff)
-        current_ror = get_ror_from_local(aff, locals_data)
-        if current_ror and current_ror not in current_local_rors:
-            current_local_rors.append(current_ror)
-    if current_bso_local_aff:
-        current_publi['bso_local_affiliations'] = current_bso_local_aff
-        change = True
-    if current_local_rors:
-        current_publi['rors'] = current_local_rors
-        change = True
-
-    # merge authors, affiliations and ids
-    for f in new_publi:
-        if 'authors' in f:
-            current_publi[f+'_'+new_datasource] = new_publi[f]
-            change = True
-        if 'affiliations' in f and f != 'bso_local_affiliations':
-            current_publi[f+'_'+new_datasource] = new_publi[f]
-            change = True
-        if f in ['doi', 'pmid', 'nnt_id', 'hal_id', 'sudoc_id'] and f not in current_publi:
-            current_publi[f] = new_publi[f]
-            change = True
-        for f in new_publi['all_ids']:
-            if f not in current_publi['all_ids']:
-                current_publi['all_ids'].append(f)
-                change = True
-    return current_publi, change
 
 
 def tag_affiliations(p, datasource):
@@ -459,7 +315,6 @@ def tag_affiliations(p, datasource):
                 for aff in affiliations:
                     if 'name_in_document' in aff:
                         aff['name'] = aff['name_in_document']
-                #aff['datasource'] = datasource
     return p
 
 
@@ -471,6 +326,7 @@ def remove_too_long_affiliation(publi):
             logger.debug(f"shorten affiliation for {publi['id']} from {len(a['name'])} to 2000")
             a['name'] = a['name'][0:2000]
     return publi
+
 
 def clean_softcite(publi):
     for d in ['softcite_details', 'datastet_details']:
