@@ -187,12 +187,12 @@ def get_dois_from_input(filename: str) -> list:
                 elt['grants'] = [current_grant]
                 elt['has_grant'] = True
                 grant_ids.append(row.project_id)
-            elt['bso_country'] = ['fr']
-            if 'bso_country' in filtered_columns:
-                if isinstance(row.bso_country, str):
-                    elt['bso_country'] = [row.bso_country]
-            elt['sources'] = [filename]
-            elts_with_id.append(elt)
+        elt['bso_country'] = ['fr']
+        if 'bso_country' in filtered_columns:
+            if isinstance(row.bso_country, str):
+                elt['bso_country'] = [row.bso_country]
+        elt['sources'] = [filename]
+        elts_with_id.append(elt)
     nb_grants = len(set(grant_ids))
     res = {'doi': elts_with_id}
     for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt_id', 'hal_id']:
