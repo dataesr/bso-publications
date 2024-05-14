@@ -86,7 +86,7 @@ def is_valid(identifier, identifier_type):
             if k in identifier.lower():
                 return False
         return True
-    #TODO utiliser des regex
+    # TODO utiliser des regex
     if identifier_type == 'hal_id':
         if '.' in identifier:
             return False
@@ -94,7 +94,7 @@ def is_valid(identifier, identifier_type):
             if sep in identifier:
                 return True
         return False
-    #TODO utiliser des regex
+    # TODO utiliser des regex
     if identifier_type == 'nnt_id':
         try:
             # s54678 pour theses en cours
