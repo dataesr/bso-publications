@@ -538,8 +538,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         logger.debug(f'{len(publi_chunk)} / {len(publications)} to enrich')
         
         # list doi
-        #doi_chunk = [p.get('doi') for p in publi_chunk if p and isinstance(p.get('doi'), str)]
-        #use all_ids instead of the doi field
+        # use all_ids instead of the doi field
         doi_chunk = list(set([k[3:] for p in publi_chunk for k in p.get('all_ids', []) if isinstance(k, str) and k[0:3]=='doi']))
         doi_chunk.sort()
         # get infos for the DOI, data_unpaywall contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
@@ -548,7 +547,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
         # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
         hal_date.sort()
-        #get HAL history for all dates but not the last one (already the from the extract step)
+        # get HAL history for all dates but not the last one (already the from the extract step)
         data_hal = {}
         if len(hal_date)>1:
             data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_date[0:-1], last_observation_date_only=last_observation_date_only)
@@ -585,7 +584,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             d = merge_authors_affiliations(d, index_name)
 
             d = treat_affiliations_authors(d) # useful_rank etc ...
-            d = to_light(d) 
+            d = to_light(d)
+
+            # Create flag "missing_doi_in_hal" that is True if this publication has DOI(s) that is not in HAL
+            d["missing_doi_in_hal"] = d.get("has_doi_in_hal", False) and d.get("doi") != d.get("doi_in_hal")
             all_updated.append(d)
 
     # affiliation matcher
