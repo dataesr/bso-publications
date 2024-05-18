@@ -140,7 +140,10 @@ def merge_publications(current_publi, new_publi, locals_data):
             if field == "hal_collection_code":
                 if not isinstance(field_value, list):
                     field_value = []
-                current_publi[field] = list(set(current_publi[field] + field_value))
+                current_value = current_publi.get(field, [])
+                if not isinstance(current_value, list):
+                    current_value = []
+                current_publi[field] = list(set(current_value + field_value))
             else:
                 if field == "has_doi_in_hal" and not isinstance(field_value, bool):
                     field_value = False
