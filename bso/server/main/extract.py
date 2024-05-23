@@ -522,8 +522,7 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 # Create new fields to flag if there is a DOI in HAL, and which one
                 if container == "hal":
                     doi_in_hal = publi.get("doi")
-                    doi_in_hal = doi_in_hal if is_valid(doi_in_hal, "doi") else None
-                    publi["has_doi_in_hal"] = doi_in_hal is not None
+                    publi["has_doi_in_hal"] = is_valid(doi_in_hal, "doi")
                     publi["doi_in_hal"] = doi_in_hal
                 publi = remove_too_long(publi, publi_id, jsonfilename)
                 # code etab NNT
