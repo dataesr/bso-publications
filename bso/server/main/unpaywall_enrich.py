@@ -587,7 +587,7 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             d = to_light(d)
 
             # If this publication exists in HAL and its DOI is not in HAL
-            if d.get("hal_id", False) and d.get("has_doi_in_hal", False) and d.get("doi") != d.get("doi_in_hal"):
+            if d.get("hal_id", False) and d.get("has_doi_in_hal", 0) == 1 and d.get("doi") != d.get("doi_in_hal"):
                 # Create flag "missing_doi_in_hal"
                 d["missing_doi_in_hal"] = True
             all_updated.append(d)

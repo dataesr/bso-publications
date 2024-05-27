@@ -145,8 +145,8 @@ def merge_publications(current_publi, new_publi, locals_data):
                     current_value = []
                 current_publi[field] = list(set(current_value + field_value))
             else:
-                if field == "has_doi_in_hal" and not isinstance(field_value, bool):
-                    field_value = False
+                if field == "has_doi_in_hal" and not isinstance(field_value, int):
+                    field_value = 0
                 if field == "doi_in_hal" and not isinstance(field_value, str):
                     field_value = None
                 current_publi[field] = field_value
@@ -522,8 +522,8 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 # Create new fields to flag if there is a DOI in HAL, and which one
                 if container == "hal":
                     doi_in_hal = publi.get("doi")
-                    publi["has_doi_in_hal"] = is_valid(doi_in_hal, "doi")
                     publi["doi_in_hal"] = doi_in_hal
+                    publi["has_doi_in_hal"] = 1 if is_valid(doi_in_hal, "doi") else 0
                 publi = remove_too_long(publi, publi_id, jsonfilename)
                 # code etab NNT
                 nnt_id = publi.get('nnt_id')
