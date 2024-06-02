@@ -24,6 +24,11 @@ NB_MAX_CO_ELEMENTS = 20
 idref_sudoc_only = {}
 vip_dict = {}
 
+# https://docs.google.com/spreadsheets/d/1uiY5MAYb0IEl2LNxbl2lP-lpNnWgcsW7e__cLvDY_qk/edit#gid=1281340758 (liens idref-publi)
+# https://docs.google.com/spreadsheets/d/1Tx23f90zdDTE5UL_iv3ANxX6TlO20Sw2jkBOTCcfBAo/edit#gid=0 (remove idref)
+# https://docs.google.com/spreadsheets/d/1TqFUiOyHMdo9R1_8eW0EfqBu6_OJQpJFtLwX_lIYK9A/edit#gid=0 (wrong aff)
+# https://docs.google.com/spreadsheets/d/1TGnv6tNYLnNQhcGQORsoMWu878RQ0kGiCMB7OKwknLM/edit#gid=0 (black list publi)
+
 def clean_sudoc_extra(p):
     if 'sudoc' not in p['id']:
         return
@@ -499,6 +504,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                 if extra_info.get(f):
                                     author['denormalized'][f] = extra_info[f]
                         author['id_name'] = aut['id']+'###'+fullName+'###'+isFrench
+                if aut.get('id') is None and isFrench == 'FR' and len(aut['first_name']) > 3 and len(aut['last_name']) > 3:
+                    author['toIdentify'] = aut['last_name']+'###'+aut['first_name']
                 author['role'] = aut.get('role', 'author')
                 if author['role'][0:3] == 'aut':
                     author['role'] = 'author'
@@ -681,3 +688,7 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                                     if aff.get('name') in wrong_dict:
                                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_dict[aff['name']]]
     return publications
+
+def get_black_list_publications():
+    infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vT5sZQNfHy2SIS5-rZqVPu85S11mPo_-xREIfuekFiHbaMJ6w8Jmye6m5rSFir_fvvN1gwSnLAKbOZO/pub?output=csv').to_dict(orient='records')
+    return set([e['id'] for e in infos])

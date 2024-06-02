@@ -12,7 +12,7 @@ from bso.server.main.elastic import reset_index, reset_index_scanr, refresh_inde
 from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict, get_bso_local_filenames 
 from bso.server.main.logger import get_logger
 from bso.server.main.s3 import upload_s3
-from bso.server.main.scanr import to_scanr, get_person_ids, get_manual_matches, get_wrong_affiliations, remove_wrong_affiliations_links
+from bso.server.main.scanr import to_scanr, get_person_ids, get_manual_matches, get_wrong_affiliations, remove_wrong_affiliations_links, get_black_list_publications
 from bso.server.main.transform import transform_publications
 from bso.server.main.utils import to_jsonl
 from bso.server.main.utils_swift import upload_object
@@ -206,8 +206,10 @@ def etl(args):
             logger.debug(f'The file {enriched_output_file} does not exists.')
         manual_matches = get_manual_matches()
         wrong_affiliations = get_wrong_affiliations()
+        black_list_publications = get_black_list_publications()
         for c in df_chunks:
             publications = c.to_dict(orient='records')
+            publications = [p for p in publications if p['id'] not in black_list_publications]
             publications = get_person_ids(publications, manual_matches)
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)

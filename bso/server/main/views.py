@@ -250,7 +250,7 @@ def run_task_et_scanr():
     response_object = {'status': 'success', 'data': {'task_id': task.get_id()}}
     return jsonify(response_object), 202
 
-@main_blueprint.route('/finalize_scanr', methods=['POST'])
+@main_blueprint.route('/finalize', methods=['POST'])
 def run_task_finalize_scanr():
     logger.debug('Starting task finalize scanr')
     args = request.get_json(force=True)
