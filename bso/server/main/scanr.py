@@ -178,7 +178,7 @@ def get_vip_dict():
     assert(len(vip_corresp_to_idref) == 0)
     df_vip = pd.read_json('/upw_data/vip.jsonl', lines=True)
     for ix, row in df_vip.iterrows():
-        current_idref = 'idref'+row['idref']
+        current_idref = row['idref']
         elt = {}
         for f in ['lastName', 'firstName', 'orcid', 'id_hal']:
             if isinstance(row[f], str):
@@ -191,7 +191,7 @@ def get_vip_dict():
             if isinstance(row[f], list):
                 elt[f] = row[f]
         assert(current_idref not in vip_dict)
-        vip_dict[current_idref] = elt
+        vip_dict['idref'+current_idref] = elt
     logger.debug(f'vip dict loaded with {len(vip_dict)} idrefs')
     return
 
