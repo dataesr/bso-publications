@@ -586,8 +586,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             d = treat_affiliations_authors(d) # useful_rank etc ...
             d = to_light(d)
 
-            # If this publication exists in HAL and its DOI is not in HAL
-            if d.get("hal_id", False) and d.get("has_doi_in_hal", 0) == 1 and d.get("doi") != d.get("doi_in_hal"):
+            
+            # If this publication has a DOI, exists in HAL but no DOI in HAL
+            # If this publication exists in HAL, has a DOI, has a DOI in HAL but these 2 DOIs are not equals
+            if (d.get("doi", False) and d.get("hal_id", False) and d.get("has_doi_in_hal", 0) == 0) or (d.get("hal_id", False) and d.get("has_doi_in_hal", 0) == 1 and d.get("doi") != d.get("doi_in_hal")):
                 # Create flag "missing_doi_in_hal"
                 d["missing_doi_in_hal"] = True
             all_updated.append(d)

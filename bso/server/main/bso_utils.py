@@ -49,17 +49,14 @@ def json_to_csv(json_file, observation_date, split_year = False):
 
 
 def dict_to_csv(elem, observation_date, filename, write_header=True):
-
-    simple_fields = ['id', 'doi', 'pmid', 'hal_id', 'year', 'title',
-                     'journal_issns', 'journal_issn_l', 'journal_name', 'publisher', 'publisher_dissemination',
-                     'bso_classification', 'lang', 'genre',
-                    'amount_apc_EUR', 'apc_source', 'has_crossref', 'has_hal_id', "missing_doi_in_hal", "has_doi_in_hal", "doi_in_hal"]
-    array_fields = ['domains', 'detected_countries', 'bso_local_affiliations', 'bso_country_corrected', 'rors']
-    INSIDE_FIELD_SEP = '|'
+    simple_fields = ["id", "doi", "pmid", "hal_id", "year", "title", "journal_issns", "journal_issn_l",
+                     "journal_name", "publisher", "publisher_dissemination", "bso_classification", "lang",
+                     "genre", "amount_apc_EUR", "apc_source", "has_crossref", "has_hal_id", "missing_doi_in_hal",
+                     "has_doi_in_hal", "doi_in_hal"]
+    array_fields = ["domains", "detected_countries", "bso_local_affiliations", "bso_country_corrected", "rors"]
+    INSIDE_FIELD_SEP = "|"
     flatten_data = []
-    #for elem in df.to_dict(orient='records'):
-    new_elem = {'observation_date': observation_date}
-    id_elem = elem['id']
+    new_elem = {"observation_date": observation_date}
     for f in simple_fields:
         if isinstance(elem.get(f), str):
             new_elem[f] = elem[f].replace('\u2028',' ').replace('\n', ' ').replace(';', ',').replace('|', ',').replace('  ', ' ')
@@ -106,7 +103,6 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
         new_elem['licence_repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('licence_repositories', []))
         new_elem['repositories'] = INSIDE_FIELD_SEP.join(elem['oa_details'][observation_date].get('repositories', []))
     else:
-        #print(f'no oa_details for {id_elem}')
         for f in ['is_oa', 'is_oa_hal', 'oa_host_type', 'journal_is_in_doaj', 'journal_is_oa', 'unpaywall_oa_status',
                     'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
             new_elem[f] = None
