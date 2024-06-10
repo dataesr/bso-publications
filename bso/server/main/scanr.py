@@ -3,7 +3,7 @@ import pymongo
 import os
 import itertools
 import pandas as pd
-
+import random
 import dateutil.parser
 from retry import retry
 
@@ -23,7 +23,7 @@ NB_MAX_CO_ELEMENTS = 20
 
 idref_sudoc_only = {}
 vip_dict = {}
-
+vip_corresp_to_idref = {}
 # https://docs.google.com/spreadsheets/d/1uiY5MAYb0IEl2LNxbl2lP-lpNnWgcsW7e__cLvDY_qk/edit#gid=1281340758 (liens idref-publi)
 # https://docs.google.com/spreadsheets/d/1Tx23f90zdDTE5UL_iv3ANxX6TlO20Sw2jkBOTCcfBAo/edit#gid=0 (remove idref)
 # https://docs.google.com/spreadsheets/d/1TqFUiOyHMdo9R1_8eW0EfqBu6_OJQpJFtLwX_lIYK9A/edit#gid=0 (wrong aff)
@@ -103,6 +103,9 @@ def get_matches_for_publication(publi_ids):
     return data
 
 def get_person_ids(publications, manual_matches):
+    global vip_corresp_to_idref
+    if len(vip_corresp_to_idref) == 0:
+        get_vip_dict()
     publi_ids = [e['id'] for e in publications]
     matches = get_matches_for_publication(publi_ids)
     for p in publications:
@@ -111,6 +114,10 @@ def get_person_ids(publications, manual_matches):
         if not isinstance(authors, list):
             continue
         for a in authors:
+            for f in ['ORCID', 'orcid']:
+                if f in a and isinstance(a[f], str):
+                    orcid = a[f].split('/')[-1]
+                    a['orcid'] = orcid
             author_key = None
             if normalize2(a.get('first_name'), remove_space=True) and normalize2(a.get('last_name'), remove_space=True):
                 author_key = normalize2(a.get('first_name'), remove_space=True)[0]+normalize2(a.get('last_name'), remove_space=True)
@@ -120,6 +127,13 @@ def get_person_ids(publications, manual_matches):
             if publi_author_key in matches:
                 res = matches[publi_author_key]
                 a['id'] = res
+            # usng vip correspondance
+            for f in ['orcid', 'id_hal_i', 'id_hal_s']:
+                if a.get(f) in vip_corresp_to_idref:
+                    a['idref'] = vip_corresp_to_idref[a[f]]
+            if 'idref' in a and isinstance(a['idref'], str):
+                a['id'] = 'idref'+a['idref'].split('/')[-1]
+            # manual overwrite wins
             if publi_author_key in manual_matches:
                 res = manual_matches[publi_author_key]
                 a['id'] = res
@@ -159,7 +173,9 @@ def to_scanr_patents(patents, df_orga, denormalize=False):
 
 def get_vip_dict():
     global vip_dict
+    global vip_corresp_to_idref
     assert(len(vip_dict) == 0)
+    assert(len(vip_corresp_to_idref) == 0)
     df_vip = pd.read_json('/upw_data/vip.jsonl', lines=True)
     for ix, row in df_vip.iterrows():
         current_idref = 'idref'+row['idref']
@@ -167,6 +183,8 @@ def get_vip_dict():
         for f in ['lastName', 'firstName', 'orcid', 'id_hal']:
             if isinstance(row[f], str):
                 elt[f] = row[f]
+                if f in ['orcid', 'id_hal']:
+                    vip_corresp_to_idref[row[f]] = current_idref
         if elt.get('lastName') and elt.get('firstName'):
             elt['fullName'] = elt['firstName'] + ' ' + elt['lastName']
         for f in ['prizes']:
@@ -180,6 +198,7 @@ def get_vip_dict():
 
 def to_scanr(publications, df_orga, df_project, denormalize = False):
     global vip_dict
+    global vip_corresp_to_idref
     if len(vip_dict)==0:
         get_vip_dict()
     scanr_publications = []
@@ -504,7 +523,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                 if extra_info.get(f):
                                     author['denormalized'][f] = extra_info[f]
                         author['id_name'] = aut['id']+'###'+fullName+'###'+isFrench
-                if aut.get('id') is None and isFrench == 'FR' and len(aut['first_name']) > 3 and len(aut['last_name']) > 3:
+                if aut.get('id') is None and isFrench == 'FR' and aut.get('first_name') and aut.get('last_name') and len(aut['first_name']) > 3 and len(aut['last_name']) > 3:
                     author['toIdentify'] = aut['last_name']+'###'+aut['first_name']
                 author['role'] = aut.get('role', 'author')
                 if author['role'][0:3] == 'aut':
@@ -569,9 +588,11 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             
             # embeddings
             # TODO remove
-            if 'embeddings' not in p and elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
-                p['embeddings'] = get_embeddings(p)
-            if isinstance(p.get('embeddings'), list):
+            #if elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
+            if 0.87 <= random.random() <= 0.871:
+                if not isinstance(p.get('embeddings'), list) or len(p['embeddings']) != 1024:
+                    p['embeddings'] = get_embeddings(p)
+            if isinstance(p.get('embeddings'), list) and len(p['embeddings']) == 1024:
                 elt['vector_text'] = p['embeddings']
             
             # for network mapping

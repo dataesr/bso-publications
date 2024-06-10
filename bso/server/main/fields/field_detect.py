@@ -9,6 +9,7 @@ from retry import retry
 from bso.server.main.logger import get_logger
 
 SCIENTIFIC_TAGGER_SERVICE = os.getenv('SCIENTIFIC_TAGGER_SERVICE')
+EMBEDDINGS_SERVICE = os.getenv('EMBEDDINGS_SERVICE')
 
 logger = get_logger(__name__)
 
@@ -49,14 +50,29 @@ def get_classification_dewey(publi_codes):
 def get_embeddings(a_publication):
     embeddings = None
     texts = []
+    #title
+    if isinstance(a_publication.get('title'), str):
+        texts.append(a_publication['title'])
+    #domains
     if isinstance(a_publication.get('classifications'), list):
         for c in a_publication['classifications']:
             if isinstance(c.get('label'), str):
                 texts.append(c['label'])
+    #abstract
+    abstracts = []
+    if isinstance(a_publication.get('abstracts'), list):
+        abstracts = a_publication['abstracts']
+    elif len(abstracts) == 0 and isinstance(a_publication.get('abstract'), list):
+        abstracts = a_publication['abstract']
+    for ix, abstr in enumerate(abstracts):
+        current_abs = None
+        if isinstance(abstr, dict) and isinstance(abstr.get('abstract'), str) and len(abstr.get('abstract')) > 10:
+            current_abs = abstr.get('abstract')
+            texts.append(current_abs)
     if texts:
-        text = ' '.join(texts).replace('\\\\\\\\', '')[0:1000]
+        text = ' '.join(texts).replace('\\\\\\\\', '')[0:2000]
         try:
-            embeddings = requests.post(f'{SCIENTIFIC_TAGGER_SERVICE}/embeddings', json={'text': text, 'embedding_type': 'multilingual'}).json()['embeddings']
+            embeddings = requests.post(f'{EMBEDDINGS_SERVICE}/embeddings', json={'text': text, 'embedding_type': 'large'}).json()['embeddings']
         except:
             logger.debug(f'embeddings error for text {text}')
             embeddings=None
