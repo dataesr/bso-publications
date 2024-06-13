@@ -529,7 +529,6 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                 nnt_id = publi.get('nnt_id')
                 if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
                     # if nnt_id, make sure nnt_etab_dict if filled
-                    assert('emal' in nnt_etab_dict)
                     current_local = publi.get('bso_local_affiliations', [])
                     new_local = nnt_etab_dict[get_code_etab_nnt(nnt_id, nnt_etab_dict)]
                     if new_local not in current_local:

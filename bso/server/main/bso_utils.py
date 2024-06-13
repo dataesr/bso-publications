@@ -14,8 +14,28 @@ def remove_too_long(d, publi_id, jsonfilename):
                 d[f] = d[f][0:5000]+'...'
         elif isinstance(d[f], list):
             if len(d[f]) > 50:
-                logger.debug(f"shortening list field {f} in publi {publi_id} from {jsonfilename} as too long !")
-                d[f] = d[f][0:50]
+                if 'authors' in f:
+                    new_authors = d[f][0:10]
+                    for ixa, a in enumerate(df[f]):
+                        keep_this_author = False
+                        if ixa < 10:
+                            keep_this_author = True
+                        for k in ['id_hal_s', 'id_hal_i', 'idref', 'orcid']:
+                            if isinstance(a.get(k), str):
+                                keep_this_author = True
+                                break
+                        if isinstance(a.get('affiliations'), list):
+                            for aff in a['affiliations']:
+                                if isinstance(aff.get('detected_countries'), list):
+                                    if 'fr' in aff.get('detected_countries'):
+                                        keep_this_author = True
+                                        break
+                        if keep_this_author:
+                            new_authors.append(a)
+                    df[f] = new_authors
+                else:
+                    logger.debug(f"shortening list field {f} in publi {publi_id} from {jsonfilename} as too long !")
+                    d[f] = d[f][0:50]
         elif isinstance(d[f], dict):
             d[f]=remove_too_long(d[f].copy(), publi_id, jsonfilename)
     return d
