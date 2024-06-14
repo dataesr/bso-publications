@@ -440,7 +440,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         global_affiliations.append(aff[t])
         #data from local bso
         if isinstance(p.get('bso_local_affiliations'), list):
-            elt['bso_local_affiliations'] = bso_local_affiliations
+            elt['bso_local_affiliations'] = p['bso_local_affiliations']
             for aff in p['bso_local_affiliations']:
                 if aff not in global_affiliations:
                     global_affiliations.append(aff)

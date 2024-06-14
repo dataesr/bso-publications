@@ -586,6 +586,10 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                     # filter_fr == False
                     # sinon, fr par défaut
                     publi['bso_country'] = ['fr']
+
+                if 'year' not in publi and isinstance(publi.get('publication_date'), str):
+                    if publi['publication_date'][0:2] in ['19', '20']:
+                        publi['year'] = publi['publication_date'][0:4]
                 
                 if min_year and publi.get('genre') not in ['thesis']:
                     year = None
