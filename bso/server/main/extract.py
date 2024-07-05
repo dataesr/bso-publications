@@ -624,40 +624,43 @@ def extract_fixed_list(extra_file, bso_local_dict, bso_country, collection_name,
             update_publications_infos([{'doi': d, 'bso_country': [bso_country], 'sources': [extra_file]} for d in chunk], bso_local_dict, extra_file, collection_name, locals_data)
 
 def extract_manual(bso_local_dict, collection_name, locals_data):
-    url='https://docs.google.com/spreadsheet/ccc?key=1SuFzHK7OptlIYF8w42WG04WwQaNswb9qBspzW0DjTak&output=csv'
-    df_all = pd.read_csv(url, chunksize=10000)
-    for df in df_all:
-        publications = {}
-        for p in df.to_dict(orient='records'):
-            e = clean_json(p)
-            elt = {'bso_country': ['other'], 'sources': ['manual_input']}
-            for f in ['doi', 'hal_id', 'nnt_id', 'sudoc_id']:
-                if e.get(f):
-                    elt[f] = e[f]
-            publi_id = get_common_id(e)['id']
-            if publi_id not in publications:
-                publications[publi_id] = elt
-                publications[publi_id]['authors'] = []
-            elt = publications[publi_id]
-            current_author = {}
-            current_affiliations = []
-            global_affiliations = elt.get('affiliations', [{'ids': []}])[0]['ids']
-            if 'idref' in e.get('person_id'):
-                current_author['idref'] = e['person_id'].replace('idref', '')
-            for f in ['last_name', 'first_name', 'full_name']:
-                if e.get(f):
-                    current_author[f] = e[f]
-            for f in ['rnsr', 'siren', 'siret', 'grid', 'ror']:
-                if e.get(f):
-                    for aff in [a.strip() for a in ast.literal_eval(e[f])]:
-                        current_elt_to_add = {'id': aff, 'type': f}
-                        current_affiliations.append(current_elt_to_add)
-                        if current_elt_to_add not in global_affiliations:
-                            global_affiliations.append(current_elt_to_add)
-            if current_affiliations:
-                current_author['affiliations'] = [{'ids': current_affiliations}]
-            elt['authors'].append(current_author)
-            elt['affiliations'] = [{'ids': global_affiliations}]
+    manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv').to_dict(orient='records')
+    publications = {}
+    for p in manual_infos.to_dict(orient='records'):
+        e = clean_json(p)
+        elt = {'bso_country': ['other'], 'sources': ['manual_input']}
+        if e['id'][0:3] == 'doi':
+            elt['doi'] = e['id'][3:]
+        if e['id'][0:3] == 'hal':
+            elt['hal_id'] = e['id'][3:]
+        if e['id'][0:3] == 'nnt':
+            elt['nnt_id'] = e['id'][3:]
+        if e['id'][0:5] == 'sudoc':
+            elt['sudoc_id'] = e['id'][5:]
+        publi_id = e['id']
+        if publi_id not in publications:
+            publications[publi_id] = elt
+            publications[publi_id]['authors'] = []
+        elt = publications[publi_id]
+        current_author = {}
+        current_affiliations = []
+        global_affiliations = elt.get('affiliations', [{'ids': []}])[0]['ids']
+        if 'idref' in e.get('person_id'):
+            current_author['idref'] = e['person_id'].replace('idref', '')
+        for f in ['last_name', 'first_name', 'full_name']:
+            if e.get(f):
+                current_author[f] = e[f]
+        for f in ['rnsr', 'siren', 'siret', 'grid', 'ror']:
+            if e.get(f):
+                for aff in [a.strip() for a in ast.literal_eval(e[f])]:
+                    current_elt_to_add = {'id': aff, 'type': f}
+                    current_affiliations.append(current_elt_to_add)
+                    if current_elt_to_add not in global_affiliations:
+                        global_affiliations.append(current_elt_to_add)
+        if current_affiliations:
+            current_author['affiliations'] = [{'ids': current_affiliations}]
+        elt['authors'].append(current_author)
+        elt['affiliations'] = [{'ids': global_affiliations}]
         update_publications_infos(list(publications.values()), bso_local_dict, 'manual_input', collection_name, locals_data)
 
 def extract_orcid(bso_local_dict, collection_name, locals_data):
