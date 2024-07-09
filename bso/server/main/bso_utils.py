@@ -16,7 +16,7 @@ def remove_too_long(d, publi_id, jsonfilename):
             if len(d[f]) > 50:
                 if 'authors' in f:
                     new_authors = d[f][0:10]
-                    for ixa, a in enumerate(df[f]):
+                    for ixa, a in enumerate(d[f]):
                         keep_this_author = False
                         if ixa < 10:
                             keep_this_author = True
@@ -32,7 +32,7 @@ def remove_too_long(d, publi_id, jsonfilename):
                                         break
                         if keep_this_author:
                             new_authors.append(a)
-                    df[f] = new_authors
+                    d[f] = new_authors
                 else:
                     logger.debug(f"shortening list field {f} in publi {publi_id} from {jsonfilename} as too long !")
                     d[f] = d[f][0:50]
