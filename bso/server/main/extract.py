@@ -624,11 +624,12 @@ def extract_fixed_list(extra_file, bso_local_dict, bso_country, collection_name,
             update_publications_infos([{'doi': d, 'bso_country': [bso_country], 'sources': [extra_file]} for d in chunk], bso_local_dict, extra_file, collection_name, locals_data)
 
 def extract_manual(bso_local_dict, collection_name, locals_data):
-    manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv').to_dict(orient='records')
+    manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv')
     publications = {}
     for p in manual_infos.to_dict(orient='records'):
         e = clean_json(p)
         elt = {'bso_country': ['other'], 'sources': ['manual_input']}
+        e['id'] = e['publi_id']
         if e['id'][0:3] == 'doi':
             elt['doi'] = e['id'][3:]
         if e['id'][0:3] == 'hal':
