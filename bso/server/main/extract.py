@@ -662,7 +662,7 @@ def extract_manual(bso_local_dict, collection_name, locals_data):
             current_author['affiliations'] = [{'ids': current_affiliations}]
         elt['authors'].append(current_author)
         elt['affiliations'] = [{'ids': global_affiliations}]
-        update_publications_infos(list(publications.values()), bso_local_dict, 'manual_input', collection_name, locals_data)
+    update_publications_infos(list(publications.values()), bso_local_dict, 'manual_input', collection_name, locals_data)
 
 def extract_orcid(bso_local_dict, collection_name, locals_data):
     df_all = pd.read_json('/upw_data/orcid_idref.jsonl', lines=True, orient='records', chunksize=10000)
