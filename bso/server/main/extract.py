@@ -445,8 +445,20 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     if to_delete:
         to_delete = list(set(to_delete))
         delete_from_mongo(to_delete, collection_name)
-    to_mongo(to_add, collection_name)
-    nb_add = len(to_add)
+
+    # make sure no duplicates in to_add
+    to_add_known_ids = set()
+    to_add_no_dups = []
+    for k in to_add:
+        if idk in k.get('all_ids'):
+            if idk in to_add_known_ids:
+                logger.debug(f'removed a duplicate entry for {idk}')
+                continue
+            to_add_known_ids.update(k['all_ids'])
+            to_add_no_dups.append(k)
+
+    to_mongo(to_add_no_dups, collection_name)
+    nb_add = len(to_add_no_dups)
     nb_del = len(to_delete)
     nb_new = nb_add - nb_del
     logger.debug(f'new : {nb_new} publis, updating {nb_del} publis')
