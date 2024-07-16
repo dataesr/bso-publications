@@ -388,6 +388,11 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                     has_crossref = True
         res['has_hal_id'] = has_hal_id
         res['has_crossref'] = has_crossref
+        if res.get('pmid'):
+            res['pmid'] = str(int(res['pmid']))
+            ext_ids = res.get('external_ids', [])
+            ext_ids.append({'id_type': 'pmid', 'id_value': res['pmid']})
+            res['external_ids'] = ext_ids
         final.append(res)
     logger.debug(f'format_upw DONE')
     return final
