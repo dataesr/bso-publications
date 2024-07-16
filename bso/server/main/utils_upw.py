@@ -113,6 +113,7 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
             res[f] = current_value
         else:
             res[f] = False
+    res['unpaywall_oa_status'] = elem.get('oa_status')
     if res['is_oa'] is False:
         res['oa_host_type'] = 'closed'
         res['oa_colors'] = ['closed']
@@ -128,7 +129,6 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
     licence_repositories = []
     licence_publisher = []
     oa_locations = []
-    res['unpaywall_oa_status'] = elem.get('oa_status')
     nb_valid_loc = 0
     for loc in oa_loc:
         if loc is None:
