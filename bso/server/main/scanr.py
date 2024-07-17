@@ -608,6 +608,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     elt['co_authors'] = co_authors
             # affiliations network
             if denormalized_affiliations:
+                co_countries = get_co_occurences(denormalized_affiliations, 'country')
+                if co_countries:
+                    elt['co_countries'] = co_countries
                 structures_to_combine = [a for a in denormalized_affiliations if ('Structure de recherche' in a.get('kind', []))]
                 co_structures = get_co_occurences(structures_to_combine, 'id_name')
                 if co_structures:

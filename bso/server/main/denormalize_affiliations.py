@@ -27,6 +27,14 @@ def compute_is_french(elt_id, mainAddress):
             isFrench = True
     return isFrench
 
+def compute_country(elt_id, mainAddress):
+    if isinstance(mainAddress, dict) and isinstance(mainAddress.get('country'), str):
+        return mainAddress.get('country')
+    elif 'grid' not in elt_id and 'ror' not in elt_id:
+        return 'France'
+    return None
+
+
 def get_main_address(address):
     main_add = None
     for add in address:
@@ -53,6 +61,7 @@ def get_orga_data():
             if isinstance(elt.get('address'), list):
                 res['mainAddress'] = get_main_address(elt['address'])
         res['isFrench'] = compute_is_french(elt['id'], res.get('mainAddress'))
+        res['country'] = compute_country(elt['id'], res.get('mainAddress'))
         if 'label' not in res:
             continue
         fr_label = get_name_by_lang(res['label'], 'fr')
