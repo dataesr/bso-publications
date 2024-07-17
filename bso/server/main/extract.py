@@ -447,15 +447,28 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
         delete_from_mongo(to_delete, collection_name)
 
     # make sure no duplicates in to_add
-    to_add_known_ids = set()
-    to_add_no_dups = []
+    to_add_id_correspondance, id_to_merge_to, to_add_dict = {}, {}, {}
     for k in to_add:
-        if idk in k.get('all_ids'):
-            if idk in to_add_known_ids:
-                logger.debug(f'removed a duplicate entry for {idk}')
-                continue
-            to_add_known_ids.update(k['all_ids'])
-            to_add_no_dups.append(k)
+        if 'id' not in k:
+            continue
+        to_add_dict[k['id']] = k
+        if not isinstance(k.get('all_ids'), list):
+            continue
+        for idk in list(set(k['all_ids'])):
+            if idk not in to_add_id_correspondance:
+                to_add_id_correspondance[idk] = k['id']
+            else:
+                main_id = to_add_id_correspondance[idk]
+                to_add_dict[k['id']]['is_duplicated'] = True
+                to_add_dict[main_id], _ = merge_publications(k, to_add_dict[main_id], locals_data)
+    
+    to_add_no_dups = []
+    for main_id in to_add_dict:
+        if to_add_dict[main_id].get('is_duplicated') is True:
+            logger.debug(f'removed a duplicate entry for {main_id}')
+            continue
+        else:
+            to_add_no_dups.append(to_add_dict[main_id])
 
     to_mongo(to_add_no_dups, collection_name)
     nb_add = len(to_add_no_dups)
