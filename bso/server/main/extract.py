@@ -447,34 +447,36 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
         delete_from_mongo(to_delete, collection_name)
 
     # make sure no duplicates in to_add
-    to_add_id_correspondance, id_to_merge_to, to_add_dict = {}, {}, {}
-    for k in to_add:
-        if 'id' not in k:
-            continue
-        to_add_dict[k['id']] = k
-        if not isinstance(k.get('all_ids'), list):
-            continue
-        for idk in list(set(k['all_ids'])):
-            if idk not in to_add_id_correspondance:
-                to_add_id_correspondance[idk] = k['id']
-            else:
-                main_id = to_add_id_correspondance[idk]
-                to_add_dict[k['id']]['is_duplicated'] = True
-                to_add_dict[main_id], _ = merge_publications(k, to_add_dict[main_id], locals_data)
+    #to_add_id_correspondance, id_to_merge_to, to_add_dict = {}, {}, {}
+    #for k in to_add:
+    #    if 'id' not in k:
+    #        continue
+    #    to_add_dict[k['id']] = k
+    #    if not isinstance(k.get('all_ids'), list):
+    #        continue
+    #    for idk in list(set(k['all_ids'])):
+    #        if idk not in to_add_id_correspondance:
+    #            to_add_id_correspondance[idk] = k['id']
+    #        else:
+    #            main_id = to_add_id_correspondance[idk]
+    #            to_add_dict[k['id']]['is_duplicated'] = True
+    #            to_add_dict[main_id], _ = merge_publications(k, to_add_dict[main_id], locals_data)
     
-    to_add_no_dups = []
-    for main_id in to_add_dict:
-        if to_add_dict[main_id].get('is_duplicated') is True:
-            logger.debug(f'removed a duplicate entry for {main_id}')
-            continue
-        else:
-            to_add_no_dups.append(to_add_dict[main_id])
+    #to_add_no_dups = []
+    #for main_id in to_add_dict:
+    #    if to_add_dict[main_id].get('is_duplicated') is True:
+    #        logger.debug(f'removed a duplicate entry for {main_id}')
+    #        continue
+    #    else:
+    #        to_add_no_dups.append(to_add_dict[main_id])
+
+    # TODO replace
+    to_add_no_dups = to_add
 
     to_mongo(to_add_no_dups, collection_name)
     nb_add = len(to_add_no_dups)
     nb_del = len(to_delete)
-    nb_new = nb_add - nb_del
-    logger.debug(f'new : {nb_new} publis, updating {nb_del} publis')
+    logger.debug(f'new : {nb_add} publis, del {nb_del} publis')
 
 
 def extract_pubmed(bso_local_dict, collection_name, locals_data) -> None:
@@ -649,6 +651,7 @@ def extract_fixed_list(extra_file, bso_local_dict, bso_country, collection_name,
             update_publications_infos([{'doi': d, 'bso_country': [bso_country], 'sources': [extra_file]} for d in chunk], bso_local_dict, extra_file, collection_name, locals_data)
 
 def extract_manual(bso_local_dict, collection_name, locals_data):
+    # TODO chunk
     manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv')
     publications = {}
     for p in manual_infos.to_dict(orient='records'):
@@ -780,5 +783,5 @@ def extract_one_bso_local(bso_local_filename, bso_local_dict, collection_name, l
     local_affiliations = bso_local_filename.split('.')[0].split('_')
     current_dois = get_dois_from_input(filename=bso_local_filename)['doi']
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
-    for chunk in chunks(current_dois, 10000):
+    for chunk in chunks(current_dois, 2000):
         update_publications_infos(chunk, bso_local_dict, f'bso_local_{bso_local_filename}', collection_name, locals_data)
