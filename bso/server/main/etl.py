@@ -48,18 +48,19 @@ def split_file(input_dir, file_to_split, nb_lines, split_prefix, output_dir, spl
 
 
 def etl(args):
-    index_name = args.get('index_name')
-    split_idx = args.get('split_idx')
-    observations = args.get('observations')
-    extract = args.get('extract')
-    transform = args.get('transform')
-    transform_scanr = args.get('transform_scanr')
     affiliation_matching = args.get('affiliation_matching')
-    entity_fishing = args.get('entity_fishing')
     chunksize = args.get('chunksize')
     datasources = args.get('datasources')
-    hal_date = args.get('hal_date')
+    entity_fishing = args.get('entity_fishing')
+    extract = args.get('extract')
+    hal_dates = args.get('hal_dates')
+    index_name = args.get('index_name')
+    observations = args.get('observations')
+    openalex_dates = args.get('openalex_dates')
+    split_idx = args.get('split_idx')
     theses_date = args.get('theses_date')
+    transform = args.get('transform')
+    transform_scanr = args.get('transform_scanr')
 
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     extract_output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
@@ -82,7 +83,7 @@ def etl(args):
 
     # extract
     if extract:
-        bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
+        bso_local_dict, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
         collection_name = get_collection_name(index_name)
 
         drop_collection('scanr', 'publications_before_enrichment')
@@ -118,11 +119,14 @@ def etl(args):
         if 'theses' in datasources:
             extract_container('theses', bso_local_dict, False, download_prefix=f'{theses_date}/parsed', one_by_one=True, filter_fr=False, min_year=None, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, locals_data=locals_data) #always fr
         if 'hal' in datasources:
-            hal_date.sort(reverse=True)
-            extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_date[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data) # filter_fr add bso_country fr for french publi
+            hal_dates.sort(reverse=True)
+            extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_dates[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
             skip_download_sudoc = True
             extract_container('sudoc', bso_local_dict, skip_download_sudoc, download_prefix=f'json_parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+        if 'openalex' in datasources:
+            openalex_dates.sort(reverse=True)
+            extract_container('openalex', bso_local_dict, False, download_prefix=f'{openalex_dates[0]}/raw', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data)
         if 'fixed' in datasources:
             extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data) # always fr
             extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data)
@@ -170,7 +174,7 @@ def etl(args):
             ix += 1
             logger.debug(f'chunk {ix}')
             publications = c.to_dict(orient='records')
-            transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_date)
+            transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_dates)
         
         if 'bso' in index_name:
             assert('scanr' not in index_name)

@@ -19,10 +19,10 @@ def create_task(args: dict) -> list:
     entity_fishing = args.get('entity_fishing', False)
     datasource = args.get('datasource', 'user')
     last_observation_date_only = args.get('last_observation_date_only', False)
-    hal_date = args.get('hal_date', [])
+    hal_dates = args.get('hal_dates', [])
     return enrich(publications=publications, observations=observations, datasource=datasource, affiliation_matching=affiliation_matching,
             entity_fishing=entity_fishing,
-            last_observation_date_only=last_observation_date_only, hal_date=hal_date)
+            last_observation_date_only=last_observation_date_only, hal_dates=hal_dates)
 
 def enrich_results(publications: list, observations, affiliation_matching, entity_fishing, proc_num = 0, return_dict = {}) -> list:
     args = {'publications': publications, 'observations': observations, 'affiliation_matching': affiliation_matching, 'entity_fishing': entity_fishing, 'datasource':None}

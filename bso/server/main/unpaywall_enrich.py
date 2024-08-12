@@ -527,7 +527,7 @@ def merge_authors_affiliations(p, index_name):
     return p
 
 
-def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, hal_date: list, index_name='bso-publications') -> list:
+def enrich(publications: list, observations: list, datasource: str, affiliation_matching: bool, last_observation_date_only:bool, entity_fishing: bool, hal_dates: list, index_name='bso-publications') -> list:
     publis_dict = {}
     
     # dict of all the publis
@@ -551,11 +551,11 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         # list hal_id without doi
         hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
         # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
-        hal_date.sort()
+        hal_dates.sort()
         # get HAL history for all dates but not the last one (already the from the extract step)
         data_hal = {}
-        if len(hal_date)>1:
-            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_date[0:-1], last_observation_date_only=last_observation_date_only)
+        if len(hal_dates)>1:
+            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates[0:-1], last_observation_date_only=last_observation_date_only)
         data = {**data_hal, **data_unpaywall}
 
         # publis_dict contains info for all publi, even if no DOI crossref

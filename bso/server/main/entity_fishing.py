@@ -1,13 +1,10 @@
 import os
 import requests
-import time
 
 from bso.server.main.logger import get_logger
 
-import pymongo
 
 ENTITY_FISHING_SERVICE = os.getenv('ENTITY_FISHING_SERVICE')
-
 
 logger = get_logger(__name__)
 
@@ -35,7 +32,6 @@ def get_from_mongo(pid, myclient):
 
 @exception_handler
 def get_entity_fishing(publication: dict, myclient) -> dict:
-    #logger.debug(publication)
     pre_computed = get_from_mongo(publication['id'], myclient)
     if pre_computed and isinstance(pre_computed.get('classifications'), list):
         return pre_computed

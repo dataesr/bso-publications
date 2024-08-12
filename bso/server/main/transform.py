@@ -74,7 +74,7 @@ def remove_fields_bso(res):
     return remove_extra_fields(res)
 
 
-def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode, hal_date):
+def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode, hal_dates):
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
     # corrections 
@@ -83,9 +83,9 @@ def transform_publications(publications, index_name, observations, affiliation_m
     publications = [remove_wrong_match(p) for p in publications]
     # publis_chunks = list(chunks(publications, 20000))
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
-        entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_date=hal_date, index_name=index_name)
+        entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_dates=hal_dates, index_name=index_name)
     if 'bso-publications' in index_name:
-        enriched_publications = [remove_fields_bso(p) for p in enriched_publications if p['oa_details']]
+        enriched_publications = [remove_fields_bso(p) for p in enriched_publications if p.get('oa_details', False)]
     enriched_publications = [remove_too_long_affiliation(p) for p in enriched_publications]
     to_jsonl(enriched_publications, enriched_output_file, write_mode)
 
@@ -134,7 +134,7 @@ def save_to_mongo_publi_indexes():
 
 
 def dump_bso_local(index_name, local_bso_filenames, enriched_output_file, enriched_output_file_csv, last_oa_details):
-    assert(FALSE)
+    assert(False)
     # TODO remove code
     year_min = 2013
     year_max = 2025
