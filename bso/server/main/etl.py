@@ -83,7 +83,7 @@ def etl(args):
 
     # extract
     if extract:
-        bso_local_dict, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
+        bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
         collection_name = get_collection_name(index_name)
 
         drop_collection('scanr', 'publications_before_enrichment')
