@@ -56,7 +56,7 @@ def etl(args):
     hal_dates = args.get('hal_dates')
     index_name = args.get('index_name')
     observations = args.get('observations')
-    openalex_dates = args.get('openalex_dates')
+    openalex_date = args.get('openalex_date')
     split_idx = args.get('split_idx')
     theses_date = args.get('theses_date')
     transform = args.get('transform')
@@ -125,8 +125,7 @@ def etl(args):
             skip_download_sudoc = True
             extract_container('sudoc', bso_local_dict, skip_download_sudoc, download_prefix=f'json_parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'openalex' in datasources:
-            openalex_dates.sort(reverse=True)
-            extract_container('openalex', bso_local_dict, False, download_prefix=f'{openalex_dates[0]}/raw', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data)
+            extract_container('openalex', bso_local_dict, False, download_prefix=f'{openalex_date[0]}/raw', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data)
         if 'fixed' in datasources:
             extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data) # always fr
             extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data)

@@ -596,7 +596,8 @@ def get_data(local_path, batch, filter_fr, bso_local_dict, container, min_year, 
                                     publi['bso_local_affiliations'] = list(set(current_local))
 
                 if filter_fr:
-                    # si filter_fr, on ajoute bso_country fr seulement pour les fr
+                    # si filter_fr, on ajoute bso_country "fr" seulement pour les ceux qui ont une affiliation détectée comme française
+                    # Si une publication n'a pas d'affiiations, ou pas de "detected_countries" pour son affiliation, elle ne sera pas considérée comme "fr"
                     is_fr = False
                     countries = []
                     if isinstance(publi.get('affiliations'), list):
