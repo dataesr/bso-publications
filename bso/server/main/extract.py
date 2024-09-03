@@ -446,32 +446,35 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
         to_delete = list(set(to_delete))
         delete_from_mongo(to_delete, collection_name)
 
+    # debut essai
     # make sure no duplicates in to_add
-    #to_add_id_correspondance, id_to_merge_to, to_add_dict = {}, {}, {}
-    #for k in to_add:
-    #    if 'id' not in k:
-    #        continue
-    #    to_add_dict[k['id']] = k
-    #    if not isinstance(k.get('all_ids'), list):
-    #        continue
-    #    for idk in list(set(k['all_ids'])):
-    #        if idk not in to_add_id_correspondance:
-    #            to_add_id_correspondance[idk] = k['id']
-    #        else:
-    #            main_id = to_add_id_correspondance[idk]
-    #            to_add_dict[k['id']]['is_duplicated'] = True
-    #            to_add_dict[main_id], _ = merge_publications(k, to_add_dict[main_id], locals_data)
+    logger.debug(datasource)
+    if 'local' in datasource:
+        logger.debug('check no dup')
+        to_add_id_correspondance, id_to_merge_to, to_add_dict = {}, {}, {}
+        for k in to_add:
+            if 'id' not in k:
+                continue
+            to_add_dict[k['id']] = k
+            if not isinstance(k.get('all_ids'), list):
+                continue
+            for idk in list(set(k['all_ids'])):
+                if idk not in to_add_id_correspondance:
+                    to_add_id_correspondance[idk] = k['id']
+                else:
+                    main_id = to_add_id_correspondance[idk]
+                    to_add_dict[k['id']]['is_duplicated'] = True
+                    to_add_dict[main_id], _ = merge_publications(k, to_add_dict[main_id], locals_data)
     
-    #to_add_no_dups = []
-    #for main_id in to_add_dict:
-    #    if to_add_dict[main_id].get('is_duplicated') is True:
-    #        logger.debug(f'removed a duplicate entry for {main_id}')
-    #        continue
-    #    else:
-    #        to_add_no_dups.append(to_add_dict[main_id])
-
-    # TODO replace
-    to_add_no_dups = to_add
+        to_add_no_dups = []
+        for main_id in to_add_dict:
+            if to_add_dict[main_id].get('is_duplicated') is True:
+                logger.debug(f'removed a duplicate entry for {main_id}')
+                continue
+            else:
+                to_add_no_dups.append(to_add_dict[main_id])
+    else:
+        to_add_no_dups = to_add
 
     to_mongo(to_add_no_dups, collection_name)
     nb_add = len(to_add_no_dups)
@@ -647,7 +650,7 @@ def extract_fixed_list(extra_file, bso_local_dict, bso_country, collection_name,
     download_object(container='publications-related', filename=f'{extra_file}.json', out=f'{MOUNTED_VOLUME}/{extra_file}.json')
     if os.path.isfile(f'{MOUNTED_VOLUME}/{extra_file}.json'):
         fr_dois = json.load(open(f'{MOUNTED_VOLUME}/{extra_file}.json', 'r'))
-        for chunk in chunks(fr_dois, 10000):
+        for chunk in chunks(fr_dois, 2000):
             update_publications_infos([{'doi': d, 'bso_country': [bso_country], 'sources': [extra_file]} for d in chunk], bso_local_dict, extra_file, collection_name, locals_data)
 
 def extract_manual(bso_local_dict, collection_name, locals_data):
