@@ -254,6 +254,9 @@ def remove_wrong_match(publi):
         return publi
     detected_countries = []
     for aff in previous_affiliations:
+        if not isinstance(aff, dict):
+            logger.debug(f"{aff} is not a dict in {publi.get('id')} from {publi.get('sources')}")
+            continue
         if isinstance(aff.get('detected_countries'), list):
             for c in aff.get('detected_countries'):
                 if c not in detected_countries:
