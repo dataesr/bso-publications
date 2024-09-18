@@ -61,12 +61,12 @@ def create_task_cache_affiliations(args):
     #collection_name = 'classifications'
     #collection_name = 'affiliations'
     mycolls = {}
-    for collection_name in ['affiliations', 'classifications']:
+    for collection_name in ['affiliations', 'classifications', 'embeddings']:
         mycolls[collection_name] = mydb[collection_name]
-        if resume_after == 0:
+        if '_split_0' in index_name:
             logger.debug(f'dropping {collection_name}')
             mycolls[collection_name].drop()
-    input_file = f'/upw_data/{index_name}.jsonl'
+    input_file = f'/upw_data/scanr-split/{index_name}.jsonl'
     logger.debug(f'reading {input_file}') 
     CHUNK_SIZE = args.get('chunk_size', 10000)
     full = pd.read_json(input_file, lines=True, chunksize=CHUNK_SIZE)
@@ -78,14 +78,14 @@ def create_task_cache_affiliations(args):
             continue
         logger.debug(f'iteration {ix}, {ix*CHUNK_SIZE} publications treated')
         to_save = {}
-        for collection_name in ['affiliations', 'classifications']:
+        for collection_name in ['affiliations', 'classifications', 'embeddings']:
             to_save[collection_name] = []
         publis = df.to_dict(orient='records')
         for px, p in enumerate(publis):
-            for f in p:
-                if isinstance(p[f], list) and len(p[f]) > 150:
-                    logger.debug(f"{p['id']}, {f}, {len(p[f])}") 
-            for collection_name in ['affiliations', 'classifications']:
+            #for f in p:
+            #    if isinstance(p[f], list) and len(p[f]) > 150:
+            #        logger.debug(f"{p['id']}, {f}, {len(p[f])}") 
+            for collection_name in ['affiliations', 'classifications', 'embeddings']:
                 data = p.get(collection_name)
                 if not isinstance(data, list):
                     data = []
@@ -104,8 +104,11 @@ def create_task_cache_affiliations(args):
                             existing_hash[query] = 1
                 if collection_name == 'classifications':
                     to_save[collection_name].append({'id': p['id'], 'cache': data})
+                #if collection_name == 'embeddings':
+                #    to_save[collection_name].append({'id': p['id'], 'cache': data})
         to_mongo_cache(input_list = to_save['affiliations'],    collection_name = 'affiliations',    upsert=False)
         to_mongo_cache(input_list = to_save['classifications'], collection_name = 'classifications', upsert=False)
+        #to_mongo_cache(input_list = to_save['embeddings'], collection_name = 'embeddings', upsert=False)
     myclient.close()
 
 def send_to_parser(publication_json):

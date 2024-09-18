@@ -125,7 +125,7 @@ def etl(args):
             skip_download_sudoc = True
             extract_container('sudoc', bso_local_dict, skip_download_sudoc, download_prefix=f'json_parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'openalex' in datasources:
-            extract_container('openalex', bso_local_dict, False, download_prefix=f'{openalex_date}/raw', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data)
+            extract_container('openalex', bso_local_dict, False, download_prefix=f'{openalex_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data)
         if 'fixed' in datasources:
             extract_fixed_list(extra_file='dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data) # always fr
             extract_fixed_list(extra_file='tmp_dois_fr', bso_local_dict=bso_local_dict, bso_country='fr', collection_name=collection_name, locals_data=locals_data)
