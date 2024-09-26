@@ -537,17 +537,17 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
-                if 'sudoc' in elt['id']:
-                    all_sudoc_only = True
-                    for a in authors:
-                        if a.get('person'):
-                            current = analyze_sudoc(a['person'])
-                            if current is False:
-                                all_sudoc_only = False
-                    if all_sudoc_only:
-                        sudoc_id = elt['id'].replace('sudoc', '')
-                        elt['year'] = None
-                        delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
+                #if 'sudoc' in elt['id']:
+                #    all_sudoc_only = True
+                #    for a in authors:
+                #        if a.get('person'):
+                #            current = analyze_sudoc(a['person'])
+                #            if current is False:
+                #                all_sudoc_only = False
+                #    if all_sudoc_only:
+                #        sudoc_id = elt['id'].replace('sudoc', '')
+                #        elt['year'] = None
+                #        #delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
 
 
         if denormalize:
@@ -590,11 +590,11 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             # embeddings
             # TODO remove
             #if elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
-            if 0.87 <= random.random() <= 0.871:
-                if not isinstance(p.get('embeddings'), list) or len(p['embeddings']) != 1024:
-                    p['embeddings'] = get_embeddings(p)
-            if isinstance(p.get('embeddings'), list) and len(p['embeddings']) == 1024:
-                elt['vector_text'] = p['embeddings']
+            #if 0.87 <= random.random() <= 0.871:
+            #    if not isinstance(p.get('embeddings'), list) or len(p['embeddings']) != 1024:
+            #        p['embeddings'] = get_embeddings(p)
+            #if isinstance(p.get('embeddings'), list) and len(p['embeddings']) == 1024:
+            #    elt['vector_text'] = p['embeddings']
             
             # for network mapping
             # authors network
@@ -630,6 +630,11 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 co_software = get_co_occurences(elt['softwares'], 'id_name')
                 if co_software:
                     elt['co_software'] = co_software
+            # projects
+            if elt.get('co_projects'):
+                co_projects = get_co_occurences(elt['projects'], 'id_name')
+                if co_projects:
+                    elt['co_projects'] = co_projects
         elt = clean_json(elt)
         if elt:
             if elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:
@@ -640,8 +645,10 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
 
 def get_co_occurences(my_list, my_field):
     elts_to_combine = [a for a in my_list if a.get(my_field)]
-    if len(elts_to_combine) <= NB_MAX_CO_ELEMENTS:
-        combinations = list(set(itertools.combinations([a[my_field] for a in elts_to_combine], 2)))
+    values_to_combine = list(set([a[my_field] for a in elts_to_combine]))
+    values_to_combine.sort()
+    if len(values_to_combine) <= NB_MAX_CO_ELEMENTS:
+        combinations = list(set(itertools.combinations(values_to_combine, 2)))
         res = [f'{a}---{b}' for (a,b) in combinations]
         return res
     return None

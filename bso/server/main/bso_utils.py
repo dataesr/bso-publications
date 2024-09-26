@@ -204,7 +204,7 @@ def remove_wrong_match(publi):
             bso_country.append(c)
     previous_affiliations = []
     for f in publi:
-        if 'affiliations' in f and isinstance(publi[f], list):
+        if 'affiliations' in f and isinstance(publi[f], list) and 'bso_local' not in f:
             previous_affiliations += publi[f]
     if not isinstance(previous_affiliations, list):
         return publi
