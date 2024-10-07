@@ -29,8 +29,8 @@ def get_database(database: str = 'unpaywall') -> Union[pymongo.database.Database
 
 
 @retry(delay=200, tries=2)
-def get_collection(collection_name: str) -> Union[pymongo.collection.Collection, None]:
-    db = get_database()
+def get_collection(collection_name: str, database='unpaywall') -> Union[pymongo.collection.Collection, None]:
+    db = get_database(database)
     collection = db[collection_name]
     return collection
 
@@ -45,7 +45,8 @@ def clean(res: dict, coll: str) -> dict:
     if res:
         if '_id' in res:
             del res['_id']
-        res['asof'] = coll
+        if coll:
+            res['asof'] = coll
     return res
 
 
@@ -93,6 +94,15 @@ def get_doi(doi, collection_name: str) -> dict:
             res[ix] = clean(e, collection_name)
     return res
 
+
+@retry(delay=60, tries=5)
+def get_openalex(ids) -> dict:
+    collection = get_collection(collection_name='openalex_enrichment', database='scanr')
+    res = {}
+    res = [e for e in collection.find({'id': {'$in': ids}})]
+    for ix, e in enumerate(res):
+        res[ix] = clean(e, None)
+    return res
 
 @retry(delay=60, tries=5)
 def get_doi_from_issn(issns) -> dict:

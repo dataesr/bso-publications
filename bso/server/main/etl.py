@@ -17,7 +17,7 @@ from bso.server.main.transform import transform_publications
 from bso.server.main.utils import to_jsonl
 from bso.server.main.utils_swift import upload_object
 from bso.server.main.utils_upw import get_millesime
-
+from bso.server.main.openalex import enrich_with_openalex
 
 logger = get_logger(__name__)
     
@@ -215,6 +215,7 @@ def etl(args):
             publications = [p for p in publications if p['id'] not in black_list_publications]
             publications = get_person_ids(publications, manual_matches)
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
+            publications = enrich_with_openalex(publications)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             # denormalized
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)

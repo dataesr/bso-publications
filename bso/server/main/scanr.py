@@ -51,10 +51,10 @@ def clean_sudoc_extra(p):
 def get_publications_for_idref(idref):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     mydb = myclient['scanr']
-    collection_name = 'publi_meta'
+    collection_name = 'person_matcher_output'
     mycoll = mydb[collection_name]
     res = []
-    cursor = mycoll.find({ 'authors.person' : { '$in': [idref] } })
+    cursor = mycoll.find({ 'person_id' : { '$in': [idref] } })
     for r in cursor:
         del r['_id']
         res.append(r)
@@ -68,7 +68,7 @@ def analyze_sudoc(idref):
         publications = get_publications_for_idref(idref)
         sudoc_only = True
         for e in publications:
-            if 'sudoc' not in e['id']:
+            if 'sudoc' not in e['publication_id']:
                 sudoc_only=False
                 break
         idref_sudoc_only[idref] = sudoc_only
@@ -103,6 +103,7 @@ def get_matches_for_publication(publi_ids):
     return data
 
 def get_person_ids(publications, manual_matches):
+    logger.debug('get_person_ids')
     global vip_corresp_to_idref
     if len(vip_corresp_to_idref) == 0:
         get_vip_dict()
@@ -197,6 +198,7 @@ def get_vip_dict():
 
 
 def to_scanr(publications, df_orga, df_project, denormalize = False):
+    logger.debug(f'to_scanr denormalize = {denormalize}')
     global vip_dict
     global vip_corresp_to_idref
     if len(vip_dict)==0:
@@ -205,6 +207,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
     for p in publications:
         text_to_autocomplete =[]
         elt = {'id': p['id']}
+        for f in ['topics', 'cited_by_counts_by_year']:
+            if p.get(f):
+                elt[f] = p[f]
         text_to_autocomplete.append(p['id'])
         title_lang = None
         if 'lang' in p and isinstance(p['lang'], str) and len(p['lang'])==2:
@@ -537,16 +542,16 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     authors.append(author)
             if authors:
                 elt['authors'] = authors
-                #if 'sudoc' in elt['id']:
-                #    all_sudoc_only = True
-                #    for a in authors:
-                #        if a.get('person'):
-                #            current = analyze_sudoc(a['person'])
-                #            if current is False:
-                #                all_sudoc_only = False
-                #    if all_sudoc_only:
-                #        sudoc_id = elt['id'].replace('sudoc', '')
-                #        elt['year'] = None
+                if 'sudoc' in elt['id']:
+                    all_sudoc_only = True
+                    for a in authors:
+                        if a.get('person'):
+                            current = analyze_sudoc(a['person'])
+                            if current is False:
+                                all_sudoc_only = False
+                    if all_sudoc_only:
+                        sudoc_id = elt['id'].replace('sudoc', '')
+                        elt['year'] = None
                 #        #delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
 
 
@@ -631,7 +636,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 if co_software:
                     elt['co_software'] = co_software
             # projects
-            if elt.get('co_projects'):
+            if elt.get('projects'):
                 co_projects = get_co_occurences(elt['projects'], 'id_name')
                 if co_projects:
                     elt['co_projects'] = co_projects
@@ -649,6 +654,7 @@ def get_co_occurences(my_list, my_field):
     values_to_combine.sort()
     if len(values_to_combine) <= NB_MAX_CO_ELEMENTS:
         combinations = list(set(itertools.combinations(values_to_combine, 2)))
+        combinations.sort()
         res = [f'{a}---{b}' for (a,b) in combinations]
         return res
     return None
