@@ -14,7 +14,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.s3 import upload_s3
 from bso.server.main.scanr import to_scanr, get_person_ids, get_manual_matches, get_wrong_affiliations, remove_wrong_affiliations_links, get_black_list_publications
 from bso.server.main.transform import transform_publications
-from bso.server.main.utils import to_jsonl
+from bso.server.main.utils import to_jsonl, get_code_etab_nnt
 from bso.server.main.utils_swift import upload_object
 from bso.server.main.utils_upw import get_millesime
 from bso.server.main.openalex import enrich_with_openalex
@@ -174,6 +174,8 @@ def etl(args):
             logger.debug(f'chunk {ix}')
             publications = c.to_dict(orient='records')
             transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_dates)
+            if 'bso' in index_name:
+                publications = enrich_with_openalex(publications)
         
         if 'bso' in index_name:
             assert('scanr' not in index_name)
@@ -185,6 +187,7 @@ def etl(args):
     if transform_scanr:
         assert('-' in index_name)
         assert('scanr' in index_name)
+        bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict = build_bso_local_dict()
         index_name_suffix = index_name.split('-')[-1]
         full_index_name = f'scanr-publications-{index_name_suffix}'
         update_mongo = args.get('update_mongo', False)
@@ -215,6 +218,7 @@ def etl(args):
             publications = [p for p in publications if p['id'] not in black_list_publications]
             publications = get_person_ids(publications, manual_matches)
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
+            publications = update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
             publications = enrich_with_openalex(publications)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             # denormalized
@@ -431,3 +435,25 @@ def zip_upload(a_file, delete=True):
     upload_object(container='bso_dump', filename=f'{a_file}.gz')
     if delete:
         os.system(f'rm -rf {a_file}.gz')
+
+
+def update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict):
+    logger.debug('update_local_affiliations')
+    for p in publications:
+        p['bso_local_affiliations'] = []
+        for pid in p.get('all_ids', []):
+            if pid in bso_local_dict and isinstance(bso_local_dict[pid].get('affiliations'), list):
+                p['bso_local_affiliations']+=bso_local_dict[pid]['affiliations']
+        for coll in p.get('hal_collection_code', []):
+            if coll.lower() in hal_coll_code_dict:
+                p['bso_local_affiliations']+=hal_coll_code_dict[coll.lower()]
+        for hal_struct_id in p.get('hal_struct_id', []):
+            if hal_struct_id in hal_struct_id_dict:
+                p['bso_local_affiliations']+=hal_struct_id_dict[hal_struct_id]
+        nnt_id = p.get('nnt_id')
+        if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
+            p['bso_local_affiliations']+=nnt_etab_dict[get_code_etab_nnt(nnt_id, nnt_etab_dict)]
+        x = list(set(p['bso_local_affiliations']))
+        x.sort()
+        p['bso_local_affiliations'] = x
+    return publications

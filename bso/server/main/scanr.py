@@ -66,11 +66,14 @@ def analyze_sudoc(idref):
     global idref_sudoc_only
     if idref not in idref_sudoc_only:
         publications = get_publications_for_idref(idref)
-        sudoc_only = True
+        nb_publications = len(publications)
+        nb_not_sudoc = 0
         for e in publications:
             if 'sudoc' not in e['publication_id']:
-                sudoc_only=False
-                break
+                nb_not_sudoc += 1
+        sudoc_only = True
+        if nb_not_sudoc/nb_publications >= 0.03:
+            sudoc_only = False
         idref_sudoc_only[idref] = sudoc_only
     return idref_sudoc_only[idref]
 
