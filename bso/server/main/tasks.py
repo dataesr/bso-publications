@@ -153,11 +153,9 @@ def create_task_unpaywall_to_crawler(is_daily):
         files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=day'
     else:
         files_url = f'https://api.unpaywall.org/feed/changefiles?api_key={upw_api_key}&interval=week'
-    files_to_download = requests.get(files_url).json()['list']
+    files_to_download = requests.get(files_url, verify=False).json()['list']
     download_file(files_to_download[0]['url'], upload_to_object_storage=False, destination=destination)
-    
     crawl_all = True
-
     chunks = pd.read_json(destination, lines=True, chunksize=5000)
     for c in chunks:
         crawl_list = []

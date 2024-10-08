@@ -217,7 +217,7 @@ def get_filename_from_cd(cd: str) -> Union[str, None]:
 def download_file(url: str, upload_to_object_storage: bool = True, destination: str = None) -> str:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     start = datetime.datetime.now()
-    with requests.get(url, stream=True) as r:
+    with requests.get(url, stream=True, verify=False) as r:
         r.raise_for_status()
         try:
             local_filename = get_filename_from_cd(r.headers.get('content-disposition')).replace('"', '')
