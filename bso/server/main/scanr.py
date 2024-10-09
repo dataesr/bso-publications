@@ -72,7 +72,7 @@ def analyze_sudoc(idref):
             if 'sudoc' not in e['publication_id']:
                 nb_not_sudoc += 1
         sudoc_only = True
-        if nb_not_sudoc/nb_publications >= 0.03:
+        if (nb_publications>0) and (nb_not_sudoc/nb_publications >= 0.03):
             sudoc_only = False
         idref_sudoc_only[idref] = sudoc_only
     return idref_sudoc_only[idref]

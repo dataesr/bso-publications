@@ -444,12 +444,15 @@ def update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, 
         for pid in p.get('all_ids', []):
             if pid in bso_local_dict and isinstance(bso_local_dict[pid].get('affiliations'), list):
                 p['bso_local_affiliations']+=bso_local_dict[pid]['affiliations']
-        for coll in p.get('hal_collection_code', []):
-            if coll.lower() in hal_coll_code_dict:
-                p['bso_local_affiliations']+=hal_coll_code_dict[coll.lower()]
-        for hal_struct_id in p.get('hal_struct_id', []):
-            if hal_struct_id in hal_struct_id_dict:
-                p['bso_local_affiliations']+=hal_struct_id_dict[hal_struct_id]
+        if isinstance(p.get('hal_collection_code'), list):
+            for coll in p.get('hal_collection_code', []):
+                if coll.lower() in hal_coll_code_dict:
+                    p['bso_local_affiliations']+=hal_coll_code_dict[coll.lower()]
+        if isinstance(p.get('hal_struct_id'), list):
+            for hal_struct_id in p.get('hal_struct_id', []):
+                hal_struct_id_s = str(hal_struct_id).replace('.0', '')
+                if hal_struct_id_s in hal_struct_id_dict:
+                    p['bso_local_affiliations']+=hal_struct_id_dict[hal_struct_id_s]
         nnt_id = p.get('nnt_id')
         if isinstance(nnt_id, str) and get_code_etab_nnt(nnt_id, nnt_etab_dict) in nnt_etab_dict:
             p['bso_local_affiliations']+=nnt_etab_dict[get_code_etab_nnt(nnt_id, nnt_etab_dict)]
