@@ -40,9 +40,9 @@ RUN apt-get install -y nodejs
 
 WORKDIR /src
 
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
 
 COPY requirements.txt /src/requirements.txt
 RUN pip3 install --upgrade pip
