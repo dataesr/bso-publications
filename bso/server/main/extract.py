@@ -130,7 +130,7 @@ def merge_publications(current_publi, new_publi, locals_data):
     for f in ['has_availability_statement', 'softcite_details', 'datastet_details', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet', 'uid']:
         if f in new_publi:
             current_publi[f] = new_publi[f]
-            if ('details' not in f) and (current_publi[f]):
+            if (f in ['has_availability_statement', 'bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']) and (current_publi[f]):
                 current_publi[f] = int(current_publi[f])
             change = True
     # hal
