@@ -593,7 +593,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                             if 'context' in raw_m:
                                 softwares[current_key]['contexts'].append(raw_m['context'])
                 if softwares:
-                    elt['softwares'] = list(softwares.values())
+                    elt['software'] = list(softwares.values())
             
             # embeddings
             # TODO remove
@@ -634,8 +634,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 if co_domains:
                     elt['co_domains'] = co_domains
             # software from softcite
-            if elt.get('softwares'):
-                co_software = get_co_occurences(elt['softwares'], 'id_name')
+            if elt.get('software'):
+                co_software = get_co_occurences(elt['software'], 'id_name')
                 if co_software:
                     elt['co_software'] = co_software
             # projects
@@ -695,9 +695,12 @@ def get_wrong_affiliations():
     for a in infos:
         aff = a['raw_affiliation']
         if aff:
-            forbidden_link[aff] = set([k.strip() for k in a['wrong_ids'].split(';')])
+            wrong_ids = set([k.strip() for k in a['wrong_ids'].split(';')])
+            good_ids = set([k.strip() for k in str(a['good_ids']).split(';') if ((type(a['good_ids'])==str) and (a['good_ids']==a['good_ids']) and (len(k.strip())>2))])
+            forbidden_link[aff] = {'wrong': wrong_ids}
+            if len(good_ids)>0:
+                forbidden_link[aff]['good'] = good_ids
     return forbidden_link
-
 
 def remove_wrong_affiliations_links(publications, wrong_dict):
     # 200117270X ville /architecture
@@ -713,9 +716,15 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                     if 'ids' in aff and len(aff['ids']) > 0:
                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
                         if aff.get('name') in wrong_dict:
-                            logger.debug(f"remove wrong affiliation link for {aff['name']}")
+                            #logger.debug(f"remove wrong affiliation link for {aff['name']}")
                             check_author = True
-                            aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_dict[aff['name']]]
+                            wrongs_ids = wrong_dict[aff['name']]['wrong']
+                            aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
+                            goods_ids = wrong_dict[aff['name']].get('good')
+                            if goods_ids:
+                                aff['ids'] += goods_ids
+                                aff['ids'] = list(set(aff['ids']))
+
         if check_author:
             authors = p.get('authors')
             if isinstance(authors, list):
@@ -727,7 +736,12 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                                 if 'ids' in aff and len(aff['ids']) > 0:
                                     aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
                                     if aff.get('name') in wrong_dict:
-                                        aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_dict[aff['name']]]
+                                        wrongs_ids = wrong_dict[aff['name']]['wrong']
+                                        aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
+                                        goods_ids = wrong_dict[aff['name']].get('good')
+                                        if goods_ids:
+                                            aff['ids'] += goods_ids
+                                            aff['ids'] = list(set(aff['ids']))
     return publications
 
 def get_black_list_publications():
