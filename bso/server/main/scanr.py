@@ -718,7 +718,7 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                         if aff.get('name') in wrong_dict:
                             #logger.debug(f"remove wrong affiliation link for {aff['name']}")
                             check_author = True
-                            wrongs_ids = wrong_dict[aff['name']]['wrong']
+                            wrong_ids = wrong_dict[aff['name']]['wrong']
                             aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
                             goods_ids = wrong_dict[aff['name']].get('good')
                             if goods_ids:
@@ -736,7 +736,7 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                                 if 'ids' in aff and len(aff['ids']) > 0:
                                     aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
                                     if aff.get('name') in wrong_dict:
-                                        wrongs_ids = wrong_dict[aff['name']]['wrong']
+                                        wrong_ids = wrong_dict[aff['name']]['wrong']
                                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
                                         goods_ids = wrong_dict[aff['name']].get('good')
                                         if goods_ids:
