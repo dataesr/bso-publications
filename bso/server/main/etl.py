@@ -18,13 +18,14 @@ from bso.server.main.utils import to_jsonl, get_code_etab_nnt
 from bso.server.main.utils_swift import upload_object
 from bso.server.main.utils_upw import get_millesime
 from bso.server.main.openalex import enrich_with_openalex
+from bso.server.main.ipcc import add_predict_ipcc
 
 logger = get_logger(__name__)
-    
+
 os.makedirs(MOUNTED_VOLUME, exist_ok=True)
 
 FUNDING_AGENCIES = ['anr'] # lowercase
-            
+
 def get_collection_name(index_name):
     if 'scanr' in index_name:
         collection_name = 'publications_before_enrichment_scanr'
@@ -61,11 +62,12 @@ def etl(args):
     theses_date = args.get('theses_date')
     transform = args.get('transform')
     transform_scanr = args.get('transform_scanr')
+    predict_ipcc = args.get("predict_ipcc")
 
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     extract_output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
     scanr_split_prefix = extract_output_file.replace('_extract.jsonl', '_split_').split('/')[-1]
-   
+
     # getting correspondance for bso local metadata (ror in particular)
     locals_data = requests.get('https://raw.githubusercontent.com/dataesr/bso-ui/main/src/config/locals.json').json()
     logger.debug(f'{len(locals_data)} locals data from bso-ui loaded')
@@ -88,13 +90,13 @@ def etl(args):
 
         drop_collection('scanr', 'publications_before_enrichment')
         drop_collection('scanr', collection_name)
-        
+
         if 'local' in datasources:
             for filename in bso_local_filenames:
                 extract_one_bso_local(filename, bso_local_dict, collection_name, locals_data=locals_data)
         if 'bso3' in datasources:
             extract_container('bso3_publications_dump', bso_local_dict, skip_download=False, download_prefix='final_for_bso_2024', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name, locals_data=locals_data) #always fr
-        #if 'pubmed' in datasources:
+        # if 'pubmed' in datasources:
         #    extract_pubmed(bso_local_dict, collection_name)
         # medline depends on the year snapshot
         for d in datasources:
@@ -106,7 +108,7 @@ def etl(args):
                 if 'scanr' in index_name:
                     medline_path = f'aggregated/{medline_year}/fr'
                 extract_container('medline', bso_local_dict, skip_download_medline, download_prefix=medline_path, one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name, locals_data=locals_data) #always fr
-        #if 'medline' in datasources:
+        # if 'medline' in datasources:
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
             skip_download_parsed = True
@@ -135,14 +137,14 @@ def etl(args):
         # export to jsonl
         dump_cmd = f'mongoexport --forceTableScan --uri mongodb://mongo:27017/scanr --collection {collection_name} --out {extract_output_file}'
         os.system(dump_cmd)
-        
+
         # split file in several smaller files
         split_file(input_dir = '/upw_data', file_to_split = extract_output_file, nb_lines = nb_lines_transform, split_prefix = scanr_split_prefix, output_dir=output_dir, split_suffix = '_extract.jsonl')
 
         reset_index(index=index_name)
         if 'scanr' in index_name:
             drop_collection('scanr', 'publi_meta')
-    
+
     # enrichment
     before_transform_file = f'{output_dir}/{index_name}_split_{split_idx}_extract.jsonl'
     enriched_output_file = f'{output_dir}/{index_name}_split_{split_idx}.jsonl'
@@ -167,7 +169,7 @@ def etl(args):
             df_chunks = []
             logger.debug(f'The file {before_transform_file} does not exists.')
         os.system(f'rm -rf {enriched_output_file}')
- 
+
         ix = -1
         for c in df_chunks:
             ix += 1
@@ -176,14 +178,14 @@ def etl(args):
             transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_dates)
             if 'bso' in index_name:
                 publications = enrich_with_openalex(publications)
-        
+
         if 'bso' in index_name:
             assert('scanr' not in index_name)
             elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
             bso_local_filenames = get_bso_local_filenames()
             create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
-    
+
     if transform_scanr:
         assert('-' in index_name)
         assert('scanr' in index_name)
@@ -201,8 +203,8 @@ def etl(args):
         assert('scanr' in index_name)
         df_orga = get_orga_data()
         df_project = get_projects_data()
-        #scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
-        #os.system(f'rm -rf {scanr_output_file}')
+        # scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
+        # os.system(f'rm -rf {scanr_output_file}')
         scanr_output_file_denormalized =  f'{output_dir}/{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
         os.system(f'rm -rf {scanr_output_file_denormalized}')
         if os.path.isfile(enriched_output_file):
@@ -220,6 +222,8 @@ def etl(args):
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
             publications = update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
             publications = enrich_with_openalex(publications)
+            if predict_ipcc:
+                publications = add_predict_ipcc(publications)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             # denormalized
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
