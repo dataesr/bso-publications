@@ -33,6 +33,7 @@ from bso.server.main.scanr import to_light
 from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv
 from bso.server.main.s3 import upload_s3
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
+from bso.server.main.openalex import enrich_with_openalex
 
 from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual 
 
@@ -86,6 +87,7 @@ def transform_publications(publications, index_name, observations, affiliation_m
         entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_dates=hal_dates, index_name=index_name)
     if 'bso-publications' in index_name:
         enriched_publications = [remove_fields_bso(p) for p in enriched_publications if p.get('oa_details', False)]
+        enriched_publications = enrich_with_openalex(enriched_publications)
     enriched_publications = [remove_too_long_affiliation(p) for p in enriched_publications]
     to_jsonl(enriched_publications, enriched_output_file, write_mode)
 

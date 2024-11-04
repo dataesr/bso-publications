@@ -176,8 +176,6 @@ def etl(args):
             logger.debug(f'chunk {ix}')
             publications = c.to_dict(orient='records')
             transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_dates)
-            if 'bso' in index_name:
-                publications = enrich_with_openalex(publications)
 
         if 'bso' in index_name:
             assert('scanr' not in index_name)
