@@ -91,8 +91,11 @@ def compute_stats(args):
         if row['my_dewey'] not in discip:
             discip[row['my_dewey']] = {'F': set([]), 'M': set([])}
 
-        directeur_F = [k for k in row['dir_F_idref'].split(';') if len(k)>5]
-        directeur_M = [k for k in row['dir_M_idref'].split(';') if len(k)>5]
+        directeur_F, directeur_M = [], []
+        if isinstance(row['dir_F_idref'], str):
+            directeur_F = [k for k in row['dir_F_idref'].split(';') if len(k)>5]
+        if isinstance(row['dir_M_idref'], str):
+            directeur_M = [k for k in row['dir_M_idref'].split(';') if len(k)>5]
 
         annee[row['annee']]['F'].update(directeur_F)
         annee[row['annee']]['M'].update(directeur_M)
