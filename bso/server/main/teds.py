@@ -52,9 +52,8 @@ def add_predict_ipcc(publications):
         predictions = teds_models["ipcc"].predict(input, k=-1, threshold=0.6)
 
         ipcc_predictions = []
-        for index, predict_label in enumerate(predictions[0]):
-            label = predict_label.replace("__label__", "")
-            probability = predictions[1][index]
+        for label, probability in zip(predictions[0], predictions[1]):
+            label = label.replace("__label__", "")
             ipcc_predictions.append({"label": label, "probability": probability, "type": "ipcc"})
 
         if ipcc_predictions:
