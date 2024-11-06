@@ -1,67 +1,98 @@
-from bso.server.main.logger import get_logger
-import fasttext
 import os
-
+import fasttext
+from bso.server.main.logger import get_logger
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.utils import download_file
 
 logger = get_logger(__name__)
-
 project_id = os.getenv("OS_TENANT_ID")
 
+# Define the model files
+MODEL_FILES = {
+    "ipcc": "fasttext_model_teds_20241106.bin",
+    "ipcc_wg": "fasttext_model_teds_wg_20241106.bin",
+}
+
+# Initialize the models
 teds_models = {}
-ipcc_model_file = "fasttext_model_teds_20241106.bin"
 
 
-def init_model_ipcc() -> None:
-    logger.debug("Init model IPCC")
+def init_model_from_file(model_file: str) -> any:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
-    ipcc_model_name = f"{MOUNTED_VOLUME}{ipcc_model_file}"
-    if not os.path.exists(ipcc_model_name):
+    model_path = os.path.join(MOUNTED_VOLUME, model_file)
+
+    if not os.path.exists(model_path):
         download_file(
-            f"https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/models/{ipcc_model_file}",
+            f"https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/models/{model_file}",
             upload_to_object_storage=False,
-            destination=ipcc_model_name,
+            destination=model_path,
         )
-    ipcc_model = fasttext.load_model(ipcc_model_name)
-    teds_models["ipcc"] = ipcc_model
-    logger.debug("Init model IPCC done")
+    return fasttext.load_model(model_path)
 
 
-def add_predict_ipcc(publications):
-    if "ipcc" not in teds_models:
-        init_model_ipcc()
+def init_models():
+    for model_name, model_file in MODEL_FILES.items():
+        logger.debug(f"Init model {model_name}")
+        teds_models[model_name] = init_model_from_file(model_file)
+        logger.debug(f"Init model {model_name} done")
 
-    logger.debug("Start predict ipcc")
 
-    for p in publications:
-        title = p["title"] if p.get("title") and isinstance(p["title"], str) else ""
-        journal_name = p["journal_name"] if p.get("journal_name") and isinstance(p["journal_name"], str) else ""
-        journal_issns = p["journal_issns"] if p.get("journal_issns") and isinstance(p["journal_issns"], str) else ""
-        topics = []
-        for topic in p.get("topics", []):
-            name = topic.get("display_name")
-            subfield = topic.get("subfield", {}).get("display_name")
-            if name:
-                topics.append(name)
-            if subfield:
-                topics.append(subfield)
-        topics = " ".join(set(topics))
+def publication_input(publication):
+    title = publication["title"] if isinstance(publication.get("title"), str) else ""
+    journal_name = publication["journal_name"] if isinstance(publication.get("journal_name"), str) else ""
+    journal_issns = publication["journal_issns"] if isinstance(publication.get("journal_issns"), str) else ""
 
-        input = f"{title} {topics} {journal_name} {journal_issns}"
-        predictions = teds_models["ipcc"].predict(input, k=-1, threshold=0.5)
+    topics = []
+    for topic in publication.get("topics", []):
+        name = topic.get("display_name")
+        subfield = topic.get("subfield", {}).get("display_name")
+        if name:
+            topics.append(name)
+        if subfield:
+            topics.append(subfield)
+    topics = " ".join(set(topics))
 
-        ipcc_predictions = []
-        for label, probability in zip(*predictions):
-            label = label.replace("__label__", "")
-            ipcc_predictions.append({"label": label, "probability": probability, "type": "ipcc"})
+    return f"{title} {topics} {journal_name} {journal_issns}"
 
-        if ipcc_predictions:
-            if p.get("predict_teds"):
-                p["predict_teds"].append(ipcc_predictions)
+
+def predict_teds(input):
+    predict_teds = []
+
+    # Predict IPCC
+    ipcc_predictions = teds_models["ipcc"].predict(input, k=1)
+    ipcc_label = ipcc_predictions[0][0].replace("__label__", "")
+    ipcc_probability = ipcc_predictions[1][0]
+
+    if ipcc_label == "not_ipcc":
+        return []
+
+    predict_teds.append({"label": ipcc_label, "probability": ipcc_probability})
+
+    # Predict IPCC working groups
+    ipcc_wg_predictions = teds_models["ipcc_wg"].predict(input, k=-1, threshold=0.5)
+    for label, probability in zip(*ipcc_wg_predictions):
+        label = "ipcc_" + label.replace("__label__", "")
+        predict_teds.append({"label": label, "probability": probability})
+
+    return predict_teds
+
+
+def add_predict_teds(publications):
+    if not teds_models:
+        init_models()
+
+    logger.debug("Start predict teds")
+
+    for publication in publications:
+        input = publication_input(publication)
+        predict_teds = predict_teds(input)
+
+        if predict_teds:
+            if publication.get("predict_teds"):
+                publication["predict_teds"] += predict_teds
             else:
-                p.update({"predict_teds": ipcc_predictions})
+                publication["predict_teds"] = predict_teds
 
-    logger.debug("End predict ipcc")
+    logger.debug("Predict teds done")
 
     return publications
