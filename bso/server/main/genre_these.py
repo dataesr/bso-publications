@@ -13,13 +13,24 @@ logger = get_logger(__name__)
 
 DATAESR_HEADER = os.getenv('DATAESR_HEADER')
 
+genre_dict = {}
 cor = {}
 dew = pd.read_csv('/src/bso/server/main/dewey_discipline.csv')
 dew.at[46, 'dewey'] = 'Sciences humaines'
 for i, row in dew.iterrows():
     cor[row['index']] = row['dewey'].strip()
 
+def extract_genre():
+    global genre_dict
+    cmd = f"cat /upw_data/scanr/persons_denormalized.jsonl | jq  -r '[.idref,.gender,.firstName,.lastName]|@csv' | grep -v ',,' > /upw_data/scanr/gender.csv"
+    os.system(cmd)
+    df = pd.read_csv('/upw_data/scanr/gender.csv', header=None, names=['idref', 'gender', 'first_name', 'last_name'])
+    for r in df.itertuples():
+        genre_dict[r.idref] = r.gender
+
+
 def compute_genre(args):
+    extract_genre()
     if args.get('parse', False):
         parse_these_with_genre(args)
     if args.get('stats', False):
@@ -237,13 +248,19 @@ def get_disc(dewey, discipline):
 
 @retry(delay=200, tries=3)
 def get_genre(person):
+    global genre_dict
+    assert(len(genre_dict)>1000)
     header = {'Authorization': f'Basic {DATAESR_HEADER}' }
     if 'idref' in person and len(person['idref'])>5:
-        idref = 'idref'+person['idref']
-        r_get = requests.get("http://185.161.45.213/persons/persons/"+idref, headers=header)
-        res_idref = r_get.json()
-        if 'gender' in res_idref and res_idref['gender'] in ['M', 'F']:
-            return res_idref['gender']
+        if person['idref'] in genre_dict:
+            gd = genre_dict[person['idref']]
+            if gd in ['M', 'F']:
+                return gd
+        #idref = 'idref'+person['idref']
+        #r_get = requests.get("http://185.161.45.213/persons/persons/"+idref, headers=header)
+        #res_idref = r_get.json()
+        #if 'gender' in res_idref and res_idref['gender'] in ['M', 'F']:
+        #    return res_idref['gender']
 
     name = person.get('first_name')
     if name is None or len(name) < 3:
