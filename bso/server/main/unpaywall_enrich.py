@@ -550,13 +550,17 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         # get infos for the DOI, data_unpaywall contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
         data_unpaywall = get_unpaywall_history(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # list hal_id without doi
-        hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
+        # test 20241106
+        #hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
+        hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str)]
         # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
         hal_dates.sort()
-        # get HAL history for all dates but not the last one (already the from the extract step)
+        # get HAL history for all dates
         data_hal = {}
         if len(hal_dates)>1:
-            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates[0:-1], last_observation_date_only=last_observation_date_only)
+            # test 20241106
+            #data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates[0:-1], last_observation_date_only=last_observation_date_only)
+            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates, last_observation_date_only=last_observation_date_only)
         data = {**data_hal, **data_unpaywall}
 
         # publis_dict contains info for all publi, even if no DOI crossref
