@@ -29,3 +29,12 @@ release:
 	git commit -am '[release] version $(VERSION)'
 	git tag $(VERSION)
 	@echo If everything is OK, you can push with tags i.e. git push origin main --tags
+
+release-scanr:
+	echo "__version__ = '$(CURRENT_VERSION)-scanr'" > bso/__init__.py
+	@echo Building scanr image $(CURRENT_VERSION)-scanr
+	docker build -t $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)-scanr -t $(GHCR_IMAGE_NAME):latest .
+	@echo Pushing scanr image $(CURRENT_VERSION)-scanr
+	docker push -a $(GHCR_IMAGE_NAME)
+	@echo $(CURRENT_VERSION)-scanr image pushed
+	echo "__version__ = '$(CURRENT_VERSION)'" > bso/__init__.py
