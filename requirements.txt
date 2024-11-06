@@ -5,7 +5,7 @@ requests-mock==1.9.2
 
 # Dependencies
 beautifulsoup4==4.8.2
-CurrencyConverter==0.16
+CurrencyConverter==0.17.34
 elasticsearch==7.8.0
 fasttext==0.9.2
 Flask==2.1.0
