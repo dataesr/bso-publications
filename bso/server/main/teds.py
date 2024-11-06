@@ -7,17 +7,15 @@ from bso.server.main.utils import download_file
 logger = get_logger(__name__)
 project_id = os.getenv("OS_TENANT_ID")
 
-# Define the model files
-MODEL_FILES = {
+TEDS_MODELS_FILES = {
     "ipcc": "fasttext_model_teds_20241106.bin",
     "ipcc_wg": "fasttext_model_teds_wg_20241106.bin",
 }
 
-# Initialize the models
 teds_models = {}
 
 
-def init_model_from_file(model_file: str) -> any:
+def fasttext_load_from_file(model_file: str) -> any:
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     model_path = os.path.join(MOUNTED_VOLUME, model_file)
 
@@ -30,14 +28,14 @@ def init_model_from_file(model_file: str) -> any:
     return fasttext.load_model(model_path)
 
 
-def init_models():
-    for model_name, model_file in MODEL_FILES.items():
+def teds_init_models():
+    for model_name, model_file in TEDS_MODELS_FILES.items():
         logger.debug(f"Init model {model_name}")
-        teds_models[model_name] = init_model_from_file(model_file)
+        teds_models[model_name] = fasttext_load_from_file(model_file)
         logger.debug(f"Init model {model_name} done")
 
 
-def publication_input(publication):
+def teds_get_publication_input(publication):
     title = publication["title"] if isinstance(publication.get("title"), str) else ""
     journal_name = publication["journal_name"] if isinstance(publication.get("journal_name"), str) else ""
     journal_issns = publication["journal_issns"] if isinstance(publication.get("journal_issns"), str) else ""
@@ -55,7 +53,7 @@ def publication_input(publication):
     return f"{title} {topics} {journal_name} {journal_issns}"
 
 
-def predict_teds(input):
+def teds_predictions(input):
     predict_teds = []
 
     # Predict IPCC
@@ -77,15 +75,15 @@ def predict_teds(input):
     return predict_teds
 
 
-def add_predict_teds(publications):
+def add_teds_predictions(publications):
     if not teds_models:
-        init_models()
+        teds_init_models()
 
     logger.debug("Start predict teds")
 
     for publication in publications:
-        input = publication_input(publication)
-        predict_teds = predict_teds(input)
+        input = teds_get_publication_input(publication)
+        predict_teds = teds_predictions(input)
 
         if predict_teds:
             publication["predict_teds"] = predict_teds
