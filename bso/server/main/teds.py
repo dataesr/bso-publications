@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 project_id = os.getenv("OS_TENANT_ID")
 
 teds_models = {}
-ipcc_model_file = "fasttext_model_teds_20241105.bin"
+ipcc_model_file = "fasttext_model_teds_20241106.bin"
 
 
 def init_model_ipcc() -> None:
@@ -49,10 +49,10 @@ def add_predict_ipcc(publications):
         topics = " ".join(set(topics))
 
         input = f"{title} {topics} {journal_name} {journal_issns}"
-        predictions = teds_models["ipcc"].predict(input, k=-1, threshold=0.6)
+        predictions = teds_models["ipcc"].predict(input, k=-1, threshold=0.5)
 
         ipcc_predictions = []
-        for label, probability in zip(predictions[0], predictions[1]):
+        for label, probability in zip(*predictions):
             label = label.replace("__label__", "")
             ipcc_predictions.append({"label": label, "probability": probability, "type": "ipcc"})
 
