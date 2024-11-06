@@ -88,10 +88,7 @@ def add_predict_teds(publications):
         predict_teds = predict_teds(input)
 
         if predict_teds:
-            if publication.get("predict_teds"):
-                publication["predict_teds"] += predict_teds
-            else:
-                publication["predict_teds"] = predict_teds
+            publication["predict_teds"] = predict_teds
 
     logger.debug("Predict teds done")
 

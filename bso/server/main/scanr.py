@@ -210,7 +210,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
     for p in publications:
         text_to_autocomplete =[]
         elt = {'id': p['id']}
-        for f in ['topics', 'cited_by_counts_by_year']:
+        for f in ['topics', 'cited_by_counts_by_year', 'predict_teds']:
             if p.get(f):
                 elt[f] = p[f]
         text_to_autocomplete.append(p['id'])

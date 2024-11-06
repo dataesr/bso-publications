@@ -18,7 +18,7 @@ from bso.server.main.utils import to_jsonl, get_code_etab_nnt
 from bso.server.main.utils_swift import upload_object
 from bso.server.main.utils_upw import get_millesime
 from bso.server.main.openalex import enrich_with_openalex
-from bso.server.main.teds import add_predict_ipcc
+from bso.server.main.teds import add_predict_teds
 
 logger = get_logger(__name__)
 
@@ -61,8 +61,7 @@ def etl(args):
     split_idx = args.get('split_idx')
     theses_date = args.get('theses_date')
     transform = args.get('transform')
-    transform_scanr = args.get('transform_scanr')
-    predict_ipcc = args.get("predict_ipcc")
+    transform_scanr = args.get("transform_scanr")
 
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     extract_output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
@@ -220,8 +219,7 @@ def etl(args):
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
             publications = update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
             publications = enrich_with_openalex(publications)
-            if predict_ipcc:
-                publications = add_predict_ipcc(publications)
+            publications = add_predict_teds(publications)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             # denormalized
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
