@@ -8,7 +8,7 @@ from currency_converter import CurrencyConverter
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
-c = CurrencyConverter(fallback_on_missing_rate=True)
+c = CurrencyConverter(fallback_on_missing_rate=True, fallback_on_wrong_date=True)
 
 doaj_infos = {}
 

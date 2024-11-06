@@ -272,7 +272,9 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
             res.update(pred_info)
         
         # OA Details
+        has_oa_info_from_doi = False
         if isinstance(doi, str) and doi in dois_infos:
+            has_oa_info_from_doi = True
             res['observation_dates'] = []
             res['oa_details'] = {}
             last_millesime = None
@@ -334,7 +336,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                                     res['hal_id'] = hal_id
 
         hal_id = res.get('hal_id')
-        if isinstance(hal_id, str) and hal_id in dois_infos:
+        if isinstance(hal_id, str) and (hal_id in dois_infos) and (has_oa_info_from_doi is False):
             # res['oa_details'] = {**dois_infos[hal_id], **res['oa_details']}
             current_oa_details = res.get('oa_details', {})
             hal_oa_details = dois_infos[hal_id]
@@ -550,13 +552,17 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
         # get infos for the DOI, data_unpaywall contains unpaywall infos (oa_details + crossref meta) => only on crossref DOIs
         data_unpaywall = get_unpaywall_history(dois=doi_chunk, observations=observations, last_observation_date_only=last_observation_date_only)
         # list hal_id without doi
-        hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
+        # test 20241106
+        #hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str) and 'doi' not in p]
+        hal_chunk = [p.get('hal_id') for p in publi_chunk if p and isinstance(p.get('hal_id'), str)]
         # data_hal contains HAL infos (oa_details + crossref meta) => only on hal_ids
         hal_dates.sort()
-        # get HAL history for all dates but not the last one (already the from the extract step)
+        # get HAL history for all dates
         data_hal = {}
         if len(hal_dates)>1:
-            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates[0:-1], last_observation_date_only=last_observation_date_only)
+            # test 20241106
+            #data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates[0:-1], last_observation_date_only=last_observation_date_only)
+            data_hal = get_hal_history(hal_ids=hal_chunk, observations=hal_dates, last_observation_date_only=last_observation_date_only)
         data = {**data_hal, **data_unpaywall}
 
         # publis_dict contains info for all publi, even if no DOI crossref
