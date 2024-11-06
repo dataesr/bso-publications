@@ -18,7 +18,7 @@ from bso.server.main.utils import to_jsonl, get_code_etab_nnt
 from bso.server.main.utils_swift import upload_object
 from bso.server.main.utils_upw import get_millesime
 from bso.server.main.openalex import enrich_with_openalex
-from bso.server.main.ipcc import add_predict_ipcc
+from bso.server.main.teds import add_predict_ipcc
 
 logger = get_logger(__name__)
 
