@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 project_id = os.getenv("OS_TENANT_ID")
 
 TEDS_MODELS_FILES = {
-    "ipcc": "fasttext_model_teds_20241106.bin",
+    "ipcc": "fasttext_model_teds_20241107.bin",
     "ipcc_wg": "fasttext_model_teds_wg_20241106.bin",
 }
 
