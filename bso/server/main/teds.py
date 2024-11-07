@@ -1,5 +1,6 @@
 import os
 import fasttext
+import neattext.functions as nfx
 from bso.server.main.logger import get_logger
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.utils import download_file
@@ -50,16 +51,23 @@ def teds_get_publication_input(publication):
             topics.append(subfield)
     topics = " ".join(set(topics))
 
-    return f"{title} {topics} {journal_name} {journal_issns}"
+    input = f"{title} {topics} {journal_name} {journal_issns}"
+    input_clean = nfx.remove_stopwords(input.lower().replace("\n", ""))
+
+    return input_clean
 
 
 def teds_predictions(input):
     predict_teds = []
 
+    logger.debug(f"input: {input}")
+
     # Predict IPCC
     ipcc_predictions = teds_models["ipcc"].predict(input, k=1)
     ipcc_label = ipcc_predictions[0][0].replace("__label__", "")
     ipcc_probability = ipcc_predictions[1][0]
+
+    logger.debug(f"ipcc_prediction: {ipcc_label} ({ipcc_probability})")
 
     if ipcc_label == "not_ipcc":
         return []
@@ -67,10 +75,13 @@ def teds_predictions(input):
     predict_teds.append({"label": ipcc_label, "probability": ipcc_probability})
 
     # Predict IPCC working groups
-    ipcc_wg_predictions = teds_models["ipcc_wg"].predict(input, k=-1, threshold=0.5)
-    for label, probability in zip(*ipcc_wg_predictions):
-        label = "ipcc_" + label.replace("__label__", "")
-        predict_teds.append({"label": label, "probability": probability})
+    wg_predictions = teds_models["ipcc_wg"].predict(input, k=-1, threshold=0.5)
+    for wg_label, wg_probability in zip(*wg_predictions):
+        wg_label = "ipcc_" + wg_label.replace("__label__", "")
+
+        logger.debug(f"wg_prediction: {wg_label} ({wg_probability})")
+
+        predict_teds.append({"label": wg_label, "probability": wg_probability})
 
     return predict_teds
 
