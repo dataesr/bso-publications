@@ -696,10 +696,13 @@ def get_wrong_affiliations():
         aff = a['raw_affiliation']
         if aff:
             wrong_ids = set([k.strip() for k in a['wrong_ids'].split(';')])
-            good_ids = set([k.strip() for k in str(a['good_ids']).split(';') if ((type(a['good_ids'])==str) and (a['good_ids']==a['good_ids']) and (len(k.strip())>2))])
+            good_ids = [k.strip() for k in str(a['good_ids']).split(';') if ((type(a['good_ids'])==str) and (a['good_ids']==a['good_ids']) and (len(k.strip())>2))]
+            good_ids_type = [k.strip() for k in str(a['good_ids_type']).split(';') if ((type(a['good_ids_type'])==str) and (a['good_ids_type']==a['good_ids_type']) and (len(k.strip())>2))]
             forbidden_link[aff] = {'wrong': wrong_ids}
-            if len(good_ids)>0:
-                forbidden_link[aff]['good'] = good_ids
+            if len(good_ids) > 0:
+                forbidden_link[aff]['good'] = []
+            for ix, good_id in enumerate(good_ids):
+                forbidden_link[aff]['good'].append({'id': good_ids[ix], 'type':good_ids_type[ix], 'source': 'manual'})
     return forbidden_link
 
 def remove_wrong_affiliations_links(publications, wrong_dict):
@@ -723,7 +726,6 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                             goods_ids = wrong_dict[aff['name']].get('good')
                             if goods_ids:
                                 aff['ids'] += goods_ids
-                                aff['ids'] = list(set(aff['ids']))
 
         if check_author:
             authors = p.get('authors')
@@ -741,7 +743,6 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                                         goods_ids = wrong_dict[aff['name']].get('good')
                                         if goods_ids:
                                             aff['ids'] += goods_ids
-                                            aff['ids'] = list(set(aff['ids']))
     return publications
 
 def get_black_list_publications():
