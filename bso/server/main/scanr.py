@@ -645,7 +645,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     elt['co_projects'] = co_projects
         elt = clean_json(elt)
         if elt:
-            if elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:
+            if elt.get('year') is None:
+                continue
+            elif elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:
                 continue
             else:
                 scanr_publications.append(elt)
