@@ -254,16 +254,16 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             landingPage = elt['doiUrl']
         external_ids = []
         for idi in p.get('all_ids', []):
-            if idi[0:3] == 'doi':
+            if idi[0:3] == 'doi' and len(idi)>6:
                 currentId = idi[3:]
                 external_ids.append({'type': 'doi', 'id': currentId})
-            if idi[0:3] == 'hal':
+            if idi[0:3] == 'hal' and len(idi)>6:
                 external_ids.append({'type': 'hal', 'id': idi[3:]})
                 if landingPage is None:
                     landingPage = f"https://hal.science/{idi[3:]}"
-            if idi[0:4] == 'pmid':
+            if idi[0:4] == 'pmid' and len(idi)>7:
                 external_ids.append({'type': 'pmid', 'id': idi[4:]})
-            if idi[0:3] == 'nnt':
+            if idi[0:3] == 'nnt' and len(idi)>6:
                 external_ids.append({'type': 'nnt', 'id': idi[3:]})
         if external_ids:
             elt['externalIds'] = external_ids
