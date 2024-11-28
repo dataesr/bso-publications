@@ -210,7 +210,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
     for p in publications:
         text_to_autocomplete =[]
         elt = {'id': p['id']}
-        for f in ['topics', 'cited_by_counts_by_year', 'predict_teds']:
+        for f in ["topics", "cited_by_counts_by_year", "predict_teds", "tags"]:
             if p.get(f):
                 elt[f] = p[f]
         text_to_autocomplete.append(p['id'])
@@ -224,7 +224,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 text_to_autocomplete.append(p['title'])
         else:
             continue
-        #field abstract / abstracts 
+        # field abstract / abstracts
         abstracts = []
         if isinstance(p.get('abstracts'), list):
             abstracts = p['abstracts']
@@ -350,9 +350,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             if oa_evidence:
                 elt['oaEvidence'] = oa_evidence
 
-        
         elt['source'] = source      
-        
+
         # domains
         domains = []
         if isinstance(p.get('classifications'), list):
@@ -386,7 +385,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             domains.append({'label': {'default': p['bso_classification']}, 'type': 'bso_classification'})
         if isinstance(p.get('bsso_classification'), dict) and isinstance(p['bsso_classification'].get('field'), str):
             domains.append({'label': {'default': p['bsso_classification']['field']}, 'type': 'bsso_classification'})
-        #if p.get('sdg_classification'):
+        # if p.get('sdg_classification'):
         #    domains.append({'label': {'default': p['bso_classification']}, 'type': 'bso_classification'})
         # keywords
         keywords = []
@@ -433,12 +432,12 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
         global_affiliations = []
         if isinstance(p.get('affiliations'), list):
             for aff in p['affiliations']:
-                #data from matcher
+                # data from matcher
                 if isinstance(aff.get('ids'), list):
                     for x in aff['ids']:
                         if x.get('id'):
                             global_affiliations.append(x['id'])
-                #data scraped
+                # data scraped
                 for t in ['grid', 'rnsr', 'ror', 'sirene', 'siren', 'siret']:
                     if isinstance(aff.get(t), list):
                         for x in aff[t]:
@@ -446,7 +445,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                 global_affiliations.append(x)
                     if isinstance(aff.get(t), str) and aff[t] not in global_affiliations:
                         global_affiliations.append(aff[t])
-        #data from local bso
+        # data from local bso
         if isinstance(p.get('bso_local_affiliations'), list):
             elt['bso_local_affiliations'] = p['bso_local_affiliations']
             for aff in p['bso_local_affiliations']:
@@ -454,7 +453,7 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     global_affiliations.append(aff)
         if global_affiliations:
             elt['affiliations'] = list(set(global_affiliations))
-        
+
         denormalized_affiliations_dict = {} 
         if denormalize:
             elt['landingPage'] = landingPage
@@ -557,7 +556,6 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                         elt['year'] = None
                 #        #delete_object('sudoc', f'parsed/{sudoc_id[-2:]}/{sudoc_id}.json')
 
-
         if denormalize:
 
             if text_to_autocomplete:
@@ -594,16 +592,16 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                                 softwares[current_key]['contexts'].append(raw_m['context'])
                 if softwares:
                     elt['software'] = list(softwares.values())
-            
+
             # embeddings
             # TODO remove
-            #if elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
-            #if 0.87 <= random.random() <= 0.871:
+            # if elt.get('year') and elt['year'] >= 2019 and 'doi' in elt['id']:
+            # if 0.87 <= random.random() <= 0.871:
             #    if not isinstance(p.get('embeddings'), list) or len(p['embeddings']) != 1024:
             #        p['embeddings'] = get_embeddings(p)
-            #if isinstance(p.get('embeddings'), list) and len(p['embeddings']) == 1024:
+            # if isinstance(p.get('embeddings'), list) and len(p['embeddings']) == 1024:
             #    elt['vector_text'] = p['embeddings']
-            
+
             # for network mapping
             # authors network
             if authors:

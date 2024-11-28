@@ -36,7 +36,6 @@ def tags_add_ipcc(tags, publication):
     publication_tags = []
 
     # Add tags for ipcc publications
-    logger.debug(f"add tags for publication {publication_id}")
     if publication_id in data["ipcc"] and data["ipcc"].get(publication_id):
 
         publication_tags.append({"id": "ipcc", "label": {"fr": "giec", "en": "ipcc", "default": "ipcc"}})
@@ -69,7 +68,6 @@ def tags_add_ipcc(tags, publication):
                 }
             )
 
-    logger.debug(f"publication tags: {publication_tags}")
     tags.extend(publication_tags)
 
 
@@ -81,8 +79,6 @@ def add_tags(publications):
 
         # tag ipcc publications
         tags_add_ipcc(tags, publication)
-
-        logger.debug(f"tags: {tags}")
 
         if tags:
             publication["tags"] = tags
