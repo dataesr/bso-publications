@@ -27,13 +27,17 @@ def load_ipcc_data():
     data["ipcc"] = data_ipcc
 
 
-def tags_add_ipcc(tags: list, publication_id: str):
+def tags_add_ipcc(tags: list, publication):
     if "ipcc" not in data:
         load_ipcc_data()
 
+    publication_id = publication["id"]
+    publication_predict_teds = publication.get("predict_teds", [])
+    publication_tags = []
+
+    # Add tags for ipcc publications
     if publication_id in data["ipcc"] and data["ipcc"].get(publication_id):
 
-        publication_tags = []
         publication_tags.append({"id": "ipcc", "label": {"fr": "giec", "en": "ipcc", "default": "ipcc"}})
 
         ipcc_wgs = []
@@ -54,8 +58,16 @@ def tags_add_ipcc(tags: list, publication_id: str):
                 }
             )
 
-        tags.extend(publication_tags)
 
+    # Add tags for ipcc prediction
+    for predict in publication_predict_teds:
+        if predict.get("label", "").startswith("ipcc"):
+            publication_tags.append({
+                "id": f"predict_{predict["label"]}",
+                "label": {"default": f"predict_{predict["label"]}"}
+            })
+            
+    tags.extend(publication_tags)
 
 def add_tags(publications: list) -> list:
     logger.debug("Start add tags")
@@ -64,7 +76,7 @@ def add_tags(publications: list) -> list:
         tags = []
 
         # tag ipcc publications
-        tags_add_ipcc(tags, publication["id"])
+        tags_add_ipcc(tags, publication)
 
         if tags:
             publication["tags"] = tags
