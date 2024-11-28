@@ -10,10 +10,10 @@ project_id = os.getenv("OS_TENANT_ID")
 data = {}
 
 
-def load_ipcc_ids() -> list:
+def load_ipcc_data():
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
-    file = "data_ipcc.zip"
-    path = os.path.join(MOUNTED_VOLUME, "data_ipcc.zip")
+    file = "ipcc_ipbes_chapters.jsonl"
+    path = os.path.join(MOUNTED_VOLUME, file)
 
     if not os.path.exists(path):
         download_file(
@@ -22,17 +22,39 @@ def load_ipcc_ids() -> list:
             destination=path,
         )
 
-    data_ipcc = pd.read_json(path, compression="zip")
-    ipcc_ids = data_ipcc["doi"].to_list()
-    data["ipcc_ids"] = ipcc_ids or []
+    data_ipcc = pd.read_json(path, lines=True, orient="records")
+    data_ipcc = data_ipcc.set_index("doi")["ipcc"].to_dict()
+    data["ipcc"] = data_ipcc
 
 
-def tags_add_ipcc(tags, publication_id: str):
-    if "ipcc_ids" not in data:
-        load_ipcc_ids()
+def tags_add_ipcc(tags: list, publication_id: str):
+    if "ipcc" not in data:
+        load_ipcc_data()
 
-    if publication_id in data["ipcc_ids"]:
-        tags.append("ipcc")
+    if publication_id in data["ipcc"] and data["ipcc"].get(publication_id):
+
+        publication_tags = []
+        publication_tags.append({"id": "ipcc", "label": {"fr": "giec", "en": "ipcc", "default": "ipcc"}})
+
+        ipcc_wgs = []
+        for ipcc_chapter in data["ipcc"][publication_id]:
+            ipcc_wg = ipcc_chapter[0:3]
+            if ipcc_wg not in ipcc_wgs:
+                ipcc_wgs.append(ipcc_wg)
+                publication_tags.append(
+                    {
+                        "id": f"ipcc_{ipcc_wg}",
+                        "label": {"fr": f"giec_{ipcc_wg}", "en": f"ipcc_{ipcc_wg}", "default": f"ipcc_{ipcc_wg}"},
+                    }
+                )
+            publication_tags.append(
+                {
+                    "id": f"ipcc_{ipcc_chapter}",
+                    "label": {"fr": f"giec_{ipcc_chapter}", "en": f"ipcc_{ipcc_chapter}", "default": f"ipcc_{ipcc_chapter}"},
+                }
+            )
+
+        tags.extend(publication_tags)
 
 
 def add_tags(publications: list) -> list:
