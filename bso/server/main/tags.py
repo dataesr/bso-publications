@@ -58,15 +58,16 @@ def tags_add_ipcc(tags: list, publication):
                 }
             )
 
-
     # Add tags for ipcc prediction
     for predict in publication_predict_teds:
         if predict.get("label", "").startswith("ipcc"):
-            publication_tags.append({
-                "id": f"predict_{predict["label"]}",
-                "label": {"default": f"predict_{predict["label"]}"}
-            })
-            
+            publication_tags.append(
+                {
+                    "id": f'predict_{predict["label"]}',
+                    "label": {"default": f'predict_{predict["label"]}'}
+                }
+            )
+
     tags.extend(publication_tags)
 
 def add_tags(publications: list) -> list:
