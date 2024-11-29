@@ -19,6 +19,7 @@ from bso.server.main.utils_swift import upload_object
 from bso.server.main.utils_upw import get_millesime
 from bso.server.main.openalex import enrich_with_openalex
 from bso.server.main.teds import add_teds_predictions
+from bso.server.main.tags import add_tags
 
 logger = get_logger(__name__)
 
@@ -220,6 +221,7 @@ def etl(args):
             publications = update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
             publications = enrich_with_openalex(publications)
             publications = add_teds_predictions(publications)
+            publications = add_tags(publications)
             publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
             # denormalized
             publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
