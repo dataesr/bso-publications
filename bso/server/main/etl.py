@@ -94,7 +94,7 @@ def etl(args):
             for filename in bso_local_filenames:
                 extract_one_bso_local(filename, bso_local_dict, collection_name, locals_data=locals_data)
         if 'bso3' in datasources:
-            extract_container('bso3_publications_dump', bso_local_dict, skip_download=False, download_prefix='final_for_bso_2024', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name, locals_data=locals_data) #always fr
+            extract_container('bso3_publications_dump', bso_local_dict, skip_download=False, download_prefix='final_for_bso_2025', one_by_one=True, filter_fr=True, min_year=None, collection_name=collection_name, locals_data=locals_data) #always fr
         # if 'pubmed' in datasources:
         #    extract_pubmed(bso_local_dict, collection_name)
         # medline depends on the year snapshot
