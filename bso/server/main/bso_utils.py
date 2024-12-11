@@ -127,7 +127,7 @@ def dict_to_csv(elem, observation_date, filename, write_header=True):
                     'oa_colors', 'licence_publisher', 'licence_repositories', 'repositories']:
             new_elem[f] = None
 
-    for g in ['bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet']:
+    for g in ['bso3_downloaded', 'bso3_analyzed_grobid', 'bso3_analyzed_softcite', 'bso3_analyzed_datastet', 'is_defended']:
         new_elem[g] = False
         if elem.get(g):
             new_elem[g] = elem[g]

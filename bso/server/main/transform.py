@@ -46,6 +46,12 @@ def remove_extra_fields(res):
     for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw', 'publication_date', 'publication_year']:
         if f in res:
             del res[f]
+    if isinstance(res.get('affiliations'), list):
+        for aff in res['affiliations']:
+            if isinstance(aff, dict):
+                for f in ['BNF', 'ISNI', 'address-line"', 'addresses', 'alias_idref', 'aliases', 'comments', 'department', 'address', 'zipcode', 'orgs', 'city', 'country', 'place']:
+                    if aff.get(f):
+                        del aff[f]
     return res
 
 

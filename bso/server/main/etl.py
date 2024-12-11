@@ -63,6 +63,7 @@ def etl(args):
     theses_date = args.get('theses_date')
     transform = args.get('transform')
     transform_scanr = args.get("transform_scanr")
+    skip_download = args.get('skip_download', True)
 
     os.makedirs(MOUNTED_VOLUME, exist_ok=True)
     extract_output_file = f'{MOUNTED_VOLUME}{index_name}_extract.jsonl'
@@ -111,10 +112,10 @@ def etl(args):
         # if 'medline' in datasources:
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
-            skip_download_parsed = True
+            skip_download_parsed = skip_download
             extract_container('all_parsed_fr', bso_local_dict, skip_download_parsed, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'crossref_fr' in datasources:
-            skip_download_crossref = True
+            skip_download_crossref = skip_download
             extract_container('all_crossref_fr', bso_local_dict, skip_download_crossref, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'orcid' in datasources:
             extract_orcid(bso_local_dict=bso_local_dict, collection_name=collection_name, locals_data=locals_data)
