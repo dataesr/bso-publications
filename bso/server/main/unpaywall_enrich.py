@@ -376,7 +376,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                       'has_coi', 'has_grant', 'pmid', 'publication_year', 'year']:
             if pd.isna(res.get(field)):
                 res[field] = None
-        for field in ['has_coi', 'has_grant', 'is_paratext']:
+        for field in ['has_coi', 'has_grant', 'is_paratext', 'is_defended']:
             if res.get(field, 0.0) == 0.0:
                 res[field] = False
             elif res.get(field, 1) == 1:
