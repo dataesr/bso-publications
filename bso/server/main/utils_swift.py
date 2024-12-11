@@ -7,6 +7,7 @@ import subprocess
 from io import BytesIO, TextIOWrapper
 from retry import retry
 
+from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
 
 logger = get_logger(__name__)
@@ -187,3 +188,13 @@ def delete_objects(container: str, filenames) -> None:
     logger.debug(f'Deleting {filenames} from {container}')
     cmd = init_cmd + f' delete {container} {filenames}'
     os.system(cmd)
+
+def download_container(container, skip_download, download_prefix):
+    if skip_download is False:
+        cmd =  init_cmd + f' download {container} -D {MOUNTED_VOLUME}/{container} --skip-identical'
+        if download_prefix:
+            cmd += f" --prefix {download_prefix}"
+        os.system(cmd)
+    if download_prefix:
+        return f'{MOUNTED_VOLUME}/{container}/{download_prefix}'
+    return f'{MOUNTED_VOLUME}/{container}'

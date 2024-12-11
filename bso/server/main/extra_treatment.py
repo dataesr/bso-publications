@@ -3,7 +3,7 @@ import os
 import requests
 import pymongo
 from bso.server.main.logger import get_logger
-from bso.server.main.utils_swift import download_object, upload_object, delete_object, delete_objects, init_cmd
+from bso.server.main.utils_swift import download_object, upload_object, delete_object, delete_objects, init_cmd, download_container
 from bso.server.main.bso_utils import get_ror_from_local
 from bso.server.main.utils import to_jsonl
 from bso.server.main.utils_upw import chunks
@@ -16,64 +16,6 @@ import hashlib
 import json
 
 logger = get_logger(__name__)
-
-def aggregate_pubmed_data(pubmed_year, min_year = None):
-    all_pubmed = []
-    all_pubmed_paths = []
-    for directory in os.listdir(f'/upw_data/medline/parsed/{pubmed_year}/fr/'):
-        for current_file in os.listdir(f'/upw_data/medline/parsed/{pubmed_year}/fr/{directory}'):
-            current_file_path = f'/upw_data/medline/parsed/{pubmed_year}/fr/{directory}/{current_file}'
-            all_pubmed_paths.append(current_file_path)
-    all_pubmed_paths.sort(reverse=True)
-    known_pmids = set()
-    all_data = []
-    for c_ix, current_file_path in enumerate(all_pubmed_paths):
-        if c_ix % 100==0:
-            logger.debug(f'{c_ix} / {len(all_pubmed_paths)}')
-        current_data = pd.read_json(current_file_path).to_dict(orient='records')
-        for d in current_data:
-            if d.get('pmid') not in known_pmids:
-                known_pmids.add(d['pmid'])
-                if isinstance(min_year, int) and isinstance(d.get('publication_year'), int) and d['publication_year']>=min_year:
-                    all_data.append(d)
-                elif min_year is None:
-                    all_data.append(d)
-    logger.debug(f'{len(all_data)} publications from PubMed')
-    output_path = f'/upw_data/medline/aggregated/{pubmed_year}/fr/all'
-    if min_year:
-        output_path = f'/upw_data/medline/aggregated_recent/{pubmed_year}/fr/all'
-    os.system(f'mkdir -p {output_path}')
-    chunk_ix=0
-    for data_chunked in chunks(all_data, 25000):
-        output_pubmed_chunk = f'{output_path}/all_pubmed_{chunk_ix}.json'
-        logger.debug(output_pubmed_chunk)
-        json.dump(data_chunked, open(output_pubmed_chunk, 'w'))
-        chunk_ix += 1
-
-
-def aggregate_parsed_data(prefix):
-    all_parsed_paths = []
-    for directory in os.listdir(f'/upw_data/{prefix}_fr'):
-        for current_file in os.listdir(f'/upw_data/{prefix}_fr/{directory}'):
-            current_file_path = f'/upw_data/{prefix}_fr/{directory}/{current_file}'
-            all_parsed_paths.append(current_file_path)
-    all_data = []
-    for c_ix, current_file_path in enumerate(all_parsed_paths):
-        if c_ix % 100==0:
-            logger.debug(f'{c_ix} / {len(all_parsed_paths)}')
-        current_data = pd.read_json(current_file_path).to_dict(orient='records')
-        for d in current_data:
-            all_data.append(d)
-    print(f'{len(all_data)} publications from {prefix}')
-    output_path = f'/upw_data/all_{prefix}_fr/aggregated'
-    assert(' ' not in output_path)
-    os.system(f'rm -rf {output_path} && mkdir -p {output_path}')
-    chunk_ix=0
-    for data_chunked in chunks(all_data, 25000):
-        output_chunk = f'{output_path}/all_{prefix}_fr_{chunk_ix}.json'
-        logger.debug(output_chunk)
-        json.dump(data_chunked, open(output_chunk, 'w'))
-        chunk_ix += 1
 
 def get_hash(x):
     return hashlib.md5(x.encode('utf-8')).hexdigest()

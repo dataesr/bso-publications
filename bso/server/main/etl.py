@@ -9,7 +9,7 @@ from bso.server.main.bso_utils import dict_to_csv
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
 from bso.server.main.elastic import reset_index, reset_index_scanr, refresh_index
-from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict, get_bso_local_filenames 
+from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict, get_bso_local_filenames, aggregate_parsed_data
 from bso.server.main.logger import get_logger
 from bso.server.main.s3 import upload_s3
 from bso.server.main.scanr import to_scanr, get_person_ids, get_manual_matches, get_wrong_affiliations, remove_wrong_affiliations_links, get_black_list_publications
@@ -112,10 +112,14 @@ def etl(args):
         # if 'medline' in datasources:
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
-            skip_download_parsed = skip_download
+            if skip_download == False:
+                aggregate_parsed_data('parsed')
+            skip_download_parsed = True # already aggregated
             extract_container('all_parsed_fr', bso_local_dict, skip_download_parsed, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'crossref_fr' in datasources:
-            skip_download_crossref = skip_download
+            if skip_download == False:
+                aggregate_parsed_data('crossref')
+            skip_download_crossref = True # already aggregated
             extract_container('all_crossref_fr', bso_local_dict, skip_download_crossref, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'orcid' in datasources:
             extract_orcid(bso_local_dict=bso_local_dict, collection_name=collection_name, locals_data=locals_data)
