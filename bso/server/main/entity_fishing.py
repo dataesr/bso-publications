@@ -32,9 +32,10 @@ def get_from_mongo(pid, myclient):
 
 @exception_handler
 def get_entity_fishing(publication: dict, myclient) -> dict:
-    pre_computed = get_from_mongo(publication['id'], myclient)
-    if pre_computed and isinstance(pre_computed.get('classifications'), list):
-        return pre_computed
+    if 'abstract' not in publication:
+        pre_computed = get_from_mongo(publication['id'], myclient)
+        if pre_computed and isinstance(pre_computed.get('classifications'), list):
+            return pre_computed
 
     # TODO TO REMOVE
     #return {}
@@ -50,7 +51,12 @@ def get_entity_fishing(publication: dict, myclient) -> dict:
     if not title:
         title = ''
     keywords = ' '.join([k['keyword'] for k in publication.get('keywords', []) if (k and ('keyword' in k))])
-    abstract = ' '.join([k['abstract'] for k in publication.get('abstracts', []) if (k and ('abstract' in k))])
+    abstracts = []
+    if isinstance(publication.get('abstracts'), list):
+        abstracts = publication['abstracts']
+    elif len(abstracts) == 0 and isinstance(publication.get('abstract'), list):
+        abstracts = publication['abstract']
+    abstract = ' '.join([k['abstract'] for k in abstracts if (k and ('abstract' in k))])
     text = f"{title} {keywords} {abstract}".strip()
 
     if text:
