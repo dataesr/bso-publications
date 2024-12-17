@@ -75,7 +75,7 @@ def etl(args):
     bso_local_filenames = []
     bso_local_dict = {}
     hal_struct_id_dict = {}
-    min_year = 2010
+    min_year = 1990
     if 'bso-' in index_name:
         min_year = 2013
         output_dir = '/upw_data/bso-split'
