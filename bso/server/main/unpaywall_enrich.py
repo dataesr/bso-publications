@@ -336,7 +336,8 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                                     res['hal_id'] = hal_id
 
         hal_id = res.get('hal_id')
-        if isinstance(hal_id, str) and (hal_id in dois_infos) and (has_oa_info_from_doi is False):
+        # if isinstance(hal_id, str) and (hal_id in dois_infos) and (has_oa_info_from_doi is False):
+        if isinstance(hal_id, str) and (hal_id in dois_infos):
             # res['oa_details'] = {**dois_infos[hal_id], **res['oa_details']}
             current_oa_details = res.get('oa_details', {})
             hal_oa_details = dois_infos[hal_id]
@@ -347,9 +348,13 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                     if current_oa_details[observation_date]['is_oa'] is False and hal_oa_details[observation_date]['is_oa'] is True:
                         current_oa_details[observation_date] = hal_oa_details[observation_date]
                     elif current_oa_details[observation_date]['is_oa'] is True and hal_oa_details[observation_date]['is_oa'] is True:
-                        current_oa_details[observation_date]['repositories'] += hal_oa_details[observation_date]['repositories']
+                        if 'repositories' not in current_oa_details[observation_date]:
+                            current_oa_details[observation_date]['repositories'] = []
+                        current_oa_details[observation_date]['repositories'] += hal_oa_details[observation_date].get('repositories', [])
                         current_oa_details[observation_date]['repositories'] = dedup_sort(current_oa_details[observation_date]['repositories'])
-                        current_oa_details[observation_date]['oa_locations'] += hal_oa_details[observation_date]['oa_locations']
+                        if 'oa_locations' not in current_oa_details[observation_date]:
+                            current_oa_details[observation_date]['oa_locations'] = []
+                        current_oa_details[observation_date]['oa_locations'] += hal_oa_details[observation_date].get('oa_locations', [])
             res['oa_details'] = current_oa_details
 
         if 'oa_details' not in res:
