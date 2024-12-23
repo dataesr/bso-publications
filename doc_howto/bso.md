@@ -64,7 +64,7 @@ For Open Access publication KPIs, an OA status discovery tool is required. By de
 
 For indicators related to datasets and software, in addition to the metadata corpus, the full texts of publications in PDF format are also required. Text and Data Mining (TDM) techniques can then be applied to compute the KPIs.
 
-**Warning**: To achieve the best possible results, it is essential to download as many full-text publications as possible. In the European context, this is feasible under the framework of the European directive allowing text and data mining for research purposes1.
+**Warning**: To achieve the best possible results, it is essential to download as many full-text publications as possible. In the European context, this is feasible under the framework of the European directive allowing text and data mining for research purposes[^1].
 It is necessary to have lawful access to the downloaded content if it is not already openly accessible, for instance, via a subscription. Outside the European Union, the legal framework must be carefully reviewed. This note does not address the context beyond Europe.
 
 [^1]: Directive (EU) 2019/790 of the European Parliament and of the Council of 17 April 2019 on copyright and related rights in the Digital Single Market and amending Directives 96/9/EC and 2001/29/EC [https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32019L0790](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32019L0790)
@@ -176,6 +176,10 @@ In the French Open Science Monitor, we analyze in different ways the type of ope
  - if it is opened via the publisher, is there any proper license, and which one?
 
 More details are described in [@bracco:hal-03651518].
+
+### 2.2.4 APC estimation
+
+Estimating Article Processing Charge (APC) is not an easy task. In the French OSM, we implemented an article level estimation, based on the data from DOAJ and OpenAPC (cf [@bracco:hal-03651518]). In particular, if an article, not present in OpenAPC, is published in a journal that is sufficiently represented in OpenAPC (for the same year of publication), an APC amount is estimated based on the average APC paid for articles published in that journal in the same year. OpenAlex provides also some insights, based in particular on listed APC. However, two main difficulties are difficult to overcome. First, when an article is in collaboration, it is very difficult to know which institution has actually paid. The institution of the corresponding author is probably a good guess, but the corresponding author metadata is hard to get. Another difficulty comes from the transformative agreements, where APC are negotiated at a larger scale. The marginal APC per article is then harder to estimate.  
 
 
 # 3. A few advices and impact

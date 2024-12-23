@@ -197,11 +197,15 @@ compute the KPIs.
 \textbf{Warning}: To achieve the best possible results, it is essential
 to download as many full-text publications as possible. In the European
 context, this is feasible under the framework of the European directive
-allowing text and data mining for research purposes1. It is necessary to
-have lawful access to the downloaded content if it is not already openly
-accessible, for instance, via a subscription. Outside the European
-Union, the legal framework must be carefully reviewed. This note does
-not address the context beyond Europe.
+allowing text and data mining for research purposes\footnote{Directive
+  (EU) 2019/790 of the European Parliament and of the Council of 17
+  April 2019 on copyright and related rights in the Digital Single
+  Market and amending Directives 96/9/EC and 2001/29/EC
+  \url{https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32019L0790}}.
+It is necessary to have lawful access to the downloaded content if it is
+not already openly accessible, for instance, via a subscription. Outside
+the European Union, the legal framework must be carefully reviewed. This
+note does not address the context beyond Europe.
 
 \hypertarget{open-source-software-used}{%
 \subsection{1.2 Open source software
@@ -462,6 +466,25 @@ type of open access. In particular,
 \end{itemize}
 
 More details are described in (Bracco et al. 2022).
+
+\hypertarget{apc-estimation}{%
+\subsubsection{2.2.4 APC estimation}\label{apc-estimation}}
+
+Estimating Article Processing Charge (APC) is not an easy task. In the
+French OSM, we implemented an article level estimation, based on the
+data from DOAJ and OpenAPC (cf (Bracco et al. 2022)). In particular, if
+an article, not present in OpenAPC, is published in a journal that is
+sufficiently represented in OpenAPC (for the same year of publication),
+an APC amount is estimated based on the average APC paid for articles
+published in that journal in the same year. OpenAlex provides also some
+insights, based in particular on listed APC. However, two main
+difficulties are difficult to overcome. First, when an article is in
+collaboration, it is very difficult to know which institution has
+actually paid. The institution of the corresponding author is probably a
+good guess, but the corresponding author metadata is hard to get.
+Another difficulty comes from the transformative agreements, where APC
+are negotiated at a larger scale. The marginal APC per article is then
+harder to estimate.
 
 \hypertarget{a-few-advices-and-impact}{%
 \section{3. A few advices and impact}\label{a-few-advices-and-impact}}
