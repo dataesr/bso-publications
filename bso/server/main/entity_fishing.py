@@ -59,7 +59,7 @@ def get_entity_fishing(publication: dict, myclient) -> dict:
     abstract = ' '.join([k['abstract'] for k in abstracts if (k and ('abstract' in k))])
     text = f"{title} {keywords} {abstract}".strip()
 
-    if text:
+    if text and isinstance(text, str) and len(text)>20:
         params = {
         "text": text,
         "language": {"lang": lang},
