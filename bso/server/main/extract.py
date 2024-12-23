@@ -727,7 +727,7 @@ def extract_manual(bso_local_dict, collection_name, locals_data):
         current_author = {}
         current_affiliations = []
         global_affiliations = elt.get('affiliations', [{'ids': []}])[0]['ids']
-        if 'idref' in e.get('person_id'):
+        if e.get('person_id') and 'idref' in e.get('person_id'):
             current_author['idref'] = e['person_id'].replace('idref', '')
         for f in ['last_name', 'first_name', 'full_name']:
             if e.get(f):
