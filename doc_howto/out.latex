@@ -398,11 +398,12 @@ HTML Highwire header or from HTML parsing). That is one the techniques
 used by OpenAlex. Aligning those raw affiliation strings to ROR is
 another step where heuristics or machine learning can be helpful (see
 (L'Hôte and Jeangirard 2021)). The
-\href{https://works-magnet.dataesr.ovh/}{Works-magnet} (see (Jeangirard,
-Bracco, and L'Hôte 2024)) is a tool designed to help improve this
-matching done automatically in OpenAlex. Author disambiguation is not an
-easy task either as the majority of authors have no ORCID at all.
-OpenAlex uses clustering techniques
+\href{https://works-magnet.esr.gouv.fr/}{Works-magnet
+https://works-magnet.esr.gouv.fr/} (see (Jeangirard, Bracco, and L'Hôte
+2024)) is a tool designed to help improve this matching done
+automatically in OpenAlex. Author disambiguation is not an easy task
+either as the majority of authors have no ORCID at all. OpenAlex uses
+clustering techniques
 https://github.com/ourresearch/openalex-name-disambiguation/tree/main/V3
 
 In the French case, we benefit from a large registry of persons
@@ -485,6 +486,37 @@ good guess, but the corresponding author metadata is hard to get.
 Another difficulty comes from the transformative agreements, where APC
 are negotiated at a larger scale. The marginal APC per article is then
 harder to estimate.
+
+\hypertarget{dataset-and-software-mention-detection}{%
+\subsubsection{2.3 Dataset and software mention
+detection}\label{dataset-and-software-mention-detection}}
+
+Research datasets, software and code are research outputs difficult to
+monitor. We explored a very generic technique to analyse those objects:
+this technique can be applied to any country and discipline, as long as
+a publication corpus is available. Publications' full-texts are analyzed
+with deep learning models to detect all the mentions of data / datasets,
+and also all the mentions of software and code. Those mentions are then
+caracterized in context, that means they are classified according to the
+type of mention. In the model we use, each mention can be a mention of
+usage, creation, or sharing. Once all the mentions detected are
+caracterized, document-level indicators are computed, to calculate
+whether a publication does use / create / share data or software.
+Eventually, the French OSM computes national-level indiators, with the
+percentage of publication that mentions sharing data (/ software)
+amongst the publications that indicates using and producing data (/
+software), see (Bassinet et al. 2023).
+
+The detection models (Softcite and Datastet) can be improved for sure.
+The \href{https://works-magnet.esr.gouv.fr/}{works-magnet
+https://works-magnet.esr.gouv.fr/} provides a module to explore and
+correct the mentions detected in the French corpus. We hope to collect
+enough good quality curated data to build an extended training dataset
+and then more accurate machine learning models for dataset and software
+detection. We are convinced setting in place quick human feedback loop
+with increase the accuracy of the detection models. Works-magnet like
+tools enable that kind of interactions and could be integrated in
+different pipelines, like on manuscript deposit platforms.
 
 \hypertarget{a-few-advices-and-impact}{%
 \section{3. A few advices and impact}\label{a-few-advices-and-impact}}
