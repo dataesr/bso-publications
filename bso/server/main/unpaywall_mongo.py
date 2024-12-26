@@ -105,6 +105,15 @@ def get_openalex(ids) -> dict:
     return res
 
 @retry(delay=60, tries=5)
+def get_acknowledgments(dois) -> dict:
+    collection = get_collection(collection_name='acknowledgments', database='scanr')
+    res = {}
+    res = [e for e in collection.find({'doi': {'$in': dois}})]
+    for ix, e in enumerate(res):
+        res[ix] = clean(e, None)
+    return res
+
+@retry(delay=60, tries=5)
 def get_doi_from_issn(issns) -> dict:
     collection = get_collection(collection_name='global')
     res = {}
