@@ -11,6 +11,7 @@ project_id = os.getenv("OS_TENANT_ID")
 TEDS_MODELS_FILES = {
     "ipcc": "fasttext_model_teds_20241107.bin",
     "ipcc_wg": "fasttext_model_teds_wg_20241106.bin",
+    "ipbes": "fasttext_model_teds_ipbes_20240601.bin",
 }
 
 teds_models = {}
@@ -72,6 +73,12 @@ def teds_predictions(input):
         for wg_label, wg_probability in zip(*wg_predictions):
             wg_label = "ipcc_" + wg_label.replace("__label__", "")
             predict_teds.append({"label": wg_label, "probability": wg_probability})
+
+    # Predict IPBES
+    ipbes_predictions = teds_models["ipbes"].predict(input, k=1)
+    ipbes_label = ipbes_predictions[0][0].replace("__label__", "")
+    ipbes_probability = ipbes_predictions[1][0]
+    predict_teds.append({"label": ipbes_label, "probability": ipbes_probability})
 
     return predict_teds
 
