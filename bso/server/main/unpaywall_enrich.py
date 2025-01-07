@@ -263,8 +263,8 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
             ef_info = get_entity_fishing(res, myclient)
             if ef_info:
                 res.update(ef_info)
-        if 'scanr' in index_name:
-            res['embeddings'] = get_embeddings(res)
+        #if 'scanr' in index_name:
+        #    res['embeddings'] = get_embeddings(res)
         
         if 'bso' in index_name:
             # Predatory info
