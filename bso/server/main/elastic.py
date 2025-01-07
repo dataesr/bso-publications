@@ -232,7 +232,7 @@ def reset_index_scanr(index: str) -> None:
                     }
                 }
             }
-    for f in [ 'summary.default']: 
+    for f in [ 'summary.default', 'acknowledgments.acknowledgments']: 
         mappings['properties'][f] = { 
                 'type': 'text',
                 'analyzer': 'light',
