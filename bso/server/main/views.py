@@ -327,7 +327,7 @@ def run_task_et_scanr_all():
     else:
         args_transform['transform_scanr'] = False
     
-    for idx in range(0, 8):
+    for idx in range(0, 9):
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             q = Queue(name='scanr-publications', default_timeout=default_timeout)
             current_args_transform = args_transform.copy()

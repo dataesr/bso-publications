@@ -617,11 +617,11 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 co_countries = get_co_occurences(denormalized_affiliations, 'country')
                 if co_countries:
                     elt['co_countries'] = co_countries
-                structures_to_combine = [a for a in denormalized_affiliations if ('Structure de recherche' in a.get('kind', []))]
+                structures_to_combine = [a for a in denormalized_affiliations if (('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active'))]
                 co_structures = get_co_occurences(structures_to_combine, 'id_name')
                 if co_structures:
                     elt['co_structures'] = co_structures
-                institutions_to_combine = [a for a in denormalized_affiliations if ('Structure de recherche' not in a.get('kind', []))]
+                institutions_to_combine = [a for a in denormalized_affiliations if (('Structure de recherche' not in a.get('kind', [])) and (a.get('status') == 'active'))]
                 co_institutions = get_co_occurences(institutions_to_combine, 'id_name')
                 if co_institutions:
                     elt['co_institutions'] = co_institutions
