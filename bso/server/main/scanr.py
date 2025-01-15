@@ -8,7 +8,7 @@ import dateutil.parser
 from retry import retry
 
 from bso.server.main.logger import get_logger
-from bso.server.main.strings import normalize2
+from bso.server.main.strings import normalize2, normalize
 from bso.server.main.utils import clean_json, is_valid
 from bso.server.main.denormalize_affiliations import get_orga, get_project
 from bso.server.main.fields.field_detect import get_embeddings
@@ -694,6 +694,7 @@ def get_wrong_affiliations():
     forbidden_link = {}
     for a in infos:
         aff = a['raw_affiliation']
+        aff = normalize(aff)
         if aff:
             wrong_ids = set([k.strip() for k in a['wrong_ids'].split(';')])
             good_ids = [k.strip() for k in str(a['good_ids']).split(';') if ((type(a['good_ids'])==str) and (a['good_ids']==a['good_ids']) and (len(k.strip())>2))]
@@ -709,7 +710,7 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
     # 200117270X ville /architecture
     # 201722498K Joliot
     # 200919205R UR2
-    IDENTIFIED_PB = set(['200117270X', '201722498K', '200919205R', 'grid.433656.1', 'grid.494567.d'])
+    IDENTIFIED_PB = set(['200117270X', '201722498K', '200919205R', 'grid.433656.1', 'grid.494567.d', 'grid.412041.2'])
     for ix, p in enumerate(publications):
         check_author = False
         affiliations = p.get('affiliations')
@@ -718,14 +719,15 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                 if isinstance(aff, dict):
                     if 'ids' in aff and len(aff['ids']) > 0:
                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
-                        if aff.get('name') in wrong_dict:
-                            #logger.debug(f"remove wrong affiliation link for {aff['name']}")
-                            check_author = True
-                            wrong_ids = wrong_dict[aff['name']]['wrong']
-                            aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
-                            goods_ids = wrong_dict[aff['name']].get('good')
-                            if goods_ids:
-                                aff['ids'] += goods_ids
+                        if isinstance(aff.get('name'), str):
+                            if normalize(aff['name']) in wrong_dict:
+                                #logger.debug(f"remove wrong affiliation link for {aff['name']}")
+                                check_author = True
+                                wrong_ids = wrong_dict[aff['name']]['wrong']
+                                aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
+                                goods_ids = wrong_dict[aff['name']].get('good')
+                                if goods_ids:
+                                    aff['ids'] += goods_ids
 
         if check_author:
             authors = p.get('authors')
@@ -737,7 +739,7 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                             if isinstance(aff, dict):
                                 if 'ids' in aff and len(aff['ids']) > 0:
                                     aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
-                                    if aff.get('name') in wrong_dict:
+                                    if normalize(aff.get('name')) in wrong_dict:
                                         wrong_ids = wrong_dict[aff['name']]['wrong']
                                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
                                         goods_ids = wrong_dict[aff['name']].get('good')
