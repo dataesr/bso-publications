@@ -15,7 +15,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_mongo import get_dois_meta
 from bso.server.main.utils_swift import download_object, get_objects_by_prefix, init_cmd, download_container
 from bso.server.main.utils_upw import chunks
-from bso.server.main.utils import get_dois_from_input, is_valid, clean_doi, get_hash, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
+from bso.server.main.utils import get_dois_from_input, is_valid, clean_doi, get_hash, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt, get_all_manual_matches
 from bso.server.main.strings import dedup_sort, normalize
 from bso.server.main.funders.funding import normalize_grant
 from bso.server.main.scanr import to_light
@@ -703,9 +703,10 @@ def extract_fixed_list(extra_file, bso_local_dict, bso_country, collection_name,
         for chunk in chunks(fr_dois, 2000):
             update_publications_infos([{'doi': d, 'bso_country': [bso_country], 'sources': [extra_file]} for d in chunk], bso_local_dict, extra_file, collection_name, locals_data)
 
+
 def extract_manual(bso_local_dict, collection_name, locals_data):
     # TODO chunk
-    manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv')
+    manual_infos = get_all_manual_matches()
     publications = {}
     for p in manual_infos.to_dict(orient='records'):
         e = clean_json(p)

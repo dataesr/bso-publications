@@ -9,7 +9,7 @@ from retry import retry
 
 from bso.server.main.logger import get_logger
 from bso.server.main.strings import normalize2, normalize
-from bso.server.main.utils import clean_json, is_valid
+from bso.server.main.utils import clean_json, is_valid, get_all_manual_matches
 from bso.server.main.denormalize_affiliations import get_orga, get_project
 from bso.server.main.fields.field_detect import get_embeddings
 from bso.server.main.utils_swift import delete_object
@@ -669,8 +669,8 @@ def normalize_software(s):
 
 def get_manual_matches():
     publi_author_dict = {}
-    manual_infos = pd.read_csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRtJvpjh4ySiniYVzgUYpGQVQEuNY7ZOpqPbi3tcyRfKiBaLnAgYziQgecX_kvwnem3fr0M34hyCTFU/pub?gid=1281340758&single=true&output=csv').to_dict(orient='records')
-    infos = manual_infos
+    manual_infos = get_all_manual_matches()
+    infos = manual_infos.to_dict(orient='records')
     for a in infos:
         author_key = None
         if normalize2(a.get('first_name'), remove_space=True) and normalize2(a.get('last_name'), remove_space=True):
