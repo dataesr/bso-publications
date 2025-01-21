@@ -3,6 +3,7 @@
 ![GitHub](https://img.shields.io/github/license/dataesr/bso-publications)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/dataesr/bso-publications)
 ![Release](https://github.com/dataesr/bso-publications/actions/workflows/release.yml/badge.svg)
+[![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dataesr/bso-publications)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dataesr/bso-publications)
 
 ## API
 
