@@ -5,6 +5,7 @@ import time
 import timeout_decorator
 import pymongo
 import multiprocess as mp
+import re
 from bso.server.main.utils import get_hash
 from bso.server.main.utils_upw import chunks
 
@@ -50,6 +51,10 @@ def clean(p):
             aut['affiliations'] = []
     return p
 
+def is_ed(s):
+    pattern = r"^ED\d{1,3}$"
+    return bool(re.match(pattern, s))
+
 def get_affiliations_computed(publications, recompute_all = False, compute_missing = True):
     myclient = pymongo.MongoClient('mongodb://mongo:27017/')
     affiliations = {}
@@ -70,6 +75,15 @@ def get_affiliations_computed(publications, recompute_all = False, compute_missi
                     aff['ids'] = affiliations[aff_name]
                     nb_aff_with_id += 1
                 nb_aff += 1
+            if isinstance(aff.get('aliases'), list):
+                for alias in aff['aliases']:
+                    if is_ed(alias):
+                        if aff_name not in affiliations:
+                            affiliations[aff_name] = []
+                        affiliations[aff_name].append({'id': alias, 'type': 'ed'})
+                        if 'ids' not in aff:
+                            aff['ids'] = []
+                        aff['ids'].append({'id': alias, 'type': 'ed'})
         authors = p.get('authors')
         if isinstance(authors, list):
             for aut in authors:

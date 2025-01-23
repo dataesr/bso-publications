@@ -61,7 +61,8 @@ def create_task_cache_affiliations(args):
     #collection_name = 'classifications'
     #collection_name = 'affiliations'
     mycolls = {}
-    for collection_name in ['affiliations', 'classifications', 'embeddings']:
+    collection_names = ['affiliations', 'classifications']
+    for collection_name in collection_names:
         mycolls[collection_name] = mydb[collection_name]
         if '_split_0' in index_name:
             logger.debug(f'dropping {collection_name}')
@@ -78,14 +79,14 @@ def create_task_cache_affiliations(args):
             continue
         logger.debug(f'iteration {ix}, {ix*CHUNK_SIZE} publications treated')
         to_save = {}
-        for collection_name in ['affiliations', 'classifications', 'embeddings']:
+        for collection_name in collection_names:
             to_save[collection_name] = []
         publis = df.to_dict(orient='records')
         for px, p in enumerate(publis):
             #for f in p:
             #    if isinstance(p[f], list) and len(p[f]) > 150:
             #        logger.debug(f"{p['id']}, {f}, {len(p[f])}") 
-            for collection_name in ['affiliations', 'classifications', 'embeddings']:
+            for collection_name in collection_names:
                 data = p.get(collection_name)
                 if not isinstance(data, list):
                     data = []
