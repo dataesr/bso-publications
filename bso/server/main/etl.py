@@ -142,6 +142,7 @@ def etl(args):
 
         # export to jsonl
         dump_cmd = f'mongoexport --forceTableScan --uri mongodb://mongo:27017/scanr --collection {collection_name} --out {extract_output_file}'
+        dump_cmd += " --sort '{random: 1}'"
         os.system(dump_cmd)
 
         # split file in several smaller files

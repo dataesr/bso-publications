@@ -6,6 +6,7 @@ import jsonlines
 import os
 import pandas as pd
 import pymongo
+import random
 
 import dateutil.parser
 from retry import retry
@@ -88,6 +89,7 @@ def to_mongo(input_list, collection_name):
     input_filtered = []
     known_ids = set([])
     for p in input_list:
+        p['random'] = 100 * random.random()
         if p.get('id') is None:
             continue
         if p['id'] in known_ids:
@@ -104,7 +106,7 @@ def to_mongo(input_list, collection_name):
                   f' --collection {collection_name}'
     os.system(mongoimport)
     mycol = mydb[collection_name]
-    for f in ['id', 'doi', 'nnt_id', 'hal_id', 'pmid', 'sudoc_id', 'natural_id', 'all_ids']:
+    for f in ['id', 'doi', 'nnt_id', 'hal_id', 'pmid', 'sudoc_id', 'natural_id', 'all_ids', 'random']:
         mycol.create_index(f)
     os.remove(output_json)
     myclient.close()
