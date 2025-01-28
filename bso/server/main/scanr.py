@@ -720,12 +720,13 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                     if 'ids' in aff and len(aff['ids']) > 0:
                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
                         if isinstance(aff.get('name'), str):
-                            if normalize(aff['name']) in wrong_dict:
+                            aff_name_normalized = normalize(aff['name'])
+                            if aff_name_normalized in wrong_dict:
                                 #logger.debug(f"remove wrong affiliation link for {aff['name']}")
                                 check_author = True
-                                wrong_ids = wrong_dict[aff['name']]['wrong']
+                                wrong_ids = wrong_dict[aff_name_normalized]['wrong']
                                 aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
-                                goods_ids = wrong_dict[aff['name']].get('good')
+                                goods_ids = wrong_dict[aff_name_normalized].get('good')
                                 if goods_ids:
                                     aff['ids'] += goods_ids
 
@@ -739,10 +740,11 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                             if isinstance(aff, dict):
                                 if 'ids' in aff and len(aff['ids']) > 0:
                                     aff['ids'] = [k for k in aff['ids'] if k['id'] not in IDENTIFIED_PB]
-                                    if normalize(aff.get('name')) in wrong_dict:
-                                        wrong_ids = wrong_dict[aff['name']]['wrong']
+                                    aff_name_normalized = normalize(aff.get('name'))
+                                    if aff_name_normalized in wrong_dict:
+                                        wrong_ids = wrong_dict[aff_name_normalized]['wrong']
                                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
-                                        goods_ids = wrong_dict[aff['name']].get('good')
+                                        goods_ids = wrong_dict[aff_name_normalized].get('good')
                                         if goods_ids:
                                             aff['ids'] += goods_ids
     return publications
