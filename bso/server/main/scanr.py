@@ -24,6 +24,7 @@ NB_MAX_CO_ELEMENTS = 20
 idref_sudoc_only = {}
 vip_dict = {}
 vip_corresp_to_idref = {}
+forbid_wiki = set(pd.read_csv('forbid_wiki.csv')['wiki_id'].to_list())
 # https://docs.google.com/spreadsheets/d/1uiY5MAYb0IEl2LNxbl2lP-lpNnWgcsW7e__cLvDY_qk/edit#gid=1281340758 (liens idref-publi)
 # https://docs.google.com/spreadsheets/d/1Tx23f90zdDTE5UL_iv3ANxX6TlO20Sw2jkBOTCcfBAo/edit#gid=0 (remove idref)
 # https://docs.google.com/spreadsheets/d/1TqFUiOyHMdo9R1_8eW0EfqBu6_OJQpJFtLwX_lIYK9A/edit#gid=0 (wrong aff)
@@ -359,6 +360,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                 if c.get('label'):
                     domain = {'label': {'default': c['label']}}
                     domain['code'] = str(c.get('code'))
+                    if domain['code'] in forbid_wiki:
+                        continue
                     domain['type'] = c.get('reference')
                     if domain['type'] in ['wikidata', 'sudoc']:
                         domains.append(domain)
@@ -403,6 +406,8 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             for d in domains:
                 if 'code' in d:
                     code = d.get('code')
+                    if code in forbid_wiki:
+                        continue
                 else:
                     code = d.get('label', {}).get('default', '')
                 if isinstance(d.get('code'), str) and isinstance(d.get('label', {}).get('default'), str):
@@ -643,9 +648,9 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
                     elt['co_projects'] = co_projects
         elt = clean_json(elt)
         if elt:
-            if elt.get('year') is None:
-                continue
-            elif elt.get('year') and elt['year'] < MIN_YEAR_PUBLISHED:
+            #if elt.get('year') is None:
+            #    continue
+            if isinstance(elt.get('year'), int) and elt['year'] < MIN_YEAR_PUBLISHED:
                 continue
             else:
                 scanr_publications.append(elt)
