@@ -19,7 +19,7 @@ from bso.server.main.strings import dedup_sort, normalize, normalize2, remove_pu
 from bso.server.main.unpaywall_mongo import get_unpaywall_history
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
 from bso.server.main.scanr import to_light
-from bso.server.main.utils_upw import chunks, format_upw_millesime
+from bso.server.main.utils_upw import chunks, format_upw_millesime, get_color_with_publisher_prio
 from bso.server.main.entity_fishing import get_entity_fishing
 from bso.server.main.fields.field_detect import get_embeddings
 
@@ -355,6 +355,16 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                         if 'oa_locations' not in current_oa_details[observation_date]:
                             current_oa_details[observation_date]['oa_locations'] = []
                         current_oa_details[observation_date]['oa_locations'] += hal_oa_details[observation_date].get('oa_locations', [])
+                        current_oa_colors = current_oa_details[observation_date]['oa_colors']
+                        if 'green' not in current_oa_colors:
+                            current_oa_colors.append('green')
+                            current_oa_details[observation_date]['oa_colors'] = current_oa_colors
+                            current_oa_details[observation_date]['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(current_oa_colors)
+                        current_oa_host_type = current_oa_details[observation_date]['oa_host_type']
+                        if 'repository' not in current_host_type:
+                            current_oa_host_types_list = current_oa_host_type.split(';')
+                            current_oa_host_types_list.append('repository')
+                            current_oa_details[observation_date]['oa_host_type'] = ";".join(dedup_sort(current_oa_host_types_list))
             res['oa_details'] = current_oa_details
 
         if 'oa_details' not in res:
