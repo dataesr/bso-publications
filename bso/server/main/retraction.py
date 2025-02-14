@@ -20,7 +20,7 @@ def get_retraction_data():
     retracted = {}
     retraction_notes = {}
     for i, row in df.iterrows():
-        retraction_id = row['Record ID']
+        retraction_id = row['RecordID']
         try:
             retraction_doi = row['RetractionDOI'].lower().strip()
         except:
