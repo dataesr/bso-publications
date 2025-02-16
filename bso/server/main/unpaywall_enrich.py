@@ -361,7 +361,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                             current_oa_details[observation_date]['oa_colors'] = current_oa_colors
                             current_oa_details[observation_date]['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(current_oa_colors)
                         current_oa_host_type = current_oa_details[observation_date]['oa_host_type']
-                        if 'repository' not in current_host_type:
+                        if 'repository' not in current_oa_host_type:
                             current_oa_host_types_list = current_oa_host_type.split(';')
                             current_oa_host_types_list.append('repository')
                             current_oa_details[observation_date]['oa_host_type'] = ";".join(dedup_sort(current_oa_host_types_list))
