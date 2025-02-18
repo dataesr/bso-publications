@@ -211,6 +211,12 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
     for p in publications:
         text_to_autocomplete =[]
         elt = {'id': p['id']}
+        # normalize schema for acknowledgments
+        if isinstance(p.get('acknowledgments'), list):
+            for ack in p['acknowledgments']:
+                if ack.get('acknowledgment'):
+                    ack['acknowledgments'] = ack['acknowledgment']
+                    del ack['acknowledgment']
         for f in ["topics", "cited_by_counts_by_year", "predict_teds", "tags", "acknowledgments"]:
             if p.get(f):
                 elt[f] = p[f]

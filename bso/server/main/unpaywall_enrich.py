@@ -361,7 +361,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                             current_oa_details[observation_date]['oa_colors'] = current_oa_colors
                             current_oa_details[observation_date]['oa_colors_with_priority_to_publisher'] = get_color_with_publisher_prio(current_oa_colors)
                         current_oa_host_type = current_oa_details[observation_date]['oa_host_type']
-                        if 'repository' not in current_host_type:
+                        if 'repository' not in current_oa_host_type:
                             current_oa_host_types_list = current_oa_host_type.split(';')
                             current_oa_host_types_list.append('repository')
                             current_oa_details[observation_date]['oa_host_type'] = ";".join(dedup_sort(current_oa_host_types_list))
@@ -603,9 +603,9 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
                 elif year < 2013 and d.get('genre') != 'thesis':
                     continue
             if 'scanr-' in index_name:
-                if not isinstance(year, int):
-                    continue
-                elif year < MIN_YEAR_PUBLISHED:
+                #if not isinstance(year, int):
+                #    continue
+                if isinstance(year, int) and year < MIN_YEAR_PUBLISHED:
                     continue
             # merge authors, z_authors etc 
             d = merge_authors_affiliations(d, index_name)
