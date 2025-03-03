@@ -259,6 +259,7 @@ def finalize(args):
         save_to_mongo_publi_indexes()
         output_dir = '/upw_data/scanr-split'
     collect_splitted_files(index_name, output_dir)
+    os.system('rm -rf bso-split')
 
 
 def drop_collection(db, collection_name):
