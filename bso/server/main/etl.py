@@ -248,18 +248,25 @@ def etl(args):
         elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{full_index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         os.system(elasticimport)
 
+
+def delete_temporary_files(args):
+    index_name = args.get('index_name')
+    os.system(f'rm {MOUNTED_VOLUME}bso-split/*')
+    os.system(f'rm "{MOUNTED_VOLUME}{index_name}_extract.jsonl"')
+
+
 def finalize(args):
     index_name = args.get('index_name')
     new_index_name = index_name
     if args.get('new_index_name'):
         new_index_name = args.get('new_index_name')
     refresh_index(new_index_name)
-    output_dir = '/upw_data/bso-split'
+    output_dir = f'{MOUNTED_VOLUME}bso-split'
     if 'scanr' in index_name:
         save_to_mongo_publi_indexes()
-        output_dir = '/upw_data/scanr-split'
+        output_dir = f'{MOUNTED_VOLUME}scanr-split'
     collect_splitted_files(index_name, output_dir)
-    os.system('rm -rf bso-split')
+    delete_temporary_files(args)
 
 
 def drop_collection(db, collection_name):
