@@ -251,7 +251,10 @@ def etl(args):
 
 def delete_temporary_files(args):
     index_name = args.get('index_name')
-    os.system(f'rm {MOUNTED_VOLUME}bso-split/*')
+    for c in [' ', '*']:
+        assert(c not in index_name)
+    if 'bso' in index_name:
+        os.system(f'rm {MOUNTED_VOLUME}bso-split/*')
     os.system(f'rm "{MOUNTED_VOLUME}{index_name}_extract.jsonl"')
 
 
