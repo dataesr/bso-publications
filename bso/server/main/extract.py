@@ -791,32 +791,28 @@ def build_bso_local_dict():
     os.system(cmd)
     for filename in os.listdir(f'{MOUNTED_VOLUME}/bso_local'):
         bso_local_filenames.append(filename)
-        local_affiliations = '.'.join(filename.split('.')[:-1]).split('_')
         data_from_input = get_dois_from_input(filename=filename)
+        #local_affiliations = filename.split('.')[0]
         current_ids = []
-        if 'doi' in data_from_input:
-            current_ids += data_from_input['doi']
-        for id_type in ['hal_id', 'nnt_id']:
-            input_ids = data_from_input.get(id_type, [])
-            id_prefix = id_type.replace('_id', '')
-            current_ids += [{'id': f'{id_prefix}{v}', id_type: v} for v in input_ids]
-        #current_dois = data_from_input['doi']
+        for id_type in ['doi', 'hal_id', 'nnt_id']:
+            current_ids += data_from_input.get(id_type, [])
         for s in data_from_input.get('hal_struct_id', []):
             assert(isinstance(s, str))
             assert('.0' not in s)
-            hal_struct_id_dict[s] = local_affiliations[0]
+            hal_struct_id_dict[s] = filename.split('.')[0]
         for s in data_from_input.get('hal_coll_code', []):
             assert(isinstance(s, str))
             assert('.0' not in s)
-            hal_coll_code_dict[s] = local_affiliations[0]
+            hal_coll_code_dict[s] = filename.split('.')[0]
         for s in data_from_input.get('nnt_etab', []):
             assert(isinstance(s, str))
             assert('.0' not in s)
-            nnt_etab_dict[s] = local_affiliations[0]
+            nnt_etab_dict[s] = filename.split('.')[0]
         for elt in current_ids:
             elt_id = elt['id']
             if elt_id not in bso_local_dict:
                 bso_local_dict[elt_id] = {'affiliations': [], 'grants': [], 'bso_country': []}
+            local_affiliations = elt['bso_local_affiliations']
             for local_affiliation in local_affiliations:
                 if local_affiliation not in bso_local_dict[elt_id]['affiliations']:
                     bso_local_dict[elt_id]['affiliations'].append(local_affiliation)
@@ -836,7 +832,6 @@ def build_bso_local_dict():
     return bso_local_dict, bso_local_dict_aff, bso_local_filenames, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict
 
 def extract_one_bso_local(bso_local_filename, bso_local_dict, collection_name, locals_data):
-    local_affiliations = bso_local_filename.split('.')[0].split('_')
     current_dois = get_dois_from_input(filename=bso_local_filename)['doi']
     logger.debug(f'{len(current_dois)} publications in {bso_local_filename}')
     for chunk in chunks(current_dois, 2000):

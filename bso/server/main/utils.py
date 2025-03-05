@@ -144,6 +144,31 @@ def get_clean_id(e):
         res = res[0:-2]
     return res
 
+def get_data_full_from_input(filename):
+    res = {'doi': [], 'hal_id':[]}
+    nb_dois, nb_hal_ids = 0, 0
+    for e in df.itertuples():
+        bso_local_affiliations = []
+        if e.RNSR and e.RNSR==e.RNSR:
+            bso_local_affiliations+=[k.strip() for k in e.RNSR.split(',')]
+        if e.ROR and e.ROR==e.ROR:
+            bso_local_affiliations+=[k.strip() for k in e.ROR.split(',')]
+        if e.labels and e.labels==e.labels:
+            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in e.labels.split(',')]
+        if e.doi and e.doi==e.doi:
+            id_clean = clean_doi(e.doi)
+            elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations}
+            res['doi'].append(elt)
+            nb_dois += 1
+        if e.hal_id and e.hal_id==e.hal_id :
+            id_clean = get_clean_id(e.hal_id)
+            elt = {'id': 'hal'+id_clean, 'hal_id': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations}
+            res['hal_id'].append(elt)
+            nb_hal_ids += 1
+    logger.debug(f'{filename} with {len(nb_dois)} dois and {nb_hal_ids} hal_ids')
+    return res
+
+
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
     logger.debug(f'reading {target}')
@@ -154,7 +179,9 @@ def get_dois_from_input(filename: str) -> list:
         doi_columns = [c for c in df.columns if 'doi' in c.lower()]
         if doi_columns and ';' in doi_columns[0]:
             df = pd.read_csv(target, sep=';')
-
+    if filename.startswith('FULLETAB_'):
+        return get_data_full_from_input(df)
+    current_affiliation = filename.split('.')[0]
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]
     if len(doi_columns) > 0:
         doi_column = doi_columns[0]
@@ -198,10 +225,18 @@ def get_dois_from_input(filename: str) -> list:
             if isinstance(row.bso_country, str):
                 elt['bso_country'] = [row.bso_country]
         elt['sources'] = [filename]
+        elt['bso_local_affiliations']=[current_affiliation]
         elts_with_id.append(elt)
     nb_grants = len(set(grant_ids))
     res = {'doi': elts_with_id}
-    for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt_id', 'hal_id']:
+    #for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code', 'nnt_id', 'hal_id']:
+    for f in ['nnt_id', 'hal_id']:
+        id_prefix = f.replace('_id', '')
+        if f in df.columns:
+            data_column = [{'id': id_prefix+get_clean_id(e), f:get_clean_id(e), 'bso_local_affiliations': [current_affiliation]} for e in df[f].dropna().tolist()]
+            res[f] = data_column
+            logger.debug(f'{len(data_column)} {f} for {filename}')
+    for f in ['hal_struct_id', 'nnt_etab', 'hal_coll_code']:
         if f in df.columns:
             data_column = [get_clean_id(e) for e in df[f].dropna().tolist()]
             res[f] = data_column
