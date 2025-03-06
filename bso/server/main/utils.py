@@ -144,7 +144,7 @@ def get_clean_id(e):
         res = res[0:-2]
     return res
 
-def get_data_full_from_input(filename):
+def get_data_full_from_input(df, filename):
     res = {'doi': [], 'hal_id':[]}
     nb_dois, nb_hal_ids = 0, 0
     for e in df.itertuples():
@@ -165,7 +165,7 @@ def get_data_full_from_input(filename):
             elt = {'id': 'hal'+id_clean, 'hal_id': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations}
             res['hal_id'].append(elt)
             nb_hal_ids += 1
-    logger.debug(f'{filename} with {len(nb_dois)} dois and {nb_hal_ids} hal_ids')
+    logger.debug(f'{filename} with {nb_dois} dois and {nb_hal_ids} hal_ids')
     return res
 
 
@@ -180,7 +180,7 @@ def get_dois_from_input(filename: str) -> list:
         if doi_columns and ';' in doi_columns[0]:
             df = pd.read_csv(target, sep=';')
     if filename.startswith('FULLETAB_'):
-        return get_data_full_from_input(df)
+        return get_data_full_from_input(df, filename)
     current_affiliation = filename.split('.')[0]
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]
     if len(doi_columns) > 0:
