@@ -157,12 +157,12 @@ def get_data_full_from_input(df, filename):
             bso_local_affiliations+=[k.strip().replace(' ', '_') for k in e.labels.split(',')]
         if e.doi and e.doi==e.doi:
             id_clean = clean_doi(e.doi)
-            elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations}
+            elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
             res['doi'].append(elt)
             nb_dois += 1
         if e.hal_id and e.hal_id==e.hal_id :
             id_clean = get_clean_id(e.hal_id)
-            elt = {'id': 'hal'+id_clean, 'hal_id': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations}
+            elt = {'id': 'hal'+id_clean, 'hal_id': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
             res['hal_id'].append(elt)
             nb_hal_ids += 1
     logger.debug(f'{filename} with {nb_dois} dois and {nb_hal_ids} hal_ids')
