@@ -7,7 +7,7 @@ from urllib import parse
 
 from bso.server.main.bso_utils import dict_to_csv
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
-from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
+from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data, get_correspondance
 from bso.server.main.elastic import reset_index, reset_index_scanr, refresh_index
 from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict, get_bso_local_filenames, aggregate_parsed_data
 from bso.server.main.logger import get_logger
@@ -114,11 +114,13 @@ def etl(args):
         #    extract_container('medline', bso_local_dict, skip_download, download_prefix='parsed/fr', one_by_one=True, filter_fr=False, min_year=min_year, collection_name=collection_name) #always fr
         if 'parsed_fr' in datasources:
             if skip_download == False:
+                extract_container('parsed_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
                 aggregate_parsed_data('parsed')
             skip_download_parsed = True # already aggregated
             extract_container('all_parsed_fr', bso_local_dict, skip_download_parsed, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'crossref_fr' in datasources:
             if skip_download == False:
+                extract_container('crossref_fr', bso_local_dict, skip_download, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
                 aggregate_parsed_data('crossref')
             skip_download_crossref = True # already aggregated
             extract_container('all_crossref_fr', bso_local_dict, skip_download_crossref, download_prefix=None, one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
@@ -220,6 +222,7 @@ def etl(args):
         manual_matches = get_manual_matches()
         wrong_affiliations = get_wrong_affiliations()
         black_list_publications = get_black_list_publications()
+        correspondance = get_correspondance()
         for c in df_chunks:
             publications = c.to_dict(orient='records')
             publications = [p for p in publications if p['id'] not in black_list_publications]
@@ -230,9 +233,9 @@ def etl(args):
             publications = enrich_with_acknowledgments(publications)
             publications = add_teds_predictions(publications)
             publications = add_tags(publications)
-            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = False)
+            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = False)
             # denormalized
-            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, denormalize = True)
+            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = True)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
             # elements to be re-used in the person file
             if update_mongo:
@@ -247,6 +250,9 @@ def etl(args):
 
         elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{full_index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         os.system(elasticimport)
+        cmd = f'cd {output_dir} && gzip -k {index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
+        os.system(cmd)
+        upload_s3(container='scanr-data', source = f'{scanr_output_file_denormalized}.gz', destination='production/publications_denormalized_{split_idx}.jsonl.gz', is_public=True)
 
 
 def delete_temporary_files(args):
@@ -265,11 +271,12 @@ def finalize(args):
         new_index_name = args.get('new_index_name')
     refresh_index(new_index_name)
     output_dir = f'{MOUNTED_VOLUME}bso-split'
-    if 'scanr' in index_name:
-        save_to_mongo_publi_indexes()
-        output_dir = f'{MOUNTED_VOLUME}scanr-split'
-    collect_splitted_files(index_name, output_dir)
-    delete_temporary_files(args)
+    #if 'scanr' in index_name:
+    #    save_to_mongo_publi_indexes()
+    #    output_dir = f'{MOUNTED_VOLUME}scanr-split'
+    if 'bso' in index_name:
+        collect_splitted_files(index_name, output_dir)
+        delete_temporary_files(args)
 
 
 def drop_collection(db, collection_name):

@@ -201,7 +201,7 @@ def get_vip_dict():
     return
 
 
-def to_scanr(publications, df_orga, df_project, denormalize = False):
+def to_scanr(publications, df_orga, df_project, correspondance, denormalize = False):
     logger.debug(f'to_scanr denormalize = {denormalize}')
     global vip_dict
     global vip_corresp_to_idref
@@ -462,6 +462,12 @@ def to_scanr(publications, df_orga, df_project, denormalize = False):
             for aff in p['bso_local_affiliations']:
                 if aff not in global_affiliations:
                     global_affiliations.append(aff)
+        # tutelles etc. from referentiel
+        to_add_in_aff = []
+        for aff in global_affiliations:
+            if aff in correspondance:
+                to_add_in_aff += [e['id'] for e in correspondance[aff]]
+        global_affiliations += to_add_in_aff
         if global_affiliations:
             elt['affiliations'] = list(set(global_affiliations))
 

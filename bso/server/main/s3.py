@@ -20,9 +20,12 @@ client = boto3.client(
 logger = get_logger(__name__)
 
 @retry(delay=2, tries=50, logger=logger)
-def upload_s3(container: str, source: str, destination: str) -> str:
+def upload_s3(container: str, source: str, destination: str, is_public) -> str:
     logger.debug(f'Uploading {source} in {container} as {destination}')
-    client.upload_file(Filename=source, Bucket=container, Key=destination, Config=config, ExtraArgs={'ACL':'public-read'}) 
+    extra_args = {}
+    if is_public:
+        extra_args['ACL'] = 'public-read'
+    client.upload_file(Filename=source, Bucket=container, Key=destination, Config=config, ExtraArgs=extra_args) 
     #data = open(f'{source}', 'rb')
     #client.put_object(Key=destination, Body=data, Bucket=container, ACL='public-read')
     return f'ok: 1'

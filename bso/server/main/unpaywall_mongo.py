@@ -14,6 +14,12 @@ from bso.server.main.utils_swift import upload_object
 client = None
 logger = get_logger(__name__)
 
+def full_mongo_dump(mongo_dump_date):
+    os.system(f'mkdir -p /upw_data/mongo_dumps')
+    os.system(f'mkdir -p /upw_data/mongo_dumps/{mongo_dump_date}')
+    dump_cmd = f"mongodump --uri mongodb://mongo:27017 --gzip --out=/upw_data/mongo_dumps/{mongo_dump_date}"
+    logger.debug(dump_cmd)
+    os.system(dump_cmd)
 
 def get_client() -> Union[pymongo.MongoClient, None]:
     global client

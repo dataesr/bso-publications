@@ -84,6 +84,41 @@ def get_orga(orga_map, orga_id):
         return orga_map[orga_id]
     return {'id': orga_id}
 
+def get_correspondance():
+    url = 'https://scanr-data.s3.gra.io.cloud.ovh.net/production/organizations.jsonl.gz'
+    df = pd.read_json(url, lines=True)
+    #df = df.set_index('id')
+    data = df.to_dict(orient='records')
+    correspondance = {}
+    raw_rnsrs = data
+    for r in raw_rnsrs:
+        current_id = None
+        externalIdsToKeep = [e for e in r.get('externalIds', []) if e['type'] in ['rnsr',  'ror', 'grid', 'bce', 'sirene', 'siren', 'siret'] ]
+        for e in externalIdsToKeep:
+            current_id = e['id']
+            if current_id not in correspondance:
+                correspondance[current_id] = []
+        if current_id is None:
+            continue
+
+        correspondance[current_id] += [k for k in externalIdsToKeep if k['id'] != current_id]
+        for e in r.get('externalIds', []):
+            if e['type'] in ['siren', 'siret', 'sirene', 'bce']:
+                new_id = e['id']
+                correspondance[new_id] += [k for k in externalIdsToKeep if k['id'] != new_id]
+
+        for e in r.get('institutions'):
+            if e.get('structure'):
+                if isinstance(e.get('relationType'), str) and 'tutelle' in e['relationType'].lower():
+                    elt = {'id': e['structure'], 'type': 'siren'}
+                    if elt not in correspondance[current_id]:
+                        correspondance[current_id].append(elt)
+    logger.debug(f'{len(correspondance)} ids loaded with equivalent ids')
+    return correspondance
+
+
+
+
 def get_projects_data():
     url = 'https://scanr-data.s3.gra.io.cloud.ovh.net/production/projects.jsonl.gz'
     df = pd.read_json(url, lines=True)
