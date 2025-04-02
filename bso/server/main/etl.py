@@ -151,8 +151,6 @@ def etl(args):
         split_file(input_dir = '/upw_data', file_to_split = extract_output_file, nb_lines = nb_lines_transform, split_prefix = scanr_split_prefix, output_dir=output_dir, split_suffix = '_extract.jsonl')
 
         reset_index(index=index_name)
-        if 'scanr' in index_name:
-            drop_collection('scanr', 'publi_meta')
 
     # enrichment
     before_transform_file = f'{output_dir}/{index_name}_split_{split_idx}_extract.jsonl'
