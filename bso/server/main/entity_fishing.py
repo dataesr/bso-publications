@@ -32,13 +32,16 @@ def get_from_mongo(pid, myclient):
 
 @exception_handler
 def get_entity_fishing(publication: dict, myclient) -> dict:
+    
+    is_ok_to_use_cache = True
+
     if 'abstract' not in publication:
+        is_ok_to_use_cache = True
+
+    if is_ok_to_use_cache:
         pre_computed = get_from_mongo(publication['id'], myclient)
         if pre_computed and isinstance(pre_computed.get('classifications'), list):
             return pre_computed
-
-    # TODO TO REMOVE
-    #return {}
 
     logger.debug(f"compute classifications from entity fishing for {publication['id']}")
     ans = {}
