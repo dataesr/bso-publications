@@ -224,6 +224,10 @@ def etl(args):
         for c in df_chunks:
             publications = c.to_dict(orient='records')
             publications = [p for p in publications if p['id'] not in black_list_publications]
+            for p in publications:
+                if not isinstance(p.get('all_ids'), list):
+                    logger.debug(f'all_ids not a list for {p}')
+            publications = [p for p in publications if isinstance(p['all_ids'], list)]
             publications = get_person_ids(publications, manual_matches)
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
             publications = update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
