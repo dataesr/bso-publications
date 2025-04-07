@@ -186,7 +186,7 @@ def etl(args):
 
         if 'bso' in index_name:
             assert('scanr' not in index_name)
-            elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 50 --noRefresh --transform='doc._source=Object.assign({},doc)'"
+            elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 50 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
             bso_local_filenames = get_bso_local_filenames()
             create_split_and_csv_files(output_dir, index_name, split_idx, last_oa_details, bso_local_filenames)
