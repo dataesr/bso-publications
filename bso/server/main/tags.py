@@ -22,9 +22,26 @@ def load_ipcc_data():
             destination=path,
         )
 
-    data_ipcc = pd.read_json(path, lines=True, orient="records")
-    data_ipcc = data_ipcc.set_index("doi")["ipcc"].to_dict()
+    data = pd.read_json(path, lines=True, orient="records")
+    data_ipcc = data.set_index("doi")["ipcc"].to_dict()
     data["ipcc"] = data_ipcc
+
+
+def load_ipbes_data():
+    os.makedirs(MOUNTED_VOLUME, exist_ok=True)
+    file = "ipcc_ipbes_chapters.jsonl"
+    path = os.path.join(MOUNTED_VOLUME, file)
+
+    if not os.path.exists(path):
+        download_file(
+            f"https://storage.gra.cloud.ovh.net/v1/AUTH_{project_id}/misc/{file}",
+            upload_to_object_storage=False,
+            destination=path,
+        )
+
+    data = pd.read_json(path, lines=True, orient="records")
+    data_ipbes = data.set_index("doi")["ipbes"].to_dict()
+    data["ipbes"] = data_ipbes
 
 
 def tags_add_ipcc(tags, publication):
@@ -71,6 +88,28 @@ def tags_add_ipcc(tags, publication):
     tags.extend(publication_tags)
 
 
+def tags_add_ipbes(tags, publication):
+    if "ipbes" not in data:
+        load_ipbes_data()
+
+    publication_id = publication["id"]
+    publication_predict_teds = publication.get("predict_teds", [])
+    publication_tags = []
+
+    # Add tags for ipbes publications
+    if publication_id in data["ipbes"] and data["ipbes"].get(publication_id):
+        publication_tags.append({"id": "ipbes", "label": {"fr": "ipbes", "en": "ipbes", "default": "ipbes"}})
+
+    # Add tags for ipbes prediction
+    for predict in publication_predict_teds:
+        if predict.get("label", "").startswith("ipbes"):
+            publication_tags.append(
+                {"id": f'predict_{predict["label"]}', "label": {"default": f'predict_{predict["label"]}'}}
+            )
+
+    tags.extend(publication_tags)
+
+
 def add_tags(publications):
     logger.debug("Start add tags")
 
@@ -79,6 +118,9 @@ def add_tags(publications):
 
         # tag ipcc publications
         tags_add_ipcc(tags, publication)
+
+        # tag ipbes publications
+        tags_add_ipbes(tags, publication)
 
         if tags:
             publication["tags"] = tags
