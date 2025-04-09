@@ -201,7 +201,7 @@ def get_vip_dict():
     return
 
 
-def to_scanr(publications, df_orga, df_project, correspondance, denormalize = False):
+def to_scanr(publications, df_orga, df_project, correspondance, denormalize = False, ix=0):
     logger.debug(f'to_scanr denormalize = {denormalize}')
     global vip_dict
     global vip_corresp_to_idref
@@ -210,7 +210,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
     scanr_publications = []
     for p in publications:
         text_to_autocomplete =[]
-        elt = {'id': p['id']}
+        elt = {'id': p['id'], 'ix': ix}
         # normalize schema for acknowledgments
         if isinstance(p.get('acknowledgments'), list):
             for ack in p['acknowledgments']:
@@ -743,6 +743,9 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                                 check_author = True
                                 wrong_ids = wrong_dict[aff_name_normalized]['wrong']
                                 aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
+                                for ty in ['rnsr', 'siren', 'sirene', 'ror']:
+                                    if aff.get(ty) in wrong_ids:
+                                        del aff[ty]
                                 goods_ids = wrong_dict[aff_name_normalized].get('good')
                                 if goods_ids:
                                     aff['ids'] += goods_ids
@@ -761,6 +764,9 @@ def remove_wrong_affiliations_links(publications, wrong_dict):
                                     if aff_name_normalized in wrong_dict:
                                         wrong_ids = wrong_dict[aff_name_normalized]['wrong']
                                         aff['ids'] = [k for k in aff['ids'] if k['id'] not in wrong_ids]
+                                        for ty in ['rnsr', 'siren', 'sirene', 'ror']:
+                                            if aff.get(ty) in wrong_ids:
+                                                del aff[ty]
                                         goods_ids = wrong_dict[aff_name_normalized].get('good')
                                         if goods_ids:
                                             aff['ids'] += goods_ids

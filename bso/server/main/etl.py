@@ -235,9 +235,9 @@ def etl(args):
             publications = enrich_with_acknowledgments(publications)
             publications = add_teds_predictions(publications)
             publications = add_tags(publications)
-            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = False)
+            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = False, ix=ix)
             # denormalized
-            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = True)
+            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = True, ix=ix)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
             # elements to be re-used in the person file
             if update_mongo:
