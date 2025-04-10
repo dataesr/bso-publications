@@ -23,7 +23,7 @@ def load_ipcc_data():
         )
 
     data_ipcc = pd.read_json(path, lines=True, orient="records")
-    data_ipcc = data.set_index("doi")["ipcc"].to_dict()
+    data_ipcc = data_ipcc.set_index("doi")["ipcc"].to_dict()
     data["ipcc"] = data_ipcc
 
 
@@ -40,7 +40,7 @@ def load_ipbes_data():
         )
 
     data_ipbes = pd.read_json(path, lines=True, orient="records")
-    data_ipbes = data.set_index("doi")["ipbes"].to_dict()
+    data_ipbes = data_ipbes.set_index("doi")["ipbes"].to_dict()
     data["ipbes"] = data_ipbes
 
 
