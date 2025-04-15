@@ -357,9 +357,7 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     crossref_dois = filter_crossref_dois(present_dois)
     for p in new_publications:
         if p.get('doi') and p['doi'] not in crossref_dois:
-            if p.get('hal_id'):
-                p['id'] = 'hal' + p['hal_id']
-            logger.debug(f"removing non crossref DOI {p['doi']} for id {p['id']}")
+            logger.debug(f"removing non crossref DOI {p['doi']}")
             del p['doi']
     dois_to_enrich_metadata = [p['doi'] for p in new_publications if is_valid(p.get('doi'), 'doi') and ('title' not in p or 'authors' not in p)]
     missing_metadata = get_dois_meta(dois_to_enrich_metadata)
