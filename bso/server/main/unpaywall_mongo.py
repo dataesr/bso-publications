@@ -120,12 +120,30 @@ def get_acknowledgments(dois) -> dict:
     return res
 
 @retry(delay=60, tries=5)
+def get_structured_acknowledgments(ids) -> dict:
+    collection = get_collection(collection_name='llm_funding', database='scanr')
+    res = {}
+    res = [e for e in collection.find({'id': {'$in': ids}})]
+    for ix, e in enumerate(res):
+        for f in ['acknowledgments', 'mistral']:
+            if e.get(f):
+                del e[f]
+        res[ix] = clean(e, None)
+    return res
+
+@retry(delay=60, tries=5)
 def get_doi_from_issn(issns) -> dict:
     collection = get_collection(collection_name='global')
     res = {}
     res = list(collection.find({'journal_issn_l': {'$in': issns}, 'year': { '$gte': 2013 }}))
     return res
 
+def filter_crossref_dois(dois):
+    assert(isinstance(dois, list))
+    logger.debug(f'filtering crossref dois for {len(dois)} dois')
+    crossref_dois = [e['doi'] for e in get_doi(dois, 'global')]
+    res = set(crossref_dois)
+    return res
 
 def get_dois_meta(dois):
     assert(isinstance(dois, list))
