@@ -13,7 +13,7 @@ from retry import retry
 
 from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
-from bso.server.main.unpaywall_mongo import get_dois_meta
+from bso.server.main.unpaywall_mongo import get_dois_meta, filter_crossref_dois
 from bso.server.main.utils_swift import download_object, get_objects_by_prefix, init_cmd, download_container
 from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import get_dois_from_input, is_valid, clean_doi, get_hash, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt, get_all_manual_matches
@@ -353,6 +353,14 @@ def update_publications_infos(new_publications, bso_local_dict, datasource, coll
     existing_publis_dict = {}
     to_add, to_delete = [], []
     ids_to_check = []
+    present_dois = [p['doi'] for p in new_publications if p.get('doi')]
+    crossref_dois = filter_crossref_dois(present_dois)
+    for p in new_publications:
+        if p.get('doi') and p['doi'] not in crossref_dois:
+            if p.get('hal_id'):
+                p['id'] = 'hal' + p['hal_id']
+            logger.debug(f"removing non crossref DOI {p['doi']} for id {p['id']}")
+            del p['doi']
     dois_to_enrich_metadata = [p['doi'] for p in new_publications if is_valid(p.get('doi'), 'doi') and ('title' not in p or 'authors' not in p)]
     missing_metadata = get_dois_meta(dois_to_enrich_metadata)
     for p in new_publications:
