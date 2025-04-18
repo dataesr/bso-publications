@@ -217,7 +217,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 if ack.get('acknowledgment'):
                     ack['acknowledgments'] = ack['acknowledgment']
                     del ack['acknowledgment']
-        for f in ["topics", "cited_by_counts_by_year", "predict_teds", "tags", "acknowledgments"]:
+        for f in ["topics", "cited_by_counts_by_year", "predict_teds", "tags", "acknowledgments", "structured_acknowledgments"]:
             if p.get(f):
                 elt[f] = p[f]
         text_to_autocomplete.append(p['id'])
