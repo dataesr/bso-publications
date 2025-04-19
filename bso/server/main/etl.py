@@ -133,7 +133,7 @@ def etl(args):
             extract_container('hal', bso_local_dict, False, download_prefix=f'{hal_dates[0]}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data) # filter_fr add bso_country fr for french publi
         if 'sudoc' in datasources:
             skip_download_sudoc = True
-            extract_container('sudoc', bso_local_dict, skip_download_sudoc, download_prefix=f'json_parsed', one_by_one=False, filter_fr=False, min_year=None, collection_name=collection_name, locals_data=locals_data) # always fr
+            extract_container('sudoc', bso_local_dict, skip_download_sudoc, download_prefix=f'json_parsed', one_by_one=False, filter_fr=False, min_year=1980, collection_name=collection_name, locals_data=locals_data) # always fr
         if 'openalex' in datasources:
             extract_container('openalex', bso_local_dict, False, download_prefix=f'{openalex_date}/parsed', one_by_one=True, filter_fr=True, min_year=min_year, collection_name=collection_name, nnt_etab_dict=nnt_etab_dict, hal_struct_id_dict=hal_struct_id_dict, hal_coll_code_dict=hal_coll_code_dict, locals_data=locals_data)
         if 'fixed' in datasources:
@@ -228,6 +228,7 @@ def etl(args):
                 if not isinstance(p.get('all_ids'), list):
                     logger.debug(f'all_ids not a list for {p}')
             publications = [p for p in publications if isinstance(p['all_ids'], list)]
+            publications = [p for p in publications if is_valid_sudoc(p)]
             publications = get_person_ids(publications, manual_matches)
             publications = remove_wrong_affiliations_links(publications, wrong_affiliations)
             publications = update_local_affiliations(publications, bso_local_dict, hal_struct_id_dict, hal_coll_code_dict, nnt_etab_dict)
@@ -256,6 +257,14 @@ def etl(args):
         os.system(cmd)
         upload_s3(container='scanr-data', source = f'{scanr_output_file_denormalized}.gz', destination='production/publications_denormalized_{split_idx}.jsonl.gz', is_public=True)
 
+def is_valid_sudoc(p):
+    if 'sudoc' in p['id']:
+        if p.get('year') is None:
+            return False
+        if isinstance(p['year'], int):
+            if p['year'] < 1980:
+                return False
+    return True
 
 def delete_temporary_files(args):
     index_name = args.get('index_name')
