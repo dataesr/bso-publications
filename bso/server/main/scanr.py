@@ -307,6 +307,8 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
         if isinstance(p.get('hal_docType'), str) and p['hal_docType'].lower() == 'hdr':
             elt['productionType'] = 'thesis'
             elt['type'] = 'HDR'
+        if elt['productionType'] == 'thesis' and p['id'].startswith('nnts'):
+            elt['type'] = 'ongoing_thesis'
         # journal
         source = {}
         autocompletedJournal = []
