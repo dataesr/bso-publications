@@ -217,9 +217,18 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 if ack.get('acknowledgment'):
                     ack['acknowledgments'] = ack['acknowledgment']
                     del ack['acknowledgment']
-        for f in ["topics", "cited_by_counts_by_year", "predict_teds", "tags", "acknowledgments", "structured_acknowledgments"]:
+        for f in ["topics", "cited_by_counts_by_year", "predict_teds", "tags", "acknowledgments", "structured_acknowledgments", 
+                "bso_classification", "bso_classification_method", "bso_classification_pf_tags"]:
             if p.get(f):
                 elt[f] = p[f]
+        private_support = []
+        if isinstance(p.get('structured_acknowledgments'), dict):
+            if isinstance(p.get('structured_acknowledgments').get('support'), list):
+                for support in p.get('structured_acknowledgments').get('support'):
+                    if isinstance(support.get('entity_type', str)) and 'private' in support['entity_type'].lower():
+                            private_support.append(support)
+        if private_support:
+            p['structured_acknowledgments']['private_support'] = private_support
         text_to_autocomplete.append(p['id'])
         title_lang = None
         if 'lang' in p and isinstance(p['lang'], str) and len(p['lang'])==2:
