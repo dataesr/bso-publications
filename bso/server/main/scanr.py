@@ -209,6 +209,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
         get_vip_dict()
     scanr_publications = []
     for p in publications:
+        title_abs_text = ""
         text_to_autocomplete =[]
         elt = {'id': p['id'], 'ix': ix}
         # normalize schema for acknowledgments
@@ -225,7 +226,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
         if isinstance(p.get('structured_acknowledgments'), dict):
             if isinstance(p.get('structured_acknowledgments').get('support'), list):
                 for support in p.get('structured_acknowledgments').get('support'):
-                    if isinstance(support.get('entity_type', str)) and 'private' in support['entity_type'].lower():
+                    if isinstance(support.get('entity_type'), str) and 'private' in support['entity_type'].lower():
                             private_support.append(support)
         if private_support:
             p['structured_acknowledgments']['private_support'] = private_support
@@ -235,6 +236,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
             title_lang = p['lang']
         if p.get('title') and isinstance(p['title'], str) and len(p['title'])>2:
             elt['title'] = {'default': p['title']}
+            title_abs_text = p['title']
             if title_lang:
                 elt['title'][title_lang] = p['title']
                 text_to_autocomplete.append(p['title'])
@@ -256,6 +258,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 current_abs = abstr
             if current_abs is None:
                 continue
+            title_abs_text += " " + current_abs
             if 'summary' not in elt:
                 elt['summary'] = {'default': current_abs}
             if current_lang[0:2] == 'fr':
@@ -558,7 +561,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                             for f in ['orcid', 'id_hal']:
                                 if extra_info.get(f):
                                     author['denormalized'][f] = extra_info[f]
-                        author['id_name'] = aut['id']+'###'+fullName+'###'+isFrench
+                        author['id_name'] = aut['id']+'###'+fullName
                 if aut.get('id') is None and isFrench == 'FR' and aut.get('first_name') and aut.get('last_name') and len(aut['first_name']) > 3 and len(aut['last_name']) > 3:
                     author['toIdentify'] = aut['last_name']+'###'+aut['first_name']
                 author['role'] = aut.get('role', 'author')
@@ -568,6 +571,24 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                     author['affiliations'] = affiliations_ids
                 if raw_affiliations and denormalize:
                     author['affiliations'] = raw_affiliations
+                    for raw_aff in raw_affiliations:
+                        is_labo = False
+                        rnsr_id = None
+                        if raw_aff.get('status') != 'active':
+                            continue
+                        if raw_aff.get('level') != 'Unité de recherche':
+                            continue
+                        if isinstance(raw_aff.get('ids'), list):
+                            for id_elt in raw_aff['ids']:
+                                if id_elt.get('type') == 'rnsr':
+                                    is_labo = True
+                                    rnsr_id = id_elt['id']
+                        if is_labo and isinstance(author.get('id_name'), str):
+                            denormalized = get_orga(df_orga, rnsr_id)
+                            if denormalized.get('id_acronym'):
+                                raw_aff['id_name_author_labo'] = author['id_name'] + "###" + denormalized['id_acronym']
+                        if is_labo and isinstance(author.get('toIdentify'), str):
+                            raw_aff['toIdentify2'] = author.get('toIdentify')+'###'+rnsr_id
                 if author and (isinstance(author.get('fullName'), str) or isinstance(author.get('lastName'), str)):
                     authors.append(author)
             if authors:
@@ -618,8 +639,11 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                                     softwares[current_key]['id_name'] = f"{raw_m['wikidataId']}###{current_key}"
                             if 'context' in raw_m:
                                 softwares[current_key]['contexts'].append(raw_m['context'])
+                                title_abs_text += " " + raw_m['context']
                 if softwares:
                     elt['software'] = list(softwares.values())
+
+            elt['title_abs_text'] = title_abs_text
 
             # embeddings
             # TODO remove
@@ -633,13 +657,17 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
             # for network mapping
             # authors network
             if authors:
+                co_authors, co_authors_simple = [], []
                 try:
                     co_authors = get_co_occurences([a for a in authors if (a.get('role') == 'author')], 'id_name')
+                    co_authors_simple = get_co_occurences([a for a in authors if (a.get('role') == 'author')], 'full_name')
                 except:
                     logger.debug(authors)
                     co_authors = get_co_occurences([a for a in authors if (a.get('role') == 'author')], 'id_name')
                 if co_authors:
                     elt['co_authors'] = co_authors
+                if co_authors_simple:
+                    elt['co_authors_simple'] = co_authors_simple
             # affiliations network
             if denormalized_affiliations:
                 co_countries = get_co_occurences(denormalized_affiliations, 'country')

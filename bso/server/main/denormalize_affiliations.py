@@ -55,11 +55,19 @@ def get_orga_data():
     orga_map = {}
     for elt in data:
         res = {}
+        gps=None
         for e in ['id', 'label', 'acronym', 'kind', 'level', 'status']:
             if elt.get(e) and (isinstance(elt[e], str) or isinstance(elt[e], dict) or isinstance(elt[e], list)):
                 res[e] = elt[e]
             if isinstance(elt.get('address'), list):
                 res['mainAddress'] = get_main_address(elt['address'])
+                if res['mainAddress']:
+                    gps = res['mainAddress'].get('gps', {})
+                    if gps:
+                        lat = gps.get('lat')
+                        lon = gps.get('lon')
+                        if lat and lon:
+                            gps=f'{lat}|{lon}'
         res['isFrench'] = compute_is_french(elt['id'], res.get('mainAddress'))
         res['country'] = compute_country(elt['id'], res.get('mainAddress'))
         if 'label' not in res:
@@ -76,6 +84,14 @@ def get_orga_data():
         if len(encoded_labels)==0 and default_label:
             encoded_label = 'DEFAULT_' + default_label
         res['id_name'] = f"{elt['id']}###{encoded_label}"
+        if gps:
+            res['id_name'] += f'###{gps}'
+        acronym_str = None
+        if isinstance(res.get('acronym'), dict):
+            acronym_str = get_default_name(res['acronym'])
+        if not isinstance(acronym_str, str):
+            acronym_str = default_label
+        res['id_acronym'] = f"{elt['id']}###{acronym_str}"
         orga_map[elt['id']] = res
     return orga_map
 

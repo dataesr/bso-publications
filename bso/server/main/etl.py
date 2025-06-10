@@ -253,17 +253,21 @@ def etl(args):
 
         elasticimport = f"elasticdump --input={scanr_output_file_denormalized} --output={es_host}{full_index_name} --type=data --limit 100 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
         os.system(elasticimport)
-        cmd = f'cd {output_dir} && gzip -k {index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
+        current_export_file = f'{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
+        cmd = f'cd {output_dir} && rm -rf {current_export_file}.gz && gzip -k {current_export_file}'
         os.system(cmd)
         upload_s3(container='scanr-data', source = f'{scanr_output_file_denormalized}.gz', destination='production/publications_denormalized_{split_idx}.jsonl.gz', is_public=True)
 
 def is_valid_sudoc(p):
     if 'sudoc' in p['id']:
-        if p.get('year') is None:
-            return False
-        if isinstance(p['year'], int):
-            if p['year'] < 1980:
+        if p.get('year') and p['year']==p['year']:
+            year = int(p['year'])
+            if year >= 1980:
+                return True
+            else:
                 return False
+        else:
+            return False
     return True
 
 def delete_temporary_files(args):

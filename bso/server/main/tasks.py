@@ -159,6 +159,7 @@ def create_task_unpaywall_to_crawler(is_daily):
     crawl_all = True
     chunks = pd.read_json(destination, lines=True, chunksize=5000)
     for c in chunks:
+        c['doi'] = c.doi_url.apply(lambda x:x.replace('https://doi.org/', ''))
         crawl_list = []
         parse_list = []
         sub_df = c[c.year >= START_YEAR]

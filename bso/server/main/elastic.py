@@ -112,6 +112,15 @@ def get_analyzers() -> dict:
                 'icu_folding'
             ]
         },
+        'heavy': {
+            'tokenizer': 'icu_tokenizer',
+            'filter': [
+                'lowercase',
+                'french_elision',
+                'icu_folding',
+                'stemmer'
+            ]
+        },
         "autocomplete": {
           "type": "custom",
           "tokenizer": "icu_tokenizer",
@@ -236,6 +245,12 @@ def reset_index_scanr(index: str) -> None:
         mappings['properties'][f] = { 
                 'type': 'text',
                 'analyzer': 'light',
+            }
+
+    for f in ['title_abs_text']:
+        mappings['properties'][f] = { 
+                'type': 'text',
+                'analyzer': 'heavy',
             }
 
 
