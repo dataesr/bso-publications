@@ -55,7 +55,7 @@ def get_orga_data():
     orga_map = {}
     for elt in data:
         res = {}
-        gps=None
+        gps=''
         for e in ['id', 'label', 'acronym', 'kind', 'level', 'status']:
             if elt.get(e) and (isinstance(elt[e], str) or isinstance(elt[e], dict) or isinstance(elt[e], list)):
                 res[e] = elt[e]
@@ -84,14 +84,13 @@ def get_orga_data():
         if len(encoded_labels)==0 and default_label:
             encoded_label = 'DEFAULT_' + default_label
         res['id_name'] = f"{elt['id']}###{encoded_label}"
-        if gps:
-            res['id_name'] += f'###{gps}'
-        acronym_str = None
+        acronym_str = ''
         if isinstance(res.get('acronym'), dict):
             acronym_str = get_default_name(res['acronym'])
         if not isinstance(acronym_str, str):
             acronym_str = default_label
-        res['id_acronym'] = f"{elt['id']}###{acronym_str}"
+        res['id_name'] += f'###{acronym_str}'
+        res['id_name'] += f'###{gps}'
         orga_map[elt['id']] = res
     return orga_map
 

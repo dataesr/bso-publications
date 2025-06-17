@@ -574,10 +574,6 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                     for raw_aff in raw_affiliations:
                         is_labo = False
                         rnsr_id = None
-                        if raw_aff.get('status') != 'active':
-                            continue
-                        if raw_aff.get('level') != 'Unité de recherche':
-                            continue
                         if isinstance(raw_aff.get('ids'), list):
                             for id_elt in raw_aff['ids']:
                                 if id_elt.get('type') == 'rnsr':
@@ -585,8 +581,8 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                                     rnsr_id = id_elt['id']
                         if is_labo and isinstance(author.get('id_name'), str):
                             denormalized = get_orga(df_orga, rnsr_id)
-                            if denormalized.get('id_acronym'):
-                                raw_aff['id_name_author_labo'] = author['id_name'] + "###" + denormalized['id_acronym']
+                            if denormalized.get('id_name') and denormalized.get('status') == 'active' and denormalized.get('level') == 'Unité de recherche':
+                                raw_aff['id_name_author_labo'] = author['id_name'] + "###" + denormalized['id_name']
                         if is_labo and isinstance(author.get('toIdentify'), str):
                             raw_aff['toIdentify2'] = author.get('toIdentify')+'###'+rnsr_id
                 if author and (isinstance(author.get('fullName'), str) or isinstance(author.get('lastName'), str)):
@@ -673,7 +669,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 co_countries = get_co_occurences(denormalized_affiliations, 'country')
                 if co_countries:
                     elt['co_countries'] = co_countries
-                structures_to_combine = [a for a in denormalized_affiliations if (('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active'))]
+                structures_to_combine = [a for a in denormalized_affiliations if (('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active') and (a.get('level') == 'Unité de recherche'))]
                 co_structures = get_co_occurences(structures_to_combine, 'id_name')
                 if co_structures:
                     elt['co_structures'] = co_structures
