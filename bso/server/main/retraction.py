@@ -11,6 +11,7 @@ retraction_notes = {}
 @retry(delay=200, tries=5)
 def get_retraction_data():
     url = 'https://api.labs.crossref.org/data/retractionwatch?bso@recherche.gouv.fr'
+    # alternative https://gitlab.com/crossref/retraction-watch-data/-/raw/main/retraction_watch.csv?ref_type=heads&inline=false
     try:
         df = pd.read_csv(url, sep=',')
         logger.debug(f'{len(df)} records downloaded from retractionwatch')

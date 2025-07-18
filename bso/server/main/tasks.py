@@ -134,10 +134,10 @@ def create_task_enrich(args: dict) -> list:
 
 def create_task_download_unpaywall(args: dict) -> str:
     download_type = args.get('type')
+    today = datetime.date.today()
     if download_type == 'snapshot':
-        snap = download_snapshot(asof=args.get('asof'))
+        snap = download_snapshot(asof=args.get('asof', str(today)))
     elif download_type == 'daily':
-        today = datetime.date.today()
         snap = download_daily(date=f'{today}')
     else:
         snap = None
@@ -205,7 +205,8 @@ def create_task_unpaywall_to_crawler(is_daily):
 
 
 def create_task_load_mongo(args: dict) -> None:
-    asof = args.get('asof', 'nodate')  # if nodate, today's snapshot will be used
+    today = datetime.date.today()
+    asof = args.get('asof', str(today))  # if nodate, today's snapshot will be used
     if args.get('filename') is None:
         filename = download_snapshot(asof).split('/')[-1]
     else:

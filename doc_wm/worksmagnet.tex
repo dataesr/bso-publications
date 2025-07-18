@@ -53,6 +53,19 @@ matching, scholarly communication},
 % Allow footnotes in longtable head/foot
 \IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
 \makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -131,7 +144,7 @@ research data metadata, particularly affiliations, by making automated
 AI calculations visible and correctable. It addresses challenges related
 to metadata heterogeneity, complex processing chains, and the need for
 human curation in a diverse research landscape. The paper details
-Works-magnet's ceoncepts, and the observed limitations, while outlining
+Works-magnet's concepts, and the observed limitations, while outlining
 future directions for enhancing open metadata quality and reusability.
 The works-magnet app is open source on github
 https://github.com/dataesr/works-magnet
@@ -290,6 +303,12 @@ workforce of public employees is used to improve open data quality\strut
 \bottomrule
 \end{longtable}
 
+\begin{figure}
+\centering
+\includegraphics[width=6.25in,height=\textheight]{./wm1.png}
+\caption{Works-magnet screenshot}
+\end{figure}
+
 \hypertarget{code-and-data-availibility}{%
 \section{4. Code and data
 availibility}\label{code-and-data-availibility}}
@@ -357,7 +376,7 @@ Works-magnet's curation efforts has the potential to serve as a valuable
 training base for new artificial intelligence models. This could lead to
 the development of more accurate and efficient automated curation tools
 in the future, potentially reducing the reliance on extensive human
-intervention for certain tasks.
+intervention for certain tasks (Jeangirard 2022).
 
 Finally, there is an ongoing discussion about centralizing the results
 of various curation initiatives to simplify their dissemination. Such a
@@ -383,6 +402,12 @@ Anita Waard, Philipp Mayr, Aakanksha Naik, Orion Weller, Yoonjoo Lee,
 Shannon Shen, and Yanxia Qin, 135--44. Bangkok, Thailand: Association
 for Computational Linguistics.
 \url{https://aclanthology.org/2024.sdp-1.13/}.
+
+\leavevmode\hypertarget{ref-jeangirard:hal-03819060}{}%
+Jeangirard, Éric. 2022. ``L'utilisation de l'apprentissage automatique
+dans le Baromètre de la science ouverte~: une façon de réconcilier
+bibliométrie et science ouverte~?'' \emph{Arabesques}, no. 107
+(September): 10--11. \url{https://doi.org/10.35562/arabesques.3084}.
 
 \leavevmode\hypertarget{ref-lhote_using_2021}{}%
 L'Hôte, Anne, and Eric Jeangirard. 2021. ``Using Elasticsearch for

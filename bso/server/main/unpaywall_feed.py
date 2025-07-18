@@ -117,7 +117,8 @@ def download_snapshot(asof: str = None, upload_to_object_storage: bool = True) -
         url_old = f'https://unpaywall-data-snapshots.s3-us-west-2.amazonaws.com/unpaywall_snapshot_{asof}.jsonl.gz'
         return download_file(url_old, upload_to_object_storage)
     except:
-        return download_file(url_snapshot, upload_to_object_storage)
+        destination = f'/upw_data/unpaywall_snapshot_{asof}.jsonl.gz'
+        return download_file(url_snapshot, upload_to_object_storage, destination)
 
 
 def download_daily(date: str) -> str:

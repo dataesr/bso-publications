@@ -15,6 +15,7 @@ from bso.server.main.logger import get_logger
 from bso.server.main.predatory.predatory_detect import detect_predatory
 from bso.server.main.publisher.publisher_detect import detect_publisher
 from bso.server.main.retraction import detect_retraction 
+from bso.server.main.preprint import detect_preprint
 from bso.server.main.strings import dedup_sort, normalize, normalize2, remove_punction, get_words
 from bso.server.main.unpaywall_mongo import get_unpaywall_history
 from bso.server.main.utils import download_file, FRENCH_ALPHA2
@@ -193,6 +194,11 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
         if doi:
             retraction_infos = detect_retraction(doi)
             res.update(retraction_infos)
+        
+        # preprints (from crossref dataset)
+        if doi:
+            preprint_infos = detect_preprint(doi)
+            res.update(preprint_infos)
         
         # Genre (dépend de publisher_normalized)
         if isinstance(res.get('genre'), str):

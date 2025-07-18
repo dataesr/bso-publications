@@ -24,7 +24,7 @@ geometry: "left=3cm, right=3cm, top=3cm, bottom=3cm"
 
 # Abstract
 
-The transition to Open Science necessitates robust and reliable metadata. While national initiatives, such as the French Open Science Monitor, aim to track this evolution using open data, reliance on proprietary databases persists in many places. Open platforms like OpenAlex still require significant human intervention for data accuracy. This paper introduces Works-magnet, a project by the French Ministry of Higher Education and Research (MESR) Data Science & Engineering Team. Works-magnet is designed to accelerate the curation of bibliographic and research data metadata, particularly affiliations, by making automated AI calculations visible and correctable. It addresses challenges related to metadata heterogeneity, complex processing chains, and the need for human curation in a diverse research landscape. The paper details Works-magnet's ceoncepts, and the observed limitations, while outlining future directions for enhancing open metadata quality and reusability. The works-magnet app is open source on github https://github.com/dataesr/works-magnet
+The transition to Open Science necessitates robust and reliable metadata. While national initiatives, such as the French Open Science Monitor, aim to track this evolution using open data, reliance on proprietary databases persists in many places. Open platforms like OpenAlex still require significant human intervention for data accuracy. This paper introduces Works-magnet, a project by the French Ministry of Higher Education and Research (MESR) Data Science & Engineering Team. Works-magnet is designed to accelerate the curation of bibliographic and research data metadata, particularly affiliations, by making automated AI calculations visible and correctable. It addresses challenges related to metadata heterogeneity, complex processing chains, and the need for human curation in a diverse research landscape. The paper details Works-magnet's concepts, and the observed limitations, while outlining future directions for enhancing open metadata quality and reusability. The works-magnet app is open source on github https://github.com/dataesr/works-magnet
 
 # 1. Introduction
 
@@ -58,7 +58,7 @@ One of the fundamental shifts brought about by Works-magnet lies in its paradigm
 | Corrected data becomes proprietary | Corrected data is open and can be reused by anyone |
 | reinforces dependence on proprietary tools | workforce of public employees is used to improve open data quality |
 
-
+![Works-magnet screenshot](./wm1.png){ width=600 }
 
 # 4. Code and data availibility
 
@@ -84,7 +84,7 @@ Furthermore, specific difficulties are encountered when linking research outputs
 The future development of Works-magnet and the broader open metadata ecosystem holds several promising directions. A key objective is to ensure that the results of metadata curation are not only open but also interoperable, facilitating their reuse in diverse contexts beyond the initial scope of Works-magnet. This would maximize the value of the curated data for the entire research community.
 
 
-Furthermore, the continuously growing and refined dataset resulting from Works-magnet's curation efforts has the potential to serve as a valuable training base for new artificial intelligence models. This could lead to the development of more accurate and efficient automated curation tools in the future, potentially reducing the reliance on extensive human intervention for certain tasks.
+Furthermore, the continuously growing and refined dataset resulting from Works-magnet's curation efforts has the potential to serve as a valuable training base for new artificial intelligence models. This could lead to the development of more accurate and efficient automated curation tools in the future, potentially reducing the reliance on extensive human intervention for certain tasks [@jeangirard:hal-03819060].
 
 Finally, there is an ongoing discussion about centralizing the results of various curation initiatives to simplify their dissemination. Such a centralized approach could create a single, authoritative source for high-quality, openly curated research metadata, further advancing the goals of Open Science by making reliable data readily available to all stakeholders. These future directions underscore the commitment to building a sustainable and comprehensive open metadata infrastructure.
 
