@@ -13,6 +13,7 @@ from bso.server.main.utils import clean_json, is_valid, get_all_manual_matches
 from bso.server.main.denormalize_affiliations import get_orga, get_project
 from bso.server.main.fields.field_detect import get_embeddings
 from bso.server.main.utils_swift import delete_object
+from bso.server.main.cpj import get_cpj
 
 logger = get_logger(__name__)
 
@@ -549,6 +550,11 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                                 isFrench = 'FR'
                 if aut.get('id'):
                     author['person'] = aut['id']
+                    cpj_info = get_cpj(aut['id'].replace('idref', ''))
+                    if cpj_info:
+                        if 'tags' not in author:
+                            author['tags'] = []
+                        author['tags'] += cpj_info['tags']
                     fullName = author.get('fullName', 'NO_FULLNAME')
                     if denormalize:
                         author['denormalized'] = {'id': aut['id'], 'idref': aut['id'].replace('idref', '')}

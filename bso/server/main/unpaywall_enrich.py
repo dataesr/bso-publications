@@ -274,7 +274,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
         
         if 'bso' in index_name:
             # Predatory info
-            pred_info = detect_predatory(res.get('publisher'), res.get('journal_name'))
+            pred_info = detect_predatory(res['id'], res.get('publisher'), res.get('journal_name'))
             res.update(pred_info)
         
         # OA Details

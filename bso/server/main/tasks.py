@@ -17,6 +17,7 @@ from bso.server.main.utils_upw import chunks
 from bso.server.main.utils import download_file, get_hash
 from bso.server.main.etl import etl
 from bso.server.main.affiliation_matcher import get_query_from_affiliation
+from bso.server.main.openalex import get_new_from_openalex
 
 HTML_PARSER_SERVICE = os.getenv('HTML_PARSER_SERVICE')
 logger = get_logger(__name__)
@@ -143,8 +144,11 @@ def create_task_download_unpaywall(args: dict) -> str:
         snap = None
     return snap
 
+def create_task_unpaywall_to_crawler(fr_only):
+    from_d = str(datetime.datetime.today() - datetime.timedelta(days=2))[0:10]
+    get_new_from_openalex(fr_only=False, from_date=from_d)
 
-def create_task_unpaywall_to_crawler(is_daily):
+def create_task_unpaywall_to_crawler_old(is_daily):
     upw_api_key = os.getenv('UPW_API_KEY')
     crawler_url = os.getenv('CRAWLER_SERVICE')
     parser_url = HTML_PARSER_SERVICE
