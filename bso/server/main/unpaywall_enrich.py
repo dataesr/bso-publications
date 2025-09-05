@@ -265,8 +265,9 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                     #logger.debug(f'not enough info title / abstract for doi {doi} : {publi_title_abstract}')
         
         # Entity fishing
-        if entity_fishing:
-            ef_info = get_entity_fishing(res, myclient)
+        if 'scanr' in index_name:
+            compute_new_entity_fishing = entity_fishing
+            ef_info = get_entity_fishing(compute_new_entity_fishing, res, myclient)
             if ef_info:
                 res.update(ef_info)
         #if 'scanr' in index_name:
@@ -628,10 +629,10 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
             all_updated.append(d)
 
     # affiliation matcher
-    compute_missing = True
+    compute_missing = affiliation_matching
     recompute_all = False
     publicationsWithAffiliations = []
-    if affiliation_matching:
+    if 'scanr' in index_name:
         done, todo = get_affiliations_computed(all_updated, recompute_all = recompute_all, compute_missing = compute_missing)
         logger.debug(f'affiliation matching for {len(todo)} publications')
         publicationsWithAffiliations += enrich_publications_with_affiliations_id(todo)
