@@ -1,4 +1,5 @@
 import os
+import ast
 import pandas as pd
 from bso.server.main.logger import get_logger
 from bso.server.main.config import MOUNTED_VOLUME
@@ -25,6 +26,8 @@ def load_cpj_data():
     data_cpj = pd.read_csv(path).to_dict(orient='records')
     cpj_dict = {}
     for d in data_cpj:
+        if d.get('tags') and isinstance(d['tags'], str):
+            d['tags'] = ast.literal_eval(d['tags'])
         cpj_dict[d['idref']] = d
     return cpj_dict
 
