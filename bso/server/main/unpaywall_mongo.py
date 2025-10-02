@@ -157,10 +157,12 @@ def get_dois_meta(dois):
         if 'z_authors' in res and isinstance(res['z_authors'], list):
             for a in res['z_authors']:
                 aut = {}
-                if a.get('given'):
-                    aut['first_name'] = a['given']
-                if a.get('family'):
-                    aut['last_name'] = a['family']
+                #if a.get('given'):
+                #    aut['first_name'] = a['given']
+                #if a.get('family'):
+                #    aut['last_name'] = a['family']
+                if a.get('raw_author_name'):
+                    aut['full_name'] = a['raw_author_name'].strip()
                 if aut:
                     authors.append(aut)
         if authors:

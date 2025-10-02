@@ -305,6 +305,8 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 p['genre'] = 'these'
                 nnt = e[3:].upper()
                 landingPage = f"https://theses.fr/{nnt}"
+                if p['id'].startswith('nnts'):
+                    landingPage = f"https://theses.fr/{nnt.lower()}"
             if e[0:7]=='haltel-':
                 p['genre'] = 'these'
         if isinstance(p.get('genre'), str):
