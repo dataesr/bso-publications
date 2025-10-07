@@ -466,7 +466,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                         if x.get('id'):
                             global_affiliations.append(x['id'])
                 # data scraped
-                for t in ['grid', 'rnsr', 'ror', 'sirene', 'siren', 'siret']:
+                for t in ['grid', 'rnsr', 'ror', 'sirene', 'siren', 'siret', 'ed']:
                     if isinstance(aff.get(t), list):
                         for x in aff[t]:
                             if x not in global_affiliations:
@@ -538,7 +538,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                             for x in aff['ids']:
                                 if x.get('id'):
                                     affiliations_ids.append(x['id'])
-                        for t in ['grid', 'ror', 'rnsr', 'sirene', 'siren', 'siret']:
+                        for t in ['grid', 'ror', 'rnsr', 'sirene', 'siren', 'siret', 'ed']:
                             if isinstance(aff.get(t), list):
                                 for x in aff[t]:
                                     if x not in affiliations_ids:
