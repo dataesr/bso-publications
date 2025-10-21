@@ -243,6 +243,12 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 text_to_autocomplete.append(p['title'])
         else:
             continue
+        if p.get('title_fr') and isinstance(p['title_fr'], str) and len(p['title_fr'])>2:
+            elt['title']['fr'] =  p['title_fr']
+            text_to_autocomplete.append(p['title_fr'])
+        if p.get('title_en') and isinstance(p['title_en'], str) and len(p['title_en'])>2:
+            elt['title']['en'] =  p['title_en']
+            text_to_autocomplete.append(p['title_en'])
         # field abstract / abstracts
         abstracts = []
         if isinstance(p.get('abstracts'), list):
@@ -305,7 +311,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 p['genre'] = 'these'
                 nnt = e[3:].upper()
                 landingPage = f"https://theses.fr/{nnt}"
-                if p['id'].startswith('nnts'):
+                if nnt.lower().startswith('s'):
                     landingPage = f"https://theses.fr/{nnt.lower()}"
             if e[0:7]=='haltel-':
                 p['genre'] = 'these'

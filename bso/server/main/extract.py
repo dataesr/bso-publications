@@ -184,7 +184,7 @@ def merge_publications(current_publi, new_publi, locals_data):
     if current_sources:
         current_publi['sources'] = current_sources
     # title
-    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id']:
+    for f in ['title', 'title_first_author_raw', 'title_first_author', 'natural_id', 'title_fr', 'title_en']:
         if current_publi.get(f) is None and isinstance(new_publi.get(f), str):
             current_publi[f] = new_publi[f]
     # bso3
