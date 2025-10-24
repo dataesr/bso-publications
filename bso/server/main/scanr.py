@@ -442,7 +442,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 if isinstance(d.get('code'), str) and isinstance(d.get('label', {}).get('default'), str):
                     d['id_name'] = f"{d['code']}###{d['label']['default']}"
                 domain_key = normalize2(d.get('label', {}).get('default', '').lower(), remove_space=True)
-                d['key_name']  f"{domain_key}###{d['label']['default']}"
+                d['key_name'] = f"{domain_key}###{d['label']['default']}"
                 if code not in map_code:
                     map_code[code] = d
                     map_code[code]['count'] = 1
