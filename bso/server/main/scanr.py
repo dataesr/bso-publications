@@ -442,6 +442,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 if isinstance(d.get('code'), str) and isinstance(d.get('label', {}).get('default'), str):
                     d['id_name'] = f"{d['code']}###{d['label']['default']}"
                 domain_key = normalize2(d.get('label', {}).get('default', '').lower(), remove_space=True)
+                d['key_name']  f"{domain_key}###{d['label']['default']}"
                 if code not in map_code:
                     map_code[code] = d
                     map_code[code]['count'] = 1
@@ -694,7 +695,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
             # wikidata network
             if domains:
                 domains_to_combine = [a for a in domains if ((a.get('type') == 'wikidata') and (a.get('count', 0) > 0))]
-                co_domains = get_co_occurences(domains_to_combine, 'id_name')
+                co_domains = get_co_occurences(domains_to_combine, 'key_name')
                 if co_domains:
                     elt['co_domains'] = co_domains
             # software from softcite
