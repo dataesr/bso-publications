@@ -20,12 +20,14 @@ def get_anr_open_data():
         logger.debug(f'Getting open data from {url} for {anr_type}')
         try:
             df = pd.read_csv(url, sep=';')
+            df = df.rename(columns={"Projet.Code_Decision_ANR": "Projet.Code_Decision"}, inplace=True)
         except:
             logger.debug(f'PROBLEM WITH ANR DATA download ! {elt}')
             continue
         all_df.append(df)
         for i, row in df.iterrows():
-            code = row['Projet.Code_Decision_ANR']
+            #code = row['Projet.Code_Decision_ANR']
+            code = row['Projet.Code_Decision']
             code_clean = code.strip().upper()
             code_details[code_clean] = {
                 'sub_agency': anr_type,
