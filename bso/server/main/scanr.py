@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 NB_MAX_AUTHORS = 50
 MIN_YEAR_PUBLISHED = 1960
 
-NB_MAX_CO_ELEMENTS = 20
+NB_MAX_CO_ELEMENTS = 14 #(2 among 14 = 91 combinations)
 
 idref_sudoc_only = {}
 vip_dict = {}
