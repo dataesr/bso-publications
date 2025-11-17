@@ -23,7 +23,7 @@ for i, row in dew.iterrows():
 def extract_genre():
     logger.debug('extracting genre from the scanR file')
     global genre_dict
-    cmd = f"cat /upw_data/scanr/persons_denormalized.jsonl | jq  -r '[.idref,.gender,.firstName,.lastName]|@csv' | grep -v ',,' > /upw_data/scanr/gender.csv"
+    cmd = f"zcat /upw_data/scanr/persons_denormalized.jsonl.gz | jq  -r '[.idref,.gender,.firstName,.lastName]|@csv' | grep -v ',,' > /upw_data/scanr/gender.csv"
     os.system(cmd)
     df = pd.read_csv('/upw_data/scanr/gender.csv', header=None, names=['idref', 'gender', 'first_name', 'last_name'])
     for r in df.itertuples():
