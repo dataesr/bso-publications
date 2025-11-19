@@ -152,7 +152,11 @@ def parse_these_with_genre(args):
         current_theses=[]
         logger.debug(f'reading {current_file}')
         current_df = pd.read_json(f'/upw_data/theses/{dump_date}/parsed/{current_file}')
-        current_data = current_df[~pd.isna(current_df.year)].to_dict(orient='records')
+        try:
+            current_data = current_df[~pd.isna(current_df.year)].to_dict(orient='records')
+        except:
+            current_data = []
+            logger.debug(f'file /upw_data/theses/{dump_date}/parsed/{current_file} does not contain a year column')
         for ix, d in enumerate(current_data):
             year = d['year']
             if year < 2010:
