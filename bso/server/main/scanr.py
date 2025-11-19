@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 NB_MAX_AUTHORS = 50
 MIN_YEAR_PUBLISHED = 1960
 
-NB_MAX_CO_ELEMENTS = 14 #(2 among 14 = 91 combinations)
+NB_MAX_CO_ELEMENTS = 20 #(2 among 20 = 190 / 2 among 14 = 91 combinations)
 
 idref_sudoc_only = {}
 vip_dict = {}
@@ -695,7 +695,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
             # wikidata network
             if domains:
                 domains_to_combine = [a for a in domains if ((a.get('type') == 'wikidata') and (a.get('count', 0) > 0))]
-                co_domains = get_co_occurences(domains_to_combine, 'key_name')
+                co_domains = get_co_occurences(domains_to_combine, 'id_name')
                 if co_domains:
                     elt['co_domains'] = co_domains
             # software from softcite
