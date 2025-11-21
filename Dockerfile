@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.8 get-pip.py
+RUN curl https://bootstrap.pypa.io/pip/3.8/get-pip.py -o get-pip.py && python3.8 get-pip.py
 
 # Install last version of NodeJS
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
