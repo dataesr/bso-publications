@@ -149,20 +149,21 @@ def get_clean_id(e):
 def get_data_full_from_input(df, filename):
     res = {'doi': [], 'hal_id':[]}
     nb_dois, nb_hal_ids = 0, 0
+    df_columns = list(df.columns)
     for e in df.itertuples():
         bso_local_affiliations = []
-        if e.RNSR and e.RNSR==e.RNSR:
+        if ('RNSR' in df_columns) and e.RNSR and e.RNSR==e.RNSR:
             bso_local_affiliations+=[k.strip() for k in re.split(r'[,;]', e.RNSR)]
-        if e.ROR and e.ROR==e.ROR:
+        if ('ROR' in df_columns) and e.ROR and e.ROR==e.ROR:
             bso_local_affiliations+=[k.strip() for k in re.split(r'[,;]', e.ROR)]
-        if e.labels and e.labels==e.labels:
-            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in re.split(r'[,;]', e.labels]
-        if e.doi and e.doi==e.doi:
+        if ('labels' in df_columns) and e.labels and e.labels==e.labels:
+            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in re.split(r'[,;]', e.labels)]
+        if ('doi' in df_columns) and e.doi and e.doi==e.doi:
             id_clean = clean_doi(e.doi)
             elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
             res['doi'].append(elt)
             nb_dois += 1
-        if e.hal_id and e.hal_id==e.hal_id :
+        if ('hal_id' in df_columns) and e.hal_id and e.hal_id==e.hal_id :
             id_clean = get_clean_id(e.hal_id)
             elt = {'id': 'hal'+id_clean, 'hal_id': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
             res['hal_id'].append(elt)
