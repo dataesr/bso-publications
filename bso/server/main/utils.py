@@ -140,8 +140,10 @@ def clean_hal_id(hal_id):
 def get_clean_id(e):
     res = str(e).replace('.0','').strip().lower()
     res = res.split(',')[0].strip()
-    if 'hal-' in res and res[-2] == 'v':
-        res = res[0:-2]
+    if 'hal-' in res:
+        res = res.split(';')[0].strip()
+        if res[-2] == 'v':
+            res = res[0:-2]
     return res
 
 def get_data_full_from_input(df, filename):
