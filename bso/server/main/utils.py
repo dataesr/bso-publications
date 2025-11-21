@@ -150,11 +150,11 @@ def get_data_full_from_input(df, filename):
     for e in df.itertuples():
         bso_local_affiliations = []
         if e.RNSR and e.RNSR==e.RNSR:
-            bso_local_affiliations+=[k.strip() for k in e.RNSR.split(',')]
+            bso_local_affiliations+=[k.strip() for k in re.split(r'[,;]', e.RNSR)]
         if e.ROR and e.ROR==e.ROR:
-            bso_local_affiliations+=[k.strip() for k in e.ROR.split(',')]
+            bso_local_affiliations+=[k.strip() for k in re.split(r'[,;]', e.ROR)]
         if e.labels and e.labels==e.labels:
-            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in e.labels.split(',')]
+            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in re.split(r'[,;]', e.labels]
         if e.doi and e.doi==e.doi:
             id_clean = clean_doi(e.doi)
             elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
