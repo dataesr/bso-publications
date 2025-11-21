@@ -140,8 +140,10 @@ def clean_hal_id(hal_id):
 def get_clean_id(e):
     res = str(e).replace('.0','').strip().lower()
     res = res.split(',')[0].strip()
-    if 'hal-' in res and res[-2] == 'v':
-        res = res[0:-2]
+    if 'hal-' in res:
+        res = res.split(';')[0].strip()
+        if res[-2] == 'v':
+            res = res[0:-2]
     return res
 
 def get_data_full_from_input(df, filename):
@@ -150,11 +152,11 @@ def get_data_full_from_input(df, filename):
     for e in df.itertuples():
         bso_local_affiliations = []
         if e.RNSR and e.RNSR==e.RNSR:
-            bso_local_affiliations+=[k.strip() for k in e.RNSR.split(',')]
+            bso_local_affiliations+=[k.strip() for k in re.split('[,;]', e.RNSR)]
         if e.ROR and e.ROR==e.ROR:
-            bso_local_affiliations+=[k.strip() for k in e.ROR.split(',')]
+            bso_local_affiliations+=[k.strip() for k in re.split('[,;]', e.ROR)]
         if e.labels and e.labels==e.labels:
-            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in e.labels.split(',')]
+            bso_local_affiliations+=[k.strip().replace(' ', '_') for k in re.split('[,;]', e.labels)]
         if e.doi and e.doi==e.doi:
             id_clean = clean_doi(e.doi)
             elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
