@@ -24,7 +24,10 @@ from bso.server.main.bso_utils import get_ror_from_local, remove_too_long
 
 logger = get_logger(__name__)
 
-def aggregate_pubmed_data(pubmed_year, min_year = None):
+def aggregate_pubmed_data(pubmed_year, index_name, min_year = None):
+    download_container(container='medline', skip_download=False, download_prefix=f'parsed/fr/pubmed{medline_year}')
+    os.system(f'mkdir /upw_data/medline/parsed/{pubmed_year}')
+    os.system(f'mv /upw_data/medline/parsed/fr /upw_data/medline/parsed/{pubmed_year}/')
     all_pubmed = []
     all_pubmed_paths = []
     for directory in os.listdir(f'/upw_data/medline/parsed/{pubmed_year}/fr/'):
