@@ -41,11 +41,13 @@ def get_new_from_openalex(fr_only, from_date):
         else:
             cursor = next_cursor
     df = pd.DataFrame(all_results).dropna().drop_duplicates()
-    df['url'] = df['doi']
-    del df['doi']
-    data = df.to_dict(orient='records')
-    crawl_list = []
-    for c in chunks(data, 5000):
-        crawl_list = list(c)
-        logger.debug(f'posting {len(crawl_list)} elements to crawl')
-        requests.post(f'{crawler_url}/crawl', json={'list': crawl_list})
+    if 'doi' in df.columns():
+        df = df[~pd.isnull(df.doi)]
+        df['url'] = df['doi']
+        del df['doi']
+        data = df.to_dict(orient='records')
+        crawl_list = []
+        for c in chunks(data, 5000):
+            crawl_list = list(c)
+            logger.debug(f'posting {len(crawl_list)} elements to crawl')
+            requests.post(f'{crawler_url}/crawl', json={'list': crawl_list})
