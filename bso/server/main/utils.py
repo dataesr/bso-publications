@@ -171,9 +171,10 @@ def get_data_full_from_input(df, filename):
             bso_local_affiliations+=[k.strip().replace(' ', '_') for k in re.split(r'[,;]', e.labels)]
         if ('doi' in df_columns) and e.doi and e.doi==e.doi:
             id_clean = clean_doi(e.doi)
-            elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
-            res['doi'].append(elt)
-            nb_dois += 1
+            if id_clean is not None:
+                elt = {'id': 'doi'+id_clean, 'doi': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
+                res['doi'].append(elt)
+                nb_dois += 1
         if ('hal_id' in df_columns) and e.hal_id and e.hal_id==e.hal_id :
             id_clean = get_clean_id(e.hal_id)
             elt = {'id': 'hal'+id_clean, 'hal_id': id_clean, 'sources': [filename], 'bso_local_affiliations': bso_local_affiliations, 'bso_country': ['fr']}
