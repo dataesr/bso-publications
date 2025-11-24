@@ -1,19 +1,19 @@
 import datetime
+import hashlib
+import json
+import openpyxl
 import os
 import pandas as pd
 import re
 import requests
 import shutil
-import hashlib
-import json
-import string
 
 from typing import Union
 from urllib import parse
 
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
-from bso.server.main.utils_swift import download_object, upload_object, get_objects_by_page
+from bso.server.main.utils_swift import get_objects_by_page, upload_object
 
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
@@ -122,7 +122,7 @@ def is_valid(identifier, identifier_type):
 DOI_PREFIX = re.compile("(10\.)(.*?)( |$)")
 def clean_doi(doi):
     res = doi.lower().strip()
-    res = res.replace('%2f', '/').replace('_x000D_', '')
+    res = res.replace('%2f', '/')
     doi_match = DOI_PREFIX.search(res)
     if doi_match:
         return doi_match.group().strip()
@@ -150,6 +150,17 @@ def get_data_full_from_input(df, filename):
     res = {'doi': [], 'hal_id':[]}
     nb_dois, nb_hal_ids = 0, 0
     df_columns = list(df.columns)
+    # Delete all carriage returns
+    if 'RNSR' in df_columns:
+        df['ROR'] = df['ROR'].astype(str).apply(openpyxl.utils.escape.unescape)
+    if 'ROR' in df_columns:
+        df['ROR'] = df['ROR'].astype(str).apply(openpyxl.utils.escape.unescape)
+    if 'labels' in df_columns:
+        df['labels'] = df['labels'].astype(str).apply(openpyxl.utils.escape.unescape)
+    if 'doi' in df_columns:
+        df['doi'] = df['doi'].astype(str).apply(openpyxl.utils.escape.unescape)
+    if 'hal_id' in df_columns:
+        df['hal_id'] = df['hal_id'].astype(str).apply(openpyxl.utils.escape.unescape)
     for e in df.itertuples():
         bso_local_affiliations = []
         if ('RNSR' in df_columns) and e.RNSR and e.RNSR==e.RNSR:
