@@ -122,7 +122,7 @@ def is_valid(identifier, identifier_type):
 DOI_PREFIX = re.compile("(10\.)(.*?)( |$)")
 def clean_doi(doi):
     res = doi.lower().strip()
-    res = res.replace('%2f', '/')
+    res = res.replace('%2f', '/').replace('_x000D_', '')
     doi_match = DOI_PREFIX.search(res)
     if doi_match:
         return doi_match.group().strip()
