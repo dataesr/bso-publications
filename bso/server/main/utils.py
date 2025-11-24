@@ -121,11 +121,14 @@ def is_valid(identifier, identifier_type):
 
 DOI_PREFIX = re.compile("(10\.)(.*?)( |$)")
 def clean_doi(doi):
-    res = doi.lower().strip()
-    res = res.replace('%2f', '/')
-    doi_match = DOI_PREFIX.search(res)
-    if doi_match:
-        return doi_match.group().strip()
+    if isinstance(doi, str):
+        res = doi.lower().strip()
+        res = res.replace('%2f', '/')
+        doi_match = DOI_PREFIX.search(res)
+        if doi_match:
+            res = doi_match.group().strip()
+            # Remove final dot
+            return res[:-1] if res[-1] == '.' else res
     return None
 
 def clean_hal_id(hal_id):
@@ -187,7 +190,7 @@ def get_data_full_from_input(df, filename):
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
     logger.debug(f'reading {target}')
-    if 'xls' in filename.lower():
+    if 'xls' in filename.lower().split('.')[1]:
         df = pd.read_excel(target, engine='openpyxl')
     else:
         df = pd.read_csv(target, sep=',')
