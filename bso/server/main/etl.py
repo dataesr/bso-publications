@@ -257,7 +257,7 @@ def etl(args):
         current_export_file = f'{index_name}_split_{split_idx}_export_scanr_denormalized.jsonl'
         cmd = f'cd {output_dir} && rm -rf {current_export_file}.gz && gzip -k {current_export_file}'
         os.system(cmd)
-        upload_s3(container='scanr-data', source = f'{scanr_output_file_denormalized}.gz', destination='production/publications_denormalized_{split_idx}.jsonl.gz', is_public=True)
+        upload_s3(container='scanr-data', source = f'{scanr_output_file_denormalized}.gz', destination=f'production/publications_denormalized_{split_idx}.jsonl.gz', is_public=True)
 
 def is_valid_sudoc(p):
     if 'sudoc' in p['id']:
