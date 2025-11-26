@@ -41,7 +41,7 @@ def get_new_from_openalex(fr_only, from_date):
         else:
             cursor = next_cursor
     df = pd.DataFrame(all_results).dropna().drop_duplicates()
-    if 'doi' in list(df.columns()):
+    if 'doi' in df.columns():
         df = df[~pd.isnull(df.doi)]
         df['url'] = df['doi']
         del df['doi']
