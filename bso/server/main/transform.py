@@ -1,41 +1,18 @@
-import datetime
-import ast
-import gzip
-import json
-import jsonlines
-import multiprocess as mp
 import os
 import pandas as pd
 import pymongo
-import pysftp
-import requests
 
-import dateutil.parser
 from retry import retry
 
-from os.path import exists
-from urllib import parse
-from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
-from bso.server.main.elastic import load_in_es, reset_index, reset_index_scanr, get_doi_not_in_index, update_local_affiliations, refresh_index
-from bso.server.main.inventory import update_inventory
+from bso.server.main.config import MOUNTED_VOLUME
 from bso.server.main.logger import get_logger
 from bso.server.main.unpaywall_enrich import enrich
-from bso.server.main.enrich_parallel import enrich_parallel
-from bso.server.main.unpaywall_mongo import get_not_crawled, get_unpaywall_infos, get_dois_meta
-from bso.server.main.unpaywall_feed import download_daily, download_snapshot, snapshot_to_mongo
-from bso.server.main.utils_swift import download_object, get_objects_by_page, get_objects_by_prefix, upload_object, init_cmd, clean_container_by_prefix
-from bso.server.main.utils_upw import chunks, get_millesime
-from bso.server.main.utils import download_file, get_dois_from_input, dump_to_object_storage, is_valid, clean_doi, get_hash, to_json, to_jsonl, FRENCH_ALPHA2, clean_json, get_code_etab_nnt
-from bso.server.main.strings import dedup_sort, normalize
-from bso.server.main.scanr import to_scanr, to_scanr_patents, fix_patents, get_person_ids
-from bso.server.main.funders.funding import normalize_grant
-from bso.server.main.scanr import to_light
-from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, get_ror_from_local, remove_too_long, dict_to_csv
-from bso.server.main.s3 import upload_s3
-from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data
+from bso.server.main.utils_swift import upload_object
+from bso.server.main.utils import get_hash, to_jsonl
+from bso.server.main.strings import normalize
+from bso.server.main.bso_utils import json_to_csv, remove_wrong_match, dict_to_csv
 from bso.server.main.openalex import enrich_with_openalex
 
-from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual 
 
 logger = get_logger(__name__)
     
