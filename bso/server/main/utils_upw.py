@@ -143,9 +143,11 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
         host_type = loc.get('host_type')
         if host_type == 'repository':
             current_repo_instit = loc.get('repository_institution')
-            current_repo_url = loc['url'].split('/')[2]
-            if '.ncbi.' in current_repo_url:
-                current_repo_url = '/'.join(loc['url'].split('/')[2:4])
+            current_repo_url = None
+            if loc.get("url", False):
+                current_repo_url = loc['url'].split('/')[2]
+                if '.ncbi.' in current_repo_url:
+                    current_repo_url = '/'.join(loc['url'].split('/')[2:4])
             current_repo_pmh = None
             pmh_id = loc.get('pmh_id')
             if pmh_id:
