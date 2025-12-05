@@ -120,6 +120,15 @@ def get_acknowledgments(dois) -> dict:
     return res
 
 @retry(delay=60, tries=5)
+def get_acknowledgments_v2(ids) -> dict:
+    collection = get_collection(collection_name='acknowledgments_v2', database='scanr')
+    res = {}
+    res = [e for e in collection.find({'publication_id': {'$in': ids}})]
+    for ix, e in enumerate(res):
+        res[ix] = clean(e, None)
+    return res
+
+@retry(delay=60, tries=5)
 def get_structured_acknowledgments(ids) -> dict:
     collection = get_collection(collection_name='llm_funding', database='scanr')
     res = {}
