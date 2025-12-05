@@ -653,5 +653,8 @@ def enrich(publications: list, observations: list, datasource: str, affiliation_
                     field_to_del.append(field)
         for field in field_to_del:
             del p[field]
-
+        p['new_from_openalex'] = 0
+        if isinstance(p.get('sources'), list) and len(p['sources']) == 1:
+            if 'FULLETAB_openalex' in p['sources'][0]:
+                p['new_from_openalex'] = 1
     return all_updated
