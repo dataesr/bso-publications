@@ -3,7 +3,7 @@ import os
 import requests
 import pymongo
 from bso.server.main.logger import get_logger
-from bso.server.main.unpaywall_mongo import get_acknowledgments, get_structured_acknowledgments
+from bso.server.main.unpaywall_mongo import get_acknowledgments, get_structured_acknowledgments, get_acknowledgments_v2
 
 logger = get_logger(__name__)
 
@@ -30,19 +30,25 @@ def import_acknowledgments():
 
 def enrich_with_acknowledgments(publications):
     logger.debug('enrich_with_acknowledgments')
-    dois = [k['id'][3:] for k in publications if k['id'][0:3]=='doi']
-    ids = [k['id'] for k in publications if k['id'][0:3]=='doi']
-    res = get_acknowledgments(dois)
-    res_llm = get_structured_acknowledgments(ids)
+    #dois = [k['id'][3:] for k in publications if k['id'][0:3]=='doi']
+    #ids = [k['id'] for k in publications if k['id'][0:3]=='doi']
+    #res = get_acknowledgments(dois)
+    #res_llm = get_structured_acknowledgments(ids)
+    ids = [k['id'] for k in publications]
+    res = get_acknowledgments_v2(ids)
     current_dict = {}
     current_dict_llm = {}
+    #for k in res:
+    #    current_dict[k['doi']] = k
+    #for k in res_llm:
+    #    current_dict_llm[k['id']] = k
     for k in res:
-        current_dict[k['doi']] = k
-    for k in res_llm:
-        current_dict_llm[k['id']] = k
+        current_dict[k['publication_id']] = k
     for p in publications:
-        if p['id'][3:] in current_dict:
-            p.update(current_dict[p['id'][3:]])
-        if p['id'] in current_dict_llm:
+        #if p['id'][3:] in current_dict:
+        #    p.update(current_dict[p['id'][3:]])
+        #if p['id'] in current_dict_llm:
+        #    p.update(current_dict_llm[p['id']])
+        if p['id'] in current_dict:
             p.update(current_dict_llm[p['id']])
     return publications

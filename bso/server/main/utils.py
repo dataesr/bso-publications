@@ -193,7 +193,10 @@ def get_dois_from_input(filename: str) -> list:
     if 'xls' in filename.lower().split('.')[1]:
         df = pd.read_excel(target, engine='openpyxl')
     else:
-        df = pd.read_csv(target, sep=',')
+        try:
+            df = pd.read_csv(target, sep=',')
+        except:
+            df = pd.read_csv(target, sep=';')
         doi_columns = [c for c in df.columns if 'doi' in c.lower()]
         if doi_columns and ';' in doi_columns[0]:
             df = pd.read_csv(target, sep=';')

@@ -80,7 +80,7 @@ def etl(args):
     if 'bso-' in index_name:
         min_year = 2013
         output_dir = '/upw_data/bso-split'
-        nb_lines_transform = 500000
+        nb_lines_transform = 700000
     if 'scanr' in index_name:
         output_dir = '/upw_data/scanr-split'
         nb_lines_transform = 900000
