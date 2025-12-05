@@ -315,7 +315,7 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                         res['has_apc'] = None
                 if isinstance(last_oa_loc, list):
                     for loc in last_oa_loc:
-                        if loc.get('repository_normalized') == 'HAL' or 'archives-ouvertes.fr' in loc.get('url'):
+                        if loc.get('repository_normalized') == 'HAL' or (isinstance(loc.get("url"), str) and 'archives-ouvertes.fr' in loc.get('url')):
                             hal_id = None
                             if isinstance(loc.get('pmh_id'), str):
                                 loc_split = loc['pmh_id'].split(':')
