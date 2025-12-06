@@ -155,7 +155,7 @@ def get_data_full_from_input(df, filename):
     df_columns = list(df.columns)
     # Delete all carriage returns
     if 'RNSR' in df_columns:
-        df['ROR'] = df['ROR'].astype(str).apply(openpyxl.utils.escape.unescape)
+        df['RNSR'] = df['RNSR'].astype(str).apply(openpyxl.utils.escape.unescape)
     if 'ROR' in df_columns:
         df['ROR'] = df['ROR'].astype(str).apply(openpyxl.utils.escape.unescape)
     if 'labels' in df_columns:
@@ -186,6 +186,103 @@ def get_data_full_from_input(df, filename):
     logger.debug(f'{filename} with {nb_dois} dois and {nb_hal_ids} hal_ids')
     return res
 
+def get_data_full_from_input_fast(df, filename):
+    res = {'doi': [], 'hal_id': []}
+    df_columns = set(df.columns)  # set pour des lookups O(1)
+    
+    # Nettoyer les retours chariot de manière vectorisée
+    cols_to_clean = ['RNSR', 'ROR', 'labels', 'doi', 'hal_id']
+    for col in cols_to_clean:
+        if col in df_columns:
+            # Note: il y avait une typo dans le code original (ROR appliqué à RNSR)
+            df[col] = df[col].astype(str).apply(openpyxl.utils.escape.unescape)
+    
+    # Fonction helper pour parser les affiliations
+    def parse_affiliation_field(series, replace_spaces=False):
+        """Parse et nettoie un champ d'affiliation"""
+        result = []
+        for val in series:
+            if pd.notna(val) and val != 'nan' and str(val).strip():
+                items = [k.strip() for k in re.split(r'[,;]', str(val)) if k.strip()]
+                if replace_spaces:
+                    items = [k.replace(' ', '_') for k in items]
+                result.append(items)
+            else:
+                result.append([])
+        return result
+    
+    # Construire bso_local_affiliations de manière vectorisée
+    affiliations_parts = []
+    
+    if 'RNSR' in df_columns:
+        affiliations_parts.append(parse_affiliation_field(df['RNSR']))
+    
+    if 'ROR' in df_columns:
+        affiliations_parts.append(parse_affiliation_field(df['ROR']))
+    
+    if 'labels' in df_columns:
+        affiliations_parts.append(parse_affiliation_field(df['labels'], replace_spaces=True))
+    
+    # Combiner toutes les affiliations
+    if affiliations_parts:
+        bso_local_affiliations = [
+            sum(parts, [])  # Aplatir les listes
+            for parts in zip(*affiliations_parts)
+        ]
+    else:
+        bso_local_affiliations = [[] for _ in range(len(df))]
+    
+    # Traiter les DOIs
+    if 'doi' in df_columns:
+        doi_mask = df['doi'].notna() & (df['doi'] != 'nan') & (df['doi'].astype(str).str.strip() != '')
+        
+        if doi_mask.any():
+            # Nettoyer les DOIs de manière vectorisée
+            dois_clean = df.loc[doi_mask, 'doi'].apply(clean_doi)
+            valid_dois_mask = dois_clean.notna()
+            
+            # Créer les éléments pour les DOIs valides
+            valid_indices = df[doi_mask][valid_dois_mask].index
+            for idx in valid_indices:
+                idx_pos = df.index.get_loc(idx)
+                id_clean = dois_clean.loc[idx]
+                elt = {
+                    'id': 'doi' + id_clean,
+                    'doi': id_clean,
+                    'sources': [filename],
+                    'bso_local_affiliations': bso_local_affiliations[idx_pos],
+                    'bso_country': ['fr']
+                }
+                res['doi'].append(elt)
+    
+    nb_dois = len(res['doi'])
+    
+    # Traiter les HAL IDs
+    if 'hal_id' in df_columns:
+        hal_mask = df['hal_id'].notna() & (df['hal_id'] != 'nan') & (df['hal_id'].astype(str).str.strip() != '')
+        
+        if hal_mask.any():
+            # Nettoyer les HAL IDs de manière vectorisée
+            hal_ids_clean = df.loc[hal_mask, 'hal_id'].apply(get_clean_id)
+            
+            # Créer les éléments pour les HAL IDs
+            valid_indices = df[hal_mask].index
+            for idx in valid_indices:
+                idx_pos = df.index.get_loc(idx)
+                id_clean = hal_ids_clean.loc[idx]
+                elt = {
+                    'id': 'hal' + id_clean,
+                    'hal_id': id_clean,
+                    'sources': [filename],
+                    'bso_local_affiliations': bso_local_affiliations[idx_pos],
+                    'bso_country': ['fr']
+                }
+                res['hal_id'].append(elt)
+    
+    nb_hal_ids = len(res['hal_id'])
+    
+    logger.debug(f'{filename} with {nb_dois} dois and {nb_hal_ids} hal_ids')
+    return res
 
 def get_dois_from_input(filename: str) -> list:
     target = f'{MOUNTED_VOLUME}/bso_local/{filename}'
@@ -201,7 +298,7 @@ def get_dois_from_input(filename: str) -> list:
         if doi_columns and ';' in doi_columns[0]:
             df = pd.read_csv(target, sep=';')
     if filename.startswith('FULLETAB_'):
-        return get_data_full_from_input(df, filename)
+        return get_data_full_from_input_fast(df, filename)
     current_affiliation = filename.split('.')[0]
     doi_columns = [c for c in df.columns if 'doi' in c.lower()]
     if len(doi_columns) > 0:
@@ -223,10 +320,10 @@ def get_dois_from_input(filename: str) -> list:
         filtered_columns += ['bso_country']
     elts_with_id = []
     grant_ids = []
-    for row in df[filtered_columns].itertuples():
+    for row in df[filtered_columns].to_dict(orient='records'):
         clean_id = None
-        if isinstance(row.doi, str):
-            clean_id = clean_doi(row.doi)
+        if isinstance(row['doi'], str):
+            clean_id = clean_doi(row['doi'])
             elt = {'id': f'doi{clean_id}', 'doi': clean_id}
         #elif isinstance(row.hal_id, str):
         #    clean_id = clean_hal_id(row.hal_id)
@@ -234,17 +331,17 @@ def get_dois_from_input(filename: str) -> list:
         if clean_id is None or len(clean_id)<5:
             continue
         if 'project_id' in filtered_columns:
-            if isinstance(row.project_id, str):
-                current_grant = {'grantid': str(row.project_id), 'agency': row.agency}
+            if isinstance(row['project_id'], str):
+                current_grant = {'grantid': str(row['project_id']), 'agency': row['agency']}
                 if 'funding_year' in filtered_columns:
-                    current_grant['funding_year'] = row.funding_year
+                    current_grant['funding_year'] = row['funding_year']
                 elt['grants'] = [current_grant]
                 elt['has_grant'] = True
-                grant_ids.append(row.project_id)
+                grant_ids.append(row['project_id'])
         elt['bso_country'] = ['fr']
         if 'bso_country' in filtered_columns:
-            if isinstance(row.bso_country, str):
-                elt['bso_country'] = [row.bso_country]
+            if isinstance(row['bso_country'], str):
+                elt['bso_country'] = [row['bso_country']]
         elt['sources'] = [filename]
         elt['bso_local_affiliations']=[current_affiliation]
         elts_with_id.append(elt)
