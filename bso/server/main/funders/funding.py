@@ -18,7 +18,10 @@ def normalize_grant(grant):
         current_grant = grant.copy()
         current_grant['grantid'] = grantid
         if 'funding_year' in grant and not isinstance(grant['funding_year'], int):
-            current_grant['funding_year'] = int(grant['funding_year'])
+            try:
+                current_grant['funding_year'] = int(grant['funding_year'])
+            except:
+                pass
         # ANR
         if grantid[0:4].upper()=='ANR-':
             grant_anr = get_anr_details(grantid)
