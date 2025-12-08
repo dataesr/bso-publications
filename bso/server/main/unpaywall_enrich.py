@@ -175,9 +175,10 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
                 #if isinstance(last_name, str):
                 #    full_name += last_name
                 #    a['last_name'] = last_name.strip()
-                full_name = full_name.strip()
-                if full_name:
-                    a['full_name'] = full_name
+                if isinstance(full_name, str):
+                    full_name = full_name.strip()
+                    if full_name:
+                        a['full_name'] = full_name
                 a['datasource'] = 'crossref'
                 a['author_position'] = ix + 1
         

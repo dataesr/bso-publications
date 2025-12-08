@@ -282,8 +282,10 @@ def run_task_et_bso_all():
     args_transform['extract'] = False
     args_transform['transform'] = True
 
+    nb_workers = args.get('nb_workers', 7)
+
     transform_tasks = []
-    for idx in range(0, 8):
+    for idx in range(0, nb_workers):
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             q = Queue(name='bso-publications', default_timeout=default_timeout)
             current_args_transform = args_transform.copy()
@@ -326,8 +328,9 @@ def run_task_et_scanr_all():
         args_transform['transform_scanr'] = True
     else:
         args_transform['transform_scanr'] = False
-    
-    for idx in range(0, 9):
+
+    nb_workers = args.get('nb_workers', 10) 
+    for idx in range(0, nb_workers):
         with Connection(redis.from_url(current_app.config['REDIS_URL'])):
             q = Queue(name='scanr-publications', default_timeout=default_timeout)
             current_args_transform = args_transform.copy()
