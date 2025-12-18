@@ -231,7 +231,8 @@ def reset_index_scanr(index: str) -> None:
             }
     
     for f in ['title.default', 'affiliations.label.default', 'authors.firstName', 'authors.lastName', 'authors.fullName', 'authors.affiliations.name', 
-              'source.title', 'keywords.default', 'domains.label.default', 'project.label.default']: 
+              'source.title', 'keywords.default', 'domains.label.default', 'project.label.default',
+              'structured_acknowledgments.private_companies.entity', 'structured_acknowledgments.infrastructures.entity', 'structured_acknowledgments.funders.entity']: 
         mappings['properties'][f] = { 
                 'type': 'text',
                 'analyzer': 'light',
@@ -247,7 +248,7 @@ def reset_index_scanr(index: str) -> None:
                 'analyzer': 'light',
             }
 
-    for f in ['title_abs_text']:
+    for f in ['title_abs_text', 'structured_acknowledgments.text']:
         mappings['properties'][f] = { 
                 'type': 'text',
                 'analyzer': 'heavy',

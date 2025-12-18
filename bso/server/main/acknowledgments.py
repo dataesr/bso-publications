@@ -37,18 +37,18 @@ def enrich_with_acknowledgments(publications):
     ids = [k['id'] for k in publications]
     res = get_acknowledgments_v2(ids)
     current_dict = {}
-    current_dict_llm = {}
+    #current_dict_llm = {}
     #for k in res:
     #    current_dict[k['doi']] = k
     #for k in res_llm:
     #    current_dict_llm[k['id']] = k
     for k in res:
-        current_dict[k['publication_id']] = k
+        current_dict[k['publication_id']] = {'structured_acknowledgments': k}
     for p in publications:
         #if p['id'][3:] in current_dict:
         #    p.update(current_dict[p['id'][3:]])
         #if p['id'] in current_dict_llm:
         #    p.update(current_dict_llm[p['id']])
         if p['id'] in current_dict:
-            p.update(current_dict_llm[p['id']])
+            p.update(current_dict[p['id']])
     return publications
