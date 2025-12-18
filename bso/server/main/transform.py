@@ -62,7 +62,8 @@ def transform_publications(publications, index_name, observations, affiliation_m
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
     # corrections 
-    publications = [clean_softcite(p) for p in publications]
+    is_bso = 'bso-' in index_name
+    publications = [clean_softcite(p, is_bso) for p in publications]
     # correct detected countries from previous affiliation-matcher
     publications = [remove_wrong_match(p) for p in publications]
     # publis_chunks = list(chunks(publications, 20000))
@@ -313,9 +314,11 @@ def remove_too_long_affiliation(publi):
     return publi
 
 
-def clean_softcite(publi):
+def clean_softcite(publi, is_bso):
     for d in ['softcite_details', 'datastet_details']:
         if isinstance(publi.get(d), dict) and isinstance(publi[d].get('raw_mentions'), list):
+            if is_bso:
+                publi[d]['raw_mentions'] = [] # to reduce the number of fields indexed in es
             for r in publi[d]['raw_mentions']:
                 for s in ['references', 'url', 'language', 'publisher']:
                     if isinstance(r.get(s), dict):
