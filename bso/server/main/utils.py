@@ -15,6 +15,7 @@ from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_U
 from bso.server.main.logger import get_logger
 from bso.server.main.utils_swift import get_objects_by_page, upload_object
 
+EXCLUDED_ID = ['881000251']
 FRENCH_ALPHA2 = ['fr', 'gp', 'gf', 'mq', 're', 'yt', 'pm', 'mf', 'bl', 'wf', 'tf', 'nc', 'pf']
 logger = get_logger(__name__)
 
@@ -25,6 +26,19 @@ def get_all_manual_matches():
     return matches
 
 def clean_json(elt):
+    if isinstance(elt, dict):
+        keys = list(elt.keys()).copy()
+        for f in keys:
+            if (not elt[f] == elt[f]) or (elt[f] is None):
+                del elt[f]
+            else:
+                elt[f] = clean_json(elt[f])
+    elif isinstance(elt, list):
+        for ix, k in enumerate(elt):
+            elt[ix] = clean_json(elt[ix])
+    return elt
+
+def clean_json_old(elt):
     keys = list(elt.keys()).copy()
     for f in keys:
         if isinstance(elt[f], dict):

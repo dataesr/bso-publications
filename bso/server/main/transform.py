@@ -20,7 +20,7 @@ os.makedirs(MOUNTED_VOLUME, exist_ok=True)
             
 def remove_extra_fields(res): 
     # Not exposing some fields in index
-    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw', 'publication_date', 'publication_year']:
+    for f in ['references', 'abstract', 'incipit', 'abbreviations', 'academic_editor', 'accepted_date', 'acknowledgments', 'amonline_date', 'article_type', 'author_version_available', 'citation', 'conference_date', 'conference_location', 'conference_title', 'copyright', 'corrected and typeset_date', 'data_availability', 'databank', 'download_citation', 'editor', 'editorial decision_date', 'first_published_date', 'first_published_online_date', 'footnotes', 'images', 'issn_electronic', 'issn_print', 'modified_date', 'online_date', 'permissions', 'presentation', 'provenance', 'publication_types', 'received_date', 'revised_date', 'revision received_date', 'revision requested_date', 'revisions_received_date', 'submitted_date', 'z_authors', 'title_first_author', 'title_first_author_raw', 'publication_date', 'publication_year', 'cited_by_counts_by_year', 'coi', 'competing_interests']:
         if f in res:
             del res[f]
     if isinstance(res.get('affiliations'), list):
@@ -29,6 +29,10 @@ def remove_extra_fields(res):
                 for f in ['BNF', 'ISNI', 'address-line"', 'addresses', 'alias_idref', 'aliases', 'comments', 'department', 'address', 'zipcode', 'orgs', 'city', 'country', 'place']:
                     if aff.get(f):
                         del aff[f]
+    if isinstance(res.get('oa_details'), dict):
+        for k in res['oa_details']:
+            if res['oa_details'][k].get('oa_locations'):
+                del res['oa_details'][k]['oa_locations']
     return res
 
 
@@ -57,7 +61,6 @@ def remove_fields_bso(res):
         #                del aff[k]
     return remove_extra_fields(res)
 
-
 def transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, write_mode, hal_dates):
     # list and remove the NaN
     publications = [{k:v for k, v in x.items() if v == v and k not in ['_id'] } for x in publications]
@@ -70,8 +73,8 @@ def transform_publications(publications, index_name, observations, affiliation_m
     enriched_publications = enrich(publications=publications, observations=observations, affiliation_matching=affiliation_matching,
         entity_fishing=entity_fishing, datasource=None, last_observation_date_only=False, hal_dates=hal_dates, index_name=index_name)
     if 'bso-publications' in index_name:
-        enriched_publications = [remove_fields_bso(p) for p in enriched_publications if p.get('oa_details', False)]
         enriched_publications = enrich_with_openalex(enriched_publications)
+        enriched_publications = [remove_fields_bso(p) for p in enriched_publications if p.get('oa_details', False)]
     enriched_publications = [remove_too_long_affiliation(p) for p in enriched_publications]
     to_jsonl(enriched_publications, enriched_output_file, write_mode)
 

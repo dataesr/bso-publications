@@ -7,7 +7,7 @@ from urllib import parse
 
 from bso.server.main.bso_utils import dict_to_csv
 from bso.server.main.config import ES_LOGIN_BSO_BACK, ES_PASSWORD_BSO_BACK, ES_URL, MOUNTED_VOLUME
-from bso.server.main.denormalize_affiliations import get_orga_data, get_projects_data, get_correspondance
+from bso.server.main.denormalize_affiliations import get_orga_map, get_projects_data, get_correspondance
 from bso.server.main.elastic import reset_index, reset_index_scanr, refresh_index
 from bso.server.main.extract import extract_one_bso_local, extract_container, extract_orcid, extract_fixed_list, extract_manual, build_bso_local_dict, get_bso_local_filenames, aggregate_parsed_data
 from bso.server.main.logger import get_logger
@@ -209,7 +209,7 @@ def etl(args):
             reset_index_scanr(index=full_index_name)
         assert('bso' not in index_name)
         assert('scanr' in index_name)
-        df_orga = get_orga_data()
+        orga_map = get_orga_map()
         df_project = get_projects_data()
         # scanr_output_file = enriched_output_file.replace('.jsonl', '_export_scanr.json')
         # os.system(f'rm -rf {scanr_output_file}')
@@ -239,9 +239,9 @@ def etl(args):
             publications = enrich_with_acknowledgments(publications)
             publications = add_teds_predictions(publications)
             publications = add_tags(publications)
-            publications_scanr = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = False, ix=split_idx)
+            publications_scanr = to_scanr(publications = publications, orga_map=orga_map, df_project=df_project, correspondance=correspondance, denormalize = False, ix=split_idx)
             # denormalized
-            publications_scanr_denormalized = to_scanr(publications = publications, df_orga=df_orga, df_project=df_project, correspondance=correspondance, denormalize = True, ix=split_idx)
+            publications_scanr_denormalized = to_scanr(publications = publications, orga_map=orga_map, df_project=df_project, correspondance=correspondance, denormalize = True, ix=split_idx)
             to_jsonl(publications_scanr_denormalized, scanr_output_file_denormalized)
             # elements to be re-used in the person file
             if update_mongo:

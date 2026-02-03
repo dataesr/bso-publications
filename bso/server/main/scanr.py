@@ -160,7 +160,7 @@ def fix_patents(patents):
             patents[i_p]['patents'] = subpatents
     return patents
 
-def to_scanr_patents(patents, df_orga, denormalize=False):
+def to_scanr_patents(patents, orga_map, denormalize=False):
     res = []
     for patent in patents:
         if denormalize:
@@ -168,7 +168,7 @@ def to_scanr_patents(patents, df_orga, denormalize=False):
             affiliations = patent.get('affiliations', [])
             if affiliations:
                 for aff in affiliations:
-                    denormalized = get_orga(df_orga, aff)
+                    denormalized = get_orga(orga_map, aff)
                     if denormalized:
                         denormalized_affiliations.append(denormalized)
             if denormalized_affiliations:
@@ -202,7 +202,7 @@ def get_vip_dict():
     return
 
 
-def to_scanr(publications, df_orga, df_project, correspondance, denormalize = False, ix=0):
+def to_scanr(publications, orga_map, df_project, correspondance, denormalize = False, ix=0):
     logger.debug(f'to_scanr denormalize = {denormalize}')
     global vip_dict
     global vip_corresp_to_idref
@@ -238,7 +238,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
         if p.get('title') and isinstance(p['title'], str) and len(p['title'])>2:
             elt['title'] = {'default': p['title']}
             title_abs_text = p['title']
-            if title_lang:
+            if title_lang and title_lang in ['fr', 'en']:
                 elt['title'][title_lang] = p['title']
                 text_to_autocomplete.append(p['title'])
         else:
@@ -504,7 +504,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
             affiliations = elt.get('affiliations')
             if isinstance(affiliations, list) and len(affiliations) > 0:
                 for aff in affiliations:
-                    denormalized = get_orga(df_orga, aff)
+                    denormalized = get_orga(orga_map, aff)
                     if denormalized and (denormalized not in denormalized_affiliations):
                         denormalized_affiliations.append(denormalized)
                         assert(isinstance(denormalized, dict))
@@ -545,7 +545,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                             for x in aff['ids']:
                                 if x.get('id'):
                                     affiliations_ids.append(x['id'])
-                        for t in ['grid', 'ror', 'rnsr', 'sirene', 'siren', 'siret', 'ed']:
+                        for t in ['grid', 'ror', 'rnsr', 'sirene', 'siren', 'siret', 'ed', 'paysage']:
                             if isinstance(aff.get(t), list):
                                 for x in aff[t]:
                                     if x not in affiliations_ids:
@@ -595,7 +595,7 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                                     is_labo = True
                                     rnsr_id = id_elt['id']
                         if is_labo and isinstance(author.get('id_name'), str):
-                            denormalized = get_orga(df_orga, rnsr_id)
+                            denormalized = get_orga(orga_map, rnsr_id)
                             if denormalized.get('id_name') and denormalized.get('status') == 'active' and denormalized.get('level') == 'Unité de recherche':
                                 raw_aff['id_name_author_labo'] = author['id_name'] + "###" + denormalized['id_name']
                         if is_labo and isinstance(author.get('toIdentify'), str):
@@ -680,15 +680,15 @@ def to_scanr(publications, df_orga, df_project, correspondance, denormalize = Fa
                 if co_authors_simple:
                     elt['co_authors_simple'] = co_authors_simple
             # affiliations network
-            if denormalized_affiliations:
+            if denormalized_affiliations and isinstance(denormalized_affiliations, list):
                 co_countries = get_co_occurences(denormalized_affiliations, 'country')
                 if co_countries:
                     elt['co_countries'] = co_countries
-                structures_to_combine = [a for a in denormalized_affiliations if (('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active') and (a.get('level') == 'Unité de recherche'))]
+                structures_to_combine = [a for a in denormalized_affiliations if (isinstance(a.get('kind'), list) and ('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active') and (a.get('level') == 'Unité de recherche'))]
                 co_structures = get_co_occurences(structures_to_combine, 'id_name')
                 if co_structures:
                     elt['co_structures'] = co_structures
-                institutions_to_combine = [a for a in denormalized_affiliations if (('Structure de recherche' not in a.get('kind', [])) and (a.get('status') == 'active'))]
+                institutions_to_combine = [a for a in denormalized_affiliations if (isinstance(a.get('kind'), list) and ('Structure de recherche' not in a.get('kind', [])) and (a.get('status') == 'active'))]
                 co_institutions = get_co_occurences(institutions_to_combine, 'id_name')
                 if co_institutions:
                     elt['co_institutions'] = co_institutions
