@@ -576,6 +576,26 @@ def to_scanr(publications, orga_map, df_project, correspondance, denormalize = F
                             for f in ['orcid', 'id_hal']:
                                 if extra_info.get(f):
                                     author['denormalized'][f] = extra_info[f]
+                            prizes = extra_info.get("prizes")
+                            if isinstance(prizes, list):
+                                awards = []
+                                for p in prizes:
+                                    award = {}
+                                    if p.get("prize_name"):
+                                        award["label"] = p["prize_name"]
+                                    if p.get("prize_structure"):
+                                        award["structure"] = p["prize_structure"]
+                                    if p.get("prize_date"):
+                                        try:
+                                            award["date"] = dateutil.parser.parse(p["prize_date"]).isoformat()
+                                        except:
+                                            logger.debug(f"award date not valid : {p['prize_date']}")
+                                    if p.get("prize_url"):
+                                        award["url"] = p["prize_url"]
+                                    if award:
+                                        awards.append(award)
+                                if awards:
+                                    author["awards"] = sorted(awards, key=lambda x: x.get("date", "0000"), reverse=True)
                         author['id_name'] = aut['id']+'###'+fullName
                 if aut.get('id') is None and isFrench == 'FR' and aut.get('first_name') and aut.get('last_name') and len(aut['first_name']) > 3 and len(aut['last_name']) > 3:
                     author['toIdentify'] = aut['last_name']+'###'+aut['first_name']
