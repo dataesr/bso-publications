@@ -705,10 +705,14 @@ def to_scanr(publications, orga_map, df_project, correspondance, denormalize = F
                 if co_countries:
                     elt['co_countries'] = co_countries
                 structures_to_combine = [a for a in denormalized_affiliations if (isinstance(a.get('kind'), list) and ('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active') and (a.get('level') == 'Unité de recherche'))]
+                if structures_to_combine:
+                    elt['structures'] = structures_to_combine
                 co_structures = get_co_occurences(structures_to_combine, 'id_name')
                 if co_structures:
                     elt['co_structures'] = co_structures
                 institutions_to_combine = [a for a in denormalized_affiliations if (isinstance(a.get('kind'), list) and ('Structure de recherche' not in a.get('kind', [])) and (a.get('status') == 'active'))]
+                if institutions_to_combine:
+                    elt['institutions'] = institutions_to_combine
                 co_institutions = get_co_occurences(institutions_to_combine, 'id_name')
                 if co_institutions:
                     elt['co_institutions'] = co_institutions
