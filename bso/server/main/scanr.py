@@ -5,6 +5,7 @@ import itertools
 import pandas as pd
 import random
 import dateutil.parser
+from functools import reduce
 from retry import retry
 
 from bso.server.main.logger import get_logger
@@ -701,10 +702,10 @@ def to_scanr(publications, orga_map, df_project, correspondance, denormalize = F
                     elt['co_authors_simple'] = co_authors_simple
             # affiliations network
             if denormalized_affiliations and isinstance(denormalized_affiliations, list):
-                co_countries = get_co_occurences(denormalized_affiliations, 'country')
+                co_countries = get_co_occurences(denormalized_affiliations, 'mainAddress.country')
                 if co_countries:
                     elt['co_countries'] = co_countries
-                structures_to_combine = [a for a in denormalized_affiliations if (isinstance(a.get('kind'), list) and ('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active') and (a.get('level') == 'Unité de recherche'))]
+                structures_to_combine = [a for a in denormalized_affiliations if (isinstance(a.get('kind'), list) and ('Structure de recherche' in a.get('kind', [])) and (a.get('status') == 'active') and (a.get('level')=="Unité de recherche"))]
                 if structures_to_combine:
                     elt['structures'] = structures_to_combine
                 co_structures = get_co_occurences(structures_to_combine, 'id_name')
@@ -743,8 +744,14 @@ def to_scanr(publications, orga_map, df_project, correspondance, denormalize = F
     return scanr_publications
 
 def get_co_occurences(my_list, my_field):
-    elts_to_combine = [a for a in my_list if a.get(my_field)]
-    values_to_combine = list(set([a[my_field] for a in elts_to_combine]))
+    values_to_combine = []
+    for e in my_list:
+        try:
+            val = reduce(lambda d, k: d[k], my_field.split("."), e)
+            if val not in values_to_combine:
+                values_to_combine.append(val)
+        except:
+            continue
     values_to_combine.sort()
     if len(values_to_combine) <= NB_MAX_CO_ELEMENTS:
         combinations = list(set(itertools.combinations(values_to_combine, 2)))

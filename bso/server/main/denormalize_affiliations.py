@@ -105,7 +105,7 @@ def get_orga_map():
     for elt in data:
         res = {}
         data_to_encode = {}
-        for e in ['id', 'kind', 'label', 'acronym', 'status', 'institutions', 'parents', 'isFrench', 'main_category', 'categories', 'is_main_parent', 'typologie_1', 'typologie_2']:
+        for e in ['id', 'kind', 'label', 'acronym', 'status', 'isFrench', 'is_main_parent', 'typologie_1', 'typologie_2', 'level']:
             if elt.get(e):
                 res[e] = elt[e]
         for k in ['id', 'typologie_1', 'typologie_2']:
@@ -115,10 +115,6 @@ def get_orga_map():
         if panel_erc:
             res['panel_erc'] = panel_erc
             data_to_encode['panel_erc'] = panel_erc
-        #typologie = get_typologie(elt)
-        #if typologie:
-        #    res.update(typologie)
-        #    data_to_encode.update(typologie)
         if isinstance(elt.get('address'), list):
             res['mainAddress'] = get_main_address(elt['address'])
             if isinstance(res['mainAddress'], dict):
@@ -128,18 +124,9 @@ def get_orga_map():
                     data_to_encode['city'] = res['mainAddress'].get('city')
                 if isinstance(res['mainAddress'].get('region'), str):
                     data_to_encode['region'] = res['mainAddress'].get('region')
-                #if isinstance(res['mainAddress'].get('postcode'), str):
-                #    if elt.get('isFrench'):
-                #        region = get_region(res['mainAddress'].get('postcode'))
-                #        res['mainAddress']['region'] = region
-                #        data_to_encode['region'] = region
-        #res['isFrench'] = compute_is_french(elt['id'], res.get('mainAddress'))
-        #if res['isFrench']:
-        #    try:
-        #        assert(res.get('mainAddress', {}).get('country', '') == 'France')
-        #    except:
-        #        logger.debug('should be France')
-        #        logger.debug(res.get('mainAddress'))
+                for k in ['gps', 'postcode', 'address']:
+                    if k in res['mainAddress']:
+                        del res['mainAddress'][k]
         if res.get('status') == 'valid':
             res['status'] = 'active'
         assert(res.get('status') in ['active', 'old'])
