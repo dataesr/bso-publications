@@ -1,18 +1,24 @@
 # Python
+__pycache__
 *.pyc
 *.mypy_cache*
+*.pyi
+.cache
 .mypy*
 venv
+tests/*
 
 # Unit tests
 .pytest_cache/
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+notebooks/*
 
 # IDE
 .idea
 .vscode
+.zed
 
 # Logs
 *.log
@@ -22,5 +28,6 @@ dist
 *.egg-info
 
 # Documentation outputs
+doc
 doc/out.*
 doc/bso.tex
