@@ -4,6 +4,7 @@ import string
 import pandas as pd
 import requests
 from currency_converter import CurrencyConverter
+from retry import retry
 
 from bso.server.main.logger import get_logger
 
@@ -36,6 +37,7 @@ def split_currency(x):
         return None
     return {'amount': amount, 'currency': currency}
 
+@retry(delay=2, tries=50, logger=logger)
 def init_doaj():
     logger.debug('init DOAJ infos')
     s = requests.get('https://doaj.org/csv').content
