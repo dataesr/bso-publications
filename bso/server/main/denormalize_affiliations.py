@@ -174,6 +174,10 @@ def get_projects_data():
         for e in ['id', 'label', 'acronym', 'type', 'year']:
             if elt.get(e):
                 res[e] = elt[e]
+        if res.get('acronym'):
+            res['id_name'] = res['id'] + '###' + res['acronym']
+        else:
+            res['id_name'] = res['id'] + '###' + res['id']
         proj_map[elt['id']] = res
     return proj_map
 
