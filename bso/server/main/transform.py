@@ -30,7 +30,10 @@ def remove_extra_fields(res):
                     if aff.get(f):
                         del aff[f]
     if isinstance(res.get('oa_details'), dict):
+        millesimes = list(res['oa_details'].keys())
         for k in res['oa_details']:
+            if k == max(millesimes):
+                continue # on ne garde que les oa_locations les plus récentes
             if res['oa_details'][k].get('oa_locations'):
                 del res['oa_details'][k]['oa_locations']
     return res
