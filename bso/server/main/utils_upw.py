@@ -141,6 +141,10 @@ def format_upw_millesime(elem: dict, asof: str, has_apc: bool, publisher: str, g
         licence = normalize_license(loc.get('license'))
         loc['license_normalized'] = licence
         host_type = loc.get('host_type')
+        if isinstance(loc.get('pmh_id'), str):
+            for platform in ['openedition', 'mdpi', 'springer', 'wiley', 'cairn', 'doaj.org']:#sometimes, unpaywall mis-classifies publisher OAI as a repository - this fixes it
+                if platform in loc['pmh_id']:
+                    host_type = 'publisher'
         if host_type == 'repository':
             current_repo_instit = loc.get('repository_institution')
             current_repo_url = None
