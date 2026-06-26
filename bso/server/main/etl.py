@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import pymongo
 import requests
+import time
 
 from urllib import parse
 
@@ -294,7 +295,8 @@ def finalize(args):
     #    output_dir = f'{MOUNTED_VOLUME}scanr-split'
     if 'bso' in index_name:
         collect_splitted_files(index_name, output_dir)
-        delete_temporary_files(args)
+        # TODO debug why final files are empty
+        #delete_temporary_files(args)
 
 
 def drop_collection(db, collection_name):
@@ -468,7 +470,7 @@ def collect_splitted_files(index_name, output_dir):
             logger.debug(f'cat {f} >> {target}')
             os.system(f'cat {f} >> {target}')
         if 'bso' in index_name:
-            zip_upload(target)
+            zip_upload(a_file = target, delete = False)
         if 'scanr' in index_name and target == f'/upw_data/{index_name}_export_scanr_denormalized.jsonl':
             logger.debug('moving file and gzip')
             os.system(f'mv {target} /upw_data/scanr/publications_denormalized.jsonl && cd /upw_data/scanr/ && rm -rf publications_denormalized.jsonl.gz && gzip -k publications_denormalized.jsonl')
@@ -480,6 +482,7 @@ def zip_upload(a_file, delete=True):
     os.system(f'gzip {a_file}')
     upload_object(container='bso_dump', filename=f'{a_file}.gz')
     if delete:
+        time.sleep(30)
         os.system(f'rm -rf {a_file}.gz')
 
 
