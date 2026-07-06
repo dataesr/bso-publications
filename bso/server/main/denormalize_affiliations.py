@@ -19,29 +19,29 @@ def get_correspondance():
     df = df[~df.id.isin(EXCLUDED_ID)]
     #df = df.set_index('id')
     data = df.to_dict(orient='records')
-    correspondance = {}
     raw_rnsrs = data
+    correspondance = {}
     for r in raw_rnsrs:
-        current_id = None
+        current_id = r['id']
         externalIdsToKeep = [e for e in r.get('externalIds', []) if e['type'] in ['rnsr',  'ror', 'grid', 'bce', 'sirene', 'siren', 'siret', 'paysage', 'uai'] ]
-        for e in externalIdsToKeep:
-            e['main_id'] = r['id']
-            current_id = e['id']
-            if current_id not in correspondance:
-                correspondance[current_id] = []
-        if current_id is None:
-            continue
-        correspondance[current_id] += [k for k in externalIdsToKeep]
-        for e in r.get('externalIds', []):
-            if e['type'] in ['siren', 'siret', 'sirene', 'bce', 'grid', 'ror', 'bce', 'paysage', 'uai']:
-                new_id = e['id']
-                correspondance[new_id] += [k for k in externalIdsToKeep]
+        for e1 in externalIdsToKeep:
+            for e2 in externalIdsToKeep:
+                if e1['id'] not in correspondance:
+                    correspondance[e1['id']] = []
+                if e1['type'].startswith('sire'):
+                    if r['is_main_parent']:
+                        correspondance[e1['id']].append(e2)
+                    else:
+                        if e1['type'] == 'siret' and e2['type'] in ['paysage', 'ror']:
+                            correspondance[e1['id']].append(e2)
+                else:
+                    correspondance[e1['id']].append(e2)
         if isinstance(r.get('institutions'), list):
             for e in r.get('institutions'):
                 if isinstance(e, dict):
                     if e.get('structure'):
                         if isinstance(e.get('relationType'), str) and 'tutelle' in e['relationType'].lower():
-                            elt = {'id': e['structure'], 'type': 'siren'}
+                            elt = {'id': e['structure'], 'type': 'paysage'}
                             if elt not in correspondance[current_id]:
                                 correspondance[current_id].append(elt)
     logger.debug(f'{len(correspondance)} ids loaded with equivalent ids')
