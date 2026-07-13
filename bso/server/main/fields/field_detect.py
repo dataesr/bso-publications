@@ -91,6 +91,7 @@ def detect_fields(a_publication, classification_types):
             assert(isinstance(a_publication['thesis_classification'], dict))
         elif classif_type == 'bso' and a_publication.get('hal_classification', []):
             a_publication['bso_classification'] = get_classification_hal(a_publication['hal_classification'])['discipline']
+            a_publication['bso_classification_method'] = 'HAL'
             assert(isinstance(a_publication['bso_classification'], str))
         elif classif_type == 'embeddings':
             embeddings = get_embeddings(a_publication)
