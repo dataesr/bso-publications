@@ -59,33 +59,6 @@ def get_main_address(address):
         for f in ['main', 'citycode', 'urbanUnitCode', 'urbanUnitLabel', 'provider', 'score']:
             if main_add.get(f):
                 del main_add[f]
-    # Standardize the country name by the French translation
-    others_countries = {
-        'Côte d’ivoire': 'Côte d\'Ivoire',
-        'Côte d\'ivoire': 'Côte d\'Ivoire',
-        'Czechia': 'République tchèque',
-        'Dr congo': 'Congo (Rép. dém.)',
-        'États-unis d\'amérique': 'Etats-Unis',
-        'Ivory coast': 'Côte d\'Ivoire',
-        'New caledonia': 'France',
-        'North macedonia': 'Macédoine du Nord',
-        'Nouvelle-calédonie': 'France',
-        'Ouganda': 'Ouganda',
-        'Rép. moldave': 'Moldavie',
-        'Rép. tchèque': 'République tchèque',
-        'South korea': 'Corée du Sud',
-        'The netherlands': 'Pays-Bas'
-    }
-    if 'country' in main_add:
-        response = requests.get(
-            f"https://data.enseignementsup-recherche.gouv.fr/api/explore/v2.1/catalog/datasets/curiexplore-pays/records/?limit=10&offset=0&where=(search(\"{main_add.get('country')}\"))",
-            headers={ 'Content-Type': 'application/json' }
-        )
-        result = response.json()
-        if result.get('total_count', 0) > 0:
-            main_add['country'] = result.get('results', [])[0].get('name_fr')
-        elif main_add.get('country') in others_countries:
-            main_add['country'] = others_countries[main_add.get('country')]
     return main_add
 
 def get_name_by_lang(e, lang):
