@@ -188,7 +188,7 @@ def etl(args):
             publications = c.to_dict(orient='records')
             transform_publications(publications, index_name, observations, affiliation_matching, entity_fishing, enriched_output_file, 'a', hal_dates)
 
-        if 'bso' in index_name:
+        if 'bso' in index_name and os.path.isfile(before_transform_file): # uniquement si le fichier existe bien
             assert('scanr' not in index_name)
             elasticimport = f"elasticdump --input={enriched_output_file} --output={es_host}{index_name} --type=data --limit 50 --noRefresh " + "--transform='doc._source=Object.assign({},doc)'"
             os.system(elasticimport)
