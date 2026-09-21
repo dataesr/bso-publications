@@ -19,11 +19,17 @@ jobs:
       - name: 🔑 Login ghcr.io
         run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🐋 Build Docker image
-        run: make docker-build
+      - name: 🐋 Build Docker image BSO
+        run: make docker-build-bso
 
-      - name: 📦 Push Docker image
-        run: make docker-push
+      - name: 📦 Push Docker image BSO
+        run: make docker-push-bso
+
+      - name: 🐋 Build Docker image scanR
+        run: make docker-build-scanr
+
+      - name: 📦 Push Docker image scanR
+        run: make docker-push-scanr
 
   release:
     name: Create new release

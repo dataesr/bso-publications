@@ -1,9 +1,29 @@
 # Baromètre publications
-[![Discord Follow](https://dcbadge.vercel.app/api/server/TudsqDqTqb?style=flat)](https://discord.gg/TudsqDqTqb)
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/TudsqDqTqb)
 ![GitHub](https://img.shields.io/github/license/dataesr/bso-publications)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/dataesr/bso-publications)
 ![Release](https://github.com/dataesr/bso-publications/actions/workflows/release.yml/badge.svg)
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dataesr/bso-publications)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dataesr/bso-publications)
+
+
+## Commands to create a Docker image, to push it and to create a new release
+
+```shell
+make docker-build-bso # Build a Docker image for BSO
+make docker-build-scanr # Build a Docker image for scanR
+make docker-push-bso # Push the previously built Docker image for BSO
+make docker-push-scanr # Push the previously built Docker image for scanR
+make release-bso VERSION=X.X.X # To create a new release for BSO
+make release-scanr VERSION=X.X.X # To create a new release for scanR
+```
+
+
+## Generate publication
+```shell
+cd doc
+sh build_pdf.sh
+```
+
 
 ## API
 
@@ -65,26 +85,4 @@ body['aggs'] = {}
 body['size'] = 1
 res = es.search(index=ES_INDEX, body=body)
 res
-```
-
-## Release
-To create a new release:
-```shell
-make release VERSION=X.X.X
-```
-
-## Commands
-
-To build a Docker image:
-
-`make docker-build`
-
-To publish the previously built image:
-
-`make docker-push`
-
-## Generate publication
-```shell
-cd doc
-sh build_pdf.sh
 ```
