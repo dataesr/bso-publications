@@ -722,6 +722,10 @@ def extract_manual(bso_local_dict, collection_name, locals_data):
     for p in manual_infos.to_dict(orient='records'):
         e = clean_json(p)
         elt = {'bso_country': ['other'], 'sources': ['manual_input']}
+        if 'publi_id' not in e:
+            continue
+        if 'person_id' not in e:
+            continue
         e['id'] = e['publi_id']
         if e['id'][0:3] == 'doi':
             elt['doi'] = e['id'][3:]
