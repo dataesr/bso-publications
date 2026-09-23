@@ -14,27 +14,40 @@ install:
 	pip install -r requirements.txt
 	@echo End of dependencies installation
 
-docker-build:
-	@echo Building a new docker image
+docker-build-bso:
+	@echo Building a new docker image for BSO
 	docker build -t $(GHCR_IMAGE_NAME):$(CURRENT_VERSION) -t $(GHCR_IMAGE_NAME):latest .
-	@echo Docker image built
+	@echo Docker image built for BSO
 
-docker-push:
-	@echo Pushing a new docker image
+docker-build-scanr:
+	@echo Building a new docker image for scanR
+	echo "__version__ = '$(CURRENT_VERSION)-scanr'" > bso/__init__.py
+	docker build -t $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)-scanr -t $(GHCR_IMAGE_NAME):latest .
+	echo "__version__ = '$(CURRENT_VERSION)'" > bso/__init__.py
+	@echo Docker image built for scanR
+
+docker-push-bso:
+	@echo Pushing a new docker image for BSO
 	docker push -a $(GHCR_IMAGE_NAME)
-	@echo Docker image pushed
+	@echo Docker image pushed for BSO
 
-release:
+docker-push-scanr:
+	@echo Pushing a new docker image for scanR
+	echo "__version__ = '$(CURRENT_VERSION)-scanr'" > bso/__init__.py
+	docker push -a $(GHCR_IMAGE_NAME)
+	echo "__version__ = '$(CURRENT_VERSION)'" > bso/__init__.py
+	@echo Docker image pushed for scanR
+
+release-bso:
 	echo "__version__ = '$(VERSION)'" > bso/__init__.py
 	git commit -am '[release] version $(VERSION)'
 	git tag $(VERSION)
 	@echo If everything is OK, you can push with tags i.e. git push origin main --tags
 
 release-scanr:
+	@echo Building a new docker image for scanR
 	echo "__version__ = '$(CURRENT_VERSION)-scanr'" > bso/__init__.py
-	@echo Building scanr image $(CURRENT_VERSION)-scanr
 	docker build -t $(GHCR_IMAGE_NAME):$(CURRENT_VERSION)-scanr -t $(GHCR_IMAGE_NAME):latest .
-	@echo Pushing scanr image $(CURRENT_VERSION)-scanr
 	docker push -a $(GHCR_IMAGE_NAME)
-	@echo $(CURRENT_VERSION)-scanr image pushed
 	echo "__version__ = '$(CURRENT_VERSION)'" > bso/__init__.py
+	@echo Docker image pushed for scanR
