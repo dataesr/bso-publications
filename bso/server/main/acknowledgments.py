@@ -43,7 +43,12 @@ def enrich_with_acknowledgments(publications):
     #for k in res_llm:
     #    current_dict_llm[k['id']] = k
     for k in res:
-        current_dict[k['publication_id']] = {'structured_acknowledgments': k}
+        baguette_output = k['baguette_output']
+        for j in baguette_output:
+            for fi in ['CoT', 'style']:
+                if j.get(fi):
+                    j.pop(fi)
+        current_dict[k['publication_id']] = {'structured_acknowledgments': baguette_output }
     for p in publications:
         #if p['id'][3:] in current_dict:
         #    p.update(current_dict[p['id'][3:]])
