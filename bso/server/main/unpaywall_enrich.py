@@ -282,7 +282,13 @@ def format_upw(dois_infos: dict, publis_dict: dict, entity_fishing: bool, index_
         
         # OA Details
         has_oa_info_from_doi = False
-        if isinstance(doi, str) and doi in dois_infos:
+        # Unpaywall écrase les oa_details issus de l'extraction, sauf :
+        # - si le DOI est absent d'Unpaywall (pas de clé 'global' : get_unpaywall_history
+        #   initialise dois_infos[doi] = {} pour tout DOI demandé)
+        # - pour les thèses venant de theses.fr avec des oa_details : theses.fr est prioritaire.
+        # Dans tous les cas, les infos HAL sont fusionnées ensuite (logique OU).
+        is_these = 'theses' in (res.get('sources') or []) and bool(res.get('oa_details'))
+        if isinstance(doi, str) and (doi in dois_infos) and ('global' in dois_infos[doi]) and not is_these:
             has_oa_info_from_doi = True
             res['observation_dates'] = []
             res['oa_details'] = {}
