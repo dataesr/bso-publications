@@ -24,4 +24,7 @@ def create_app():
     app.register_blueprint(main_blueprint)
     # shell context for flask cli
     app.shell_context_processor({"app": app})
+    # check that elasticdump works (node version compatibility etc.)
+    from bso.server.main.elasticdump_check import check_elasticdump
+    check_elasticdump()
     return app
